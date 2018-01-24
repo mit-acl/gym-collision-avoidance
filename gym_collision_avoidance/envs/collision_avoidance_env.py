@@ -11,9 +11,11 @@ import numpy as np
 
 class Actions():
     def __init__(self):
+        # self.actions = np.linspace(-np.pi/3, np.pi/3, 9)
         self.actions = np.mgrid[1.0:1.1:0.5, -np.pi/3:np.pi/3+0.01:np.pi/9].reshape(2, -1).T
         self.actions = np.vstack([self.actions,np.mgrid[0.5:0.6:0.5, -np.pi/3:np.pi/3+0.01:np.pi/6].reshape(2, -1).T])
         self.actions = np.vstack([self.actions, np.array([0.0,0.0])])
+
         # self.actions = np.mgrid[0.5:1.1:0.5, -np.pi/3:np.pi/3+0.01:np.pi/9].reshape(2, -1).T
         # self.actions = np.mgrid[0.25:1.1:0.25, -np.pi/3:np.pi/3+0.01:np.pi/9].reshape(2, -1).T
         
@@ -30,7 +32,7 @@ class CollisionAvoidanceEnv(gym.Env):
         reward_at_goal = 1.0
         reward_collision = -0.25
         num_agents = 2
-        dt = 0.5
+        dt = 0.2
         self.reward_at_goal = reward_at_goal
         self.reward_collision = reward_collision
         # self.reward_getting_close = reward_getting_close
@@ -67,7 +69,7 @@ class CollisionAvoidanceEnv(gym.Env):
         self.min_action = -1.0
         self.max_action = 1.0
 
-        self.action_space = spaces.Discrete(3)
+        self.action_space = spaces.Discrete(self.actions.num_actions)
         # self.action_space = spaces.Box(self.min_action, self.max_action, shape = (1,))
         # self.action_space = spaces.Box(self.min_action, self.max_action, shape = (1,))
         self.observation_space = spaces.Box(self.low_state, self.high_state)
@@ -88,15 +90,12 @@ class CollisionAvoidanceEnv(gym.Env):
         if agent.is_at_goal or agent.in_collision:
             action_vector = np.array([0.0, 0.0]) # TODO Confirm this works?
         else:
-            if action == 0: selected_heading = -1.0
-            elif action == 1: selected_heading = 0.0
-            elif action == 2: selected_heading = 1.0
-            else: assert(0)
-            action_vector = np.array([agent.pref_speed, selected_heading])
+            speed_multiplier, selected_heading = self.actions.actions[action]
+            action_vector = np.array([agent.pref_speed*speed_multiplier, selected_heading])
         agent.update_state(action_vector, self.dt)
 
         # Reward
-        reward = 0
+        reward = -0.01
         collision = False
         agent = self.agents[0]
         if agent.is_at_goal:
@@ -126,9 +125,10 @@ class CollisionAvoidanceEnv(gym.Env):
         return next_observation, reward, done, {}
 
     def _reset(self):
-        goal_x = np.random.choice([-1,1])*np.random.uniform(4,7)
-        goal_y = np.random.uniform(-2,2)
-        self.agents = np.array([Agent(0,0,goal_x,goal_y,0.5,1.0,0.5,0), Agent(goal_x,goal_y+5,0,5,0.5,1.0,np.pi, 1)])
+        goal_x = np.random.choice([-1,1])*np.random.uniform(-7,7)
+        goal_y = np.random.uniform(-5,5)
+        initial_heading = np.random.uniform(-np.pi, np.pi)
+        self.agents = np.array([Agent(0,0,goal_x,goal_y,0.5,1.0,initial_heading,0), Agent(goal_x,goal_y+5,0,5,0.5,1.0,np.pi, 1)])
         return self.agents[0].observe(self.agents)
 
     def _render(self, mode='human', close=False):
@@ -173,19 +173,21 @@ class CollisionAvoidanceEnv(gym.Env):
             # car.add_attr(self.cartrans)
             # self.viewer.add_geom(car)
 
-            goal_icon = rendering.make_circle(10)
-            goal_icon.add_attr(rendering.Transform(translation=(0, 10)))
-            self.goaltrans = rendering.Transform()
-            goal_icon.add_attr(self.goaltrans)
-            goal_icon.set_color(.8,.8,0)
-            print(agent.goal_global_frame)
-            self.viewer.add_geom(goal_icon)
+            for agent in self.agents:
+                goal_icon = rendering.make_circle(10)
+                goal_icon.add_attr(rendering.Transform(translation=(0, 10)))
+                self.goaltrans = rendering.Transform()
+                goal_icon.add_attr(self.goaltrans)
+                goal_icon.set_color(.8,.8,0)
+                print(agent.goal_global_frame)
+                self.viewer.add_geom(goal_icon)
 
-            agent_icon = rendering.make_circle(20)
-            agent_icon.add_attr(rendering.Transform(translation=(0, 0)))
-            self.agenttrans = rendering.Transform()
-            agent_icon.add_attr(self.agenttrans)
-            self.viewer.add_geom(agent_icon)
+                agent_icon = rendering.make_circle(20)
+                agent_icon.set_color(.8,.8,0)
+                agent_icon.add_attr(rendering.Transform(translation=(0, 0)))
+                self.agenttrans = rendering.Transform()
+                agent_icon.add_attr(self.agenttrans)
+                self.viewer.add_geom(agent_icon)
 
             # flagx = (agent.dist_to_goal-self.min_position)*scale
             # flagy1 = self._height(self.goal_position)*scale
