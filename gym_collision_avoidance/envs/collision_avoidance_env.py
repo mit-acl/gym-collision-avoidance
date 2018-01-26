@@ -69,8 +69,8 @@ class CollisionAvoidanceEnv(gym.Env):
         self.min_action = -1.0
         self.max_action = 1.0
 
-        self.action_space = spaces.Discrete(self.actions.num_actions)
-        # self.action_space = spaces.Box(self.min_action, self.max_action, shape = (1,))
+        # self.action_space = spaces.Discrete(self.actions.num_actions)
+        self.action_space = spaces.Box(self.min_action, self.max_action, shape = (1,))
         # self.action_space = spaces.Box(self.min_action, self.max_action, shape = (1,))
         self.observation_space = spaces.Box(self.low_state, self.high_state)
 
@@ -82,7 +82,7 @@ class CollisionAvoidanceEnv(gym.Env):
         return [seed]
 
     def _step(self, action):
-        assert self.action_space.contains(action), "%r (%s) invalid" % (action, type(action))
+        assert self.action_space.contains(np.tanh(action)), "%r (%s) invalid" % (action, type(action))
 
         # Take action for each agent
         # for i, action in enumerate(actions):
@@ -90,8 +90,9 @@ class CollisionAvoidanceEnv(gym.Env):
         if agent.is_at_goal or agent.in_collision:
             action_vector = np.array([0.0, 0.0]) # TODO Confirm this works?
         else:
-            speed_multiplier, selected_heading = self.actions.actions[action]
-            action_vector = np.array([agent.pref_speed*speed_multiplier, selected_heading])
+            # speed_multiplier, selected_heading = self.actions.actions[action]
+            # action_vector = np.array([agent.pref_speed*speed_multiplier, selected_heading])
+            action_vector = np.array([agent.pref_speed, action])
         agent.update_state(action_vector, self.dt)
 
         # Reward
