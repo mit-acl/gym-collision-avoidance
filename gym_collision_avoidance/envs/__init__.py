@@ -1,2 +1,4 @@
 from gym_collision_avoidance.envs.collision_avoidance_env import CollisionAvoidanceEnv
-# from gym_soccer.envs.soccer_env import SoccerEnv
+from gym_collision_avoidance.envs.agent import Agent
+from gym_collision_avoidance.envs.config import Config
+from gym_collision_avoidance.envs.util import *
