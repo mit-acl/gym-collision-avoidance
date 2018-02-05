@@ -5,16 +5,10 @@ class Config:
     # GENERAL PARAMETERS
     continuous, discrete = range(2) # Initialize game types as enum
     ACTION_SPACE_TYPE   = continuous
-    DISPLAY_SCREEN      = False # Enable screen display during playback
-    USE_AUDIO           = False # Enable audio input
-    USE_IMAGE           = False # Enable image input
     NET_ARCH            = 'NetworkVP_cnn' # Neural net architecture
     ALL_ARCHS           = ['NetworkVP_cnn','NetworkVP_cnn_2'] # Can add more model types here
     TRAIN_MODELS        = True # Enable to train
     LOAD_CHECKPOINT     = True # Load old models. Throws if the model doesn't exist
-    PLAY_MODE           = False # Enable to see the trained agent in action (for testing)
-    EVALUATE_MODE       = False # Enable to see the trained agent in action (for testing)
-    DEBUG               = False # Enable debug (prints more information for debugging purpose)
     NORMALIZE_INPUT     = True
     USE_DROPOUT         = False
     WEIGHT_SHARING      = True
@@ -22,11 +16,15 @@ class Config:
     LOAD_FROM_BACKUP_DIR= False
     LOAD_EPISODE        = 0 # If 0, the latest checkpoint is loaded
 
+    ANIMATE_EPISODES    = False
+    PLOT_EPISODES       = False
+    PLAY_MODE           = False # Enable to see the trained agent in action (for testing)
+    EVALUATE_MODE       = False # Enable to see the trained agent in action (for testing)
+
     #########################################################################
     # COLLISION AVOIDANCE PARAMETERS
     NUM_TEST_CASES = 8
     PLOT_EPISODES = False # with matplotlib, plot after each episode
-    PLOT_EVERY_N_EPISODES = 100 # for tensorboard visualization
     DT             = 0.2 # seconds between simulation time steps
     REWARD_AT_GOAL = 1.0 # Number of agents trying to get from start -> goal positions
     REWARD_COLLISION = -0.25 # Number of agents trying to get from start -> goal positions

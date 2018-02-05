@@ -10,11 +10,3 @@ register(
     reward_threshold=1.0,
     nondeterministic = True,
 )
-
-# register(
-#     id='Soccer-v0',
-#     entry_point='gym_soccer.envs:SoccerEnv',
-#     timestep_limit=1000,
-#     reward_threshold=1.0,
-#     nondeterministic = True,
-# )

@@ -3,3 +3,5 @@
 .idea
 /logs
 *~
+
+gym_collision_avoidance/envs/CADRL/pickle_files
