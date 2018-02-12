@@ -14,6 +14,7 @@ class Agent():
         self.vel_global_frame = np.array([0.0, 0.0], dtype='float64')
         self.speed_global_frame = 0.0 
         self.heading_global_frame = initial_heading
+        self.delta_heading_global_frame = 0.0 
         
         # Ego Frame states
         self.speed_ego_frame = 0.0
@@ -51,9 +52,11 @@ class Agent():
 
 
     def _check_if_at_goal(self):
-        near_goal_threshold = 0.5
+        near_goal_threshold = 0.2
         is_near_goal = np.linalg.norm([self.pos_global_frame - self.goal_global_frame]) <= near_goal_threshold
         self.is_at_goal = is_near_goal
+        # if self.is_at_goal:
+            # print("Agent %i made it to goal!" %self.id)
 
     def update_state(self, action, dt):
         if self.is_at_goal or self.ran_out_of_time or self.in_collision:
@@ -94,6 +97,7 @@ class Agent():
         self.vel_global_frame[0] = selected_speed * np.cos(selected_heading)
         self.vel_global_frame[1] = selected_speed * np.sin(selected_heading)
         self.speed_global_frame = selected_speed
+        self.delta_heading_global_frame = wrap(selected_heading - self.heading_global_frame)
         self.heading_global_frame = selected_heading
 
         # Compute heading w.r.t. ref_prll, ref_orthog coordinate axes
@@ -116,6 +120,9 @@ class Agent():
         self._update_state_history()
 
         self._check_if_at_goal()
+
+        # print("Agent id:", self.id)
+        # print(self.pos_global_frame)
 
         return
 
@@ -201,7 +208,10 @@ class Agent():
         # past_actions = self.past_actions[1:3,:].flatten() # Only adds previous 1 action to state vector
         # obs = np.hstack([obs, past_actions])
 
-        return obs[1:]
+        if Config.TRAIN_ON_MULTIPLE_AGENTS:
+            return obs
+        else:
+            return obs[1:]
 
     def get_ref(self):
         #

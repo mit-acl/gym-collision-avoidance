@@ -18,8 +18,11 @@ class Config:
 
     ANIMATE_EPISODES    = False
     PLOT_EPISODES       = False
+    TRAIN_MODE           = False # Enable to see the trained agent in action (for testing)
     PLAY_MODE           = False # Enable to see the trained agent in action (for testing)
     EVALUATE_MODE       = False # Enable to see the trained agent in action (for testing)
+    TRAIN_ON_MULTIPLE_AGENTS = True
+    # TRAIN_ON_MULTIPLE_AGENTS = False
 
     #########################################################################
     # COLLISION AVOIDANCE PARAMETERS

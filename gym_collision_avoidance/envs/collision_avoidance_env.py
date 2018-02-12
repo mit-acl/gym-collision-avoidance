@@ -68,9 +68,13 @@ class CollisionAvoidanceEnv(gym.Env):
         self.min_radius = 0.3
         self.max_radius = 2.0
 
-        
-        self.low_state = np.zeros((Config.FULL_STATE_LENGTH))
-        self.high_state = np.zeros((Config.FULL_STATE_LENGTH))
+        if Config.TRAIN_ON_MULTIPLE_AGENTS:
+            self.low_state = np.zeros((Config.FULL_LABELED_STATE_LENGTH))
+            self.high_state = np.zeros((Config.FULL_LABELED_STATE_LENGTH))
+        else:
+            self.low_state = np.zeros((Config.FULL_STATE_LENGTH))
+            self.high_state = np.zeros((Config.FULL_STATE_LENGTH))
+
         # self.low_state = np.array([self.min_dist_to_goal, self.min_heading, self.min_pref_speed, self.min_radius])
         # self.high_state = np.array([self.max_dist_to_goal, self.max_heading, self.max_pref_speed, self.max_radius])
 
@@ -94,10 +98,10 @@ class CollisionAvoidanceEnv(gym.Env):
 
         # self.reset()
 
-    def _init_env(self, test_case=None, alg='A3C'):
+    def _init_env(self, test_case=None, alg='PPO'):
         self._init_agents(test_case=test_case, alg=alg)
 
-    def _init_agents(self, test_case=None, alg='A3C'):
+    def _init_agents(self, test_case=None, alg='PPO'):
         # Agents
         easy_test_cases = False
         random_test_cases = True
@@ -132,22 +136,24 @@ class CollisionAvoidanceEnv(gym.Env):
                 # test_case = tc.generate_rand_case(num_agents, side_length, speed_bnds, radius_bnds, is_end_near_bnd = False)
                 # test_case = tc.generate_easy_rand_case(num_agents, side_length, speed_bnds, radius_bnds, 2, is_end_near_bnd = False)
                 test_case = tc.generate_rand_test_case_multi(num_agents, side_length, speed_bnds, radius_bnds, is_end_near_bnd = False, is_static = False)
+                # test_cases = preset_testCases(2, full_test_suite=False)
+                # test_case = test_cases[0]
                 # print test_case
 
             self.agents = self.cadrl_test_case_to_agents(test_case, alg=alg)
-        self.which_agents_running_ga3c = [agent.id for agent in self.agents if agent.policy_type == 'A3C']
-        self.num_agents_running_ga3c = len(self.which_agents_running_ga3c)
+        self.which_agents_running_ppo = [agent.id for agent in self.agents if agent.policy_type == 'PPO']
+        self.num_agents_running_ppo = len(self.which_agents_running_ppo)
         # if self.num_agents_running_ga3c == 0:
         #     print "NO AGENTS RUNNING GA3C"
         #     print self.which_agents_running_ga3c
         #     assert(0)
 
-    def cadrl_test_case_to_agents(self, test_case, alg='A3C'):
+    def cadrl_test_case_to_agents(self, test_case, alg='PPO'):
         agents = []
 
         policies = [Agent, NonCooperativeAgent, StaticAgent, CADRLAgent]
         if self.evaluate:
-            if alg == 'A3C':
+            if alg == 'PPO':
                 agent_policy_list = [0 for _ in range(np.shape(test_case)[0])] # GA3C agents
             elif alg == 'CADRL':
                 agent_policy_list = [-1 for _ in range(np.shape(test_case)[0])] # CADRL agents
@@ -157,7 +163,6 @@ class CollisionAvoidanceEnv(gym.Env):
             if 0 not in agent_policy_list:
                 agent_policy_list[np.random.randint(len(agent_policy_list))] = 0
             # agent_policy_list = [-1 for _ in range(np.shape(test_case)[0])] # CADRL agents ####### DELETE LATER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
         for i,agent in enumerate(test_case):
             px = agent[0]; py = agent[1]
             gx = agent[2]; gy = agent[3]
@@ -167,6 +172,8 @@ class CollisionAvoidanceEnv(gym.Env):
                 vec_to_goal = np.array([gx,gy]) - np.array([px,py])
                 heading = np.arctan2(vec_to_goal[1],vec_to_goal[0])
             else:
+                # vec_to_goal = np.array([gx,gy]) - np.array([px,py])
+                # heading = np.arctan2(vec_to_goal[1],vec_to_goal[0])
                 # heading = 0.0
                 heading = np.random.uniform(-np.pi, np.pi)
 
@@ -177,45 +184,51 @@ class CollisionAvoidanceEnv(gym.Env):
         # TODO: make sure actions are valid
         self._take_action(action)
 
-        reward = -0.01
-        collision = False
-        agent = self.agents[0]
-        if agent.is_at_goal and agent.was_at_goal_already == False:
-            reward = self.reward_at_goal
-        else:
-            dist_between = np.inf
-            for other_agent in self.agents:
-                if agent.id != other_agent.id:
-                    is_collision, dist_between = self.check_collision(agent, other_agent) 
-                    agent.min_dist_to_other_agents = min(agent.min_dist_to_other_agents, dist_between)
-                    if is_collision and agent.was_in_collision_already == False:
-                        reward = self.reward_collision
-                        collision = True
-                        agent.in_collision = True
-        #             # elif dist_between <= self.getting_close_range:
-        #             #     rewards[i] = min(self.reward_getting_close + 0.5*dist_between, rewards[i])
-        reward = np.clip(reward, self.reward_collision, self.reward_at_goal)
+        if Config.TRAIN_ON_MULTIPLE_AGENTS:
+            # Reward
+            reward = -0.01*np.ones(self.num_agents)
+            collision = False
+            for i,agent in enumerate(self.agents):
+                if agent.is_at_goal and agent.was_at_goal_already == False:
+                    reward[i] = self.reward_at_goal
+                else:
+                    dist_between = np.inf
+                    for other_agent in self.agents:
+                        if agent.id != other_agent.id:
+                            is_collision, dist_between = self.check_collision(agent, other_agent) 
+                            agent.min_dist_to_other_agents = min(agent.min_dist_to_other_agents, dist_between)
+                            if is_collision and agent.was_in_collision_already == False:
+                                reward[i] = self.reward_collision
+                                collision = True
+                                agent.in_collision = True
+                #             # elif dist_between <= self.getting_close_range:
+                #             #     rewards[i] = min(self.reward_getting_close + 0.5*dist_between, rewards[i])
+                # if abs(agent.delta_heading_global_frame) > 0.5:
+                    # reward += -0.02
+            reward = np.clip(reward, self.reward_collision, self.reward_at_goal)
 
-        # # Reward
-        # rewards = -0.01*np.ones(self.num_agents)
-        # collision = False
-        # for i,agent in enumerate(self.agents):
-        #     if agent.is_at_goal and agent.was_at_goal_already == False:
-        #         rewards[i] = self.reward_at_goal
-        #     else:
-        #         dist_between = np.inf
-        #         # for other_agent in self.agents:
-        #             # if agent.id != other_agent.id:
-        #             #     is_collision, dist_between = self.check_collision(agent, other_agent) 
-        #             #     agent.min_dist_to_other_agents = min(agent.min_dist_to_other_agents, dist_between)
-        #             #     if is_collision and agent.was_in_collision_already == False:
-        #             #         rewards[i] = self.reward_collision
-        #             #         collision = True
-        #             #         agent.in_collision = True
-        #             #     # elif dist_between <= self.getting_close_range:
-        #             #     #     rewards[i] = min(self.reward_getting_close + 0.5*dist_between, rewards[i])
-        # rewards = np.clip(rewards, self.reward_collision, self.reward_at_goal)
-        # # print rewards
+        else:
+            reward = -0.01
+            collision = False
+            agent = self.agents[0]
+            if agent.is_at_goal and agent.was_at_goal_already == False:
+                reward = self.reward_at_goal
+            else:
+                dist_between = np.inf
+                for other_agent in self.agents:
+                    if agent.id != other_agent.id:
+                        is_collision, dist_between = self.check_collision(agent, other_agent) 
+                        agent.min_dist_to_other_agents = min(agent.min_dist_to_other_agents, dist_between)
+                        if is_collision and agent.was_in_collision_already == False:
+                            reward = self.reward_collision
+                            collision = True
+                            agent.in_collision = True
+                            # print("Agent %i in collision..." %agent.id)
+            #             # elif dist_between <= self.getting_close_range:
+            #             #     rewards[i] = min(self.reward_getting_close + 0.5*dist_between, rewards[i])
+            reward = np.clip(reward, self.reward_collision, self.reward_at_goal)
+
+        
 
         next_observations = self._get_obs()
         # Game over
@@ -228,21 +241,32 @@ class CollisionAvoidanceEnv(gym.Env):
         if Config.EVALUATE_MODE:
             done = game_over
         else:
-            done = which_agents_done[0]
+            if Config.TRAIN_ON_MULTIPLE_AGENTS:
+                # done = which_agents_done[0]
+                done = game_over
+            else:
+                done = which_agents_done[0]
+
+        which_agents_done_dict = {}
+        for i, agent in enumerate(self.agents):
+            which_agents_done_dict[agent.id] = which_agents_done[i] ############ CHANGE THIS TO which_agents_done[i] !!!!!!!!!!!!!!
         # if done:
-        #     agent = self.agents[0]
-        #     if agent.is_at_goal: print("------ Made it to goal!! ------")
-        #     if agent.in_collision: print("collision")
-        #     if agent.ran_out_of_time: print("ran out of time")
+        #     for i,agent in enumerate(self.agents):
+        #         if agent.is_at_goal: print("------ Made it to goal!! ------")
+        #         if agent.in_collision: print("collision")
+        #         if agent.ran_out_of_time: print("ran out of time")
         # print 'which_agents_done:', which_agents_done
         # print 'game_over:', game_over
-        return next_observations, reward, done, {}
+        return next_observations, reward, done, {'which_agents_done': which_agents_done_dict}
         # return next_observations, rewards, which_agents_done, game_over, {}
 
         # return next_observation, reward, done, {}
 
     def _get_obs(self):
-        next_observations = np.empty([len(self.agents), Config.FULL_STATE_LENGTH])
+        if Config.TRAIN_ON_MULTIPLE_AGENTS:
+            next_observations = np.empty([len(self.agents), Config.FULL_LABELED_STATE_LENGTH])
+        else:
+            next_observations = np.empty([len(self.agents), Config.FULL_STATE_LENGTH])
         for i, agent in enumerate(self.agents):
             agent_obs = agent.observe(self.agents)
             next_observations[i] = agent_obs
@@ -252,8 +276,9 @@ class CollisionAvoidanceEnv(gym.Env):
         # print("[env] raw actions:", actions)
         action_vectors = [np.array([0.0, 0.0]) for i in range(self.num_agents)]
         # First find next action of each agent -- Importantly done before agents update their state, mostly only impt for CADRL
-        agent = self.agents[0]
         for i, agent in enumerate(self.agents):
+            # heading = 0.0
+            # speed = 1.0
             heading = (2.0*self.max_heading_change*actions[i,1]) - self.max_heading_change
             speed = agent.pref_speed * actions[i,0]
             if agent.is_at_goal or agent.in_collision:
@@ -267,6 +292,7 @@ class CollisionAvoidanceEnv(gym.Env):
             else:
                 action_vector = agent.find_next_action(self.agents)
             action_vectors[i] = action_vector
+        # print(action_vectors)
 
         # ...then update their states based on chosen actions
         for i, agent in enumerate(self.agents):
@@ -378,6 +404,9 @@ class CollisionAvoidanceEnv(gym.Env):
        return np.linalg.norm(loc_a - loc_b)
 
     def _plot_episode(self):
+        if not Config.PLOT_EPISODES:
+            return
+
         fig = plt.figure(self.id, figsize=(10, 8))
         plt.clf()
 
