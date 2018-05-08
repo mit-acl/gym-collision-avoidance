@@ -180,7 +180,7 @@ class CollisionAvoidanceEnv(gym.Env):
             agents.append(policies[agent_policy_list[i]](px,py,gx,gy,radius,pref_speed,heading,i))
         return agents
 
-    def _step(self, action):
+    def step(self, action):
         # TODO: make sure actions are valid
         self._take_action(action)
 
@@ -298,7 +298,7 @@ class CollisionAvoidanceEnv(gym.Env):
         for i, agent in enumerate(self.agents):
             agent.update_state(action_vectors[i], self.dt)
 
-    def _reset(self):
+    def reset(self):
         # print("RESET")
         if self.agents is not None:
             self._plot_episode()
@@ -306,7 +306,7 @@ class CollisionAvoidanceEnv(gym.Env):
         self._init_env(test_case=0)
         return self._get_obs()
 
-    def _render(self, mode='human', close=False):
+    def render(self, mode='human', close=False):
         if not Config.ANIMATE_EPISODES:
             return
         if close:
