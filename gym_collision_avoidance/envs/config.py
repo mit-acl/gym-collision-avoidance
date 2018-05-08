@@ -25,68 +25,38 @@ class Config:
     # TRAIN_ON_MULTIPLE_AGENTS = False
 
     #########################################################################
-    # COLLISION AVOIDANCE PARAMETERS
-    NUM_TEST_CASES = 8
+    # COLLISION AVOIDANCE PARAMETER
+    MAX_NUM_AGENTS_IN_ENVIRONMENT = 2
+    NUM_TEST_CASES = 500
     PLOT_EPISODES = False # with matplotlib, plot after each episode
+    PLOT_EVERY_N_EPISODES = 100 # for tensorboard visualization
     DT             = 0.2 # seconds between simulation time steps
     REWARD_AT_GOAL = 1.0 # Number of agents trying to get from start -> goal positions
     REWARD_COLLISION = -0.25 # Number of agents trying to get from start -> goal positions
     REWARD_GETTING_CLOSE   = -0.1 # Number of agents trying to get from start -> goal positions
+    REWARD_NORM_VIOLATION   = -0.05 # Number of agents trying to get from start -> goal positions
+    NUM_AGENT_STATES = 4 # Number of states (pos_x,pos_y,...)
+    OTHER_OBS_LENGTH = 7 # number of states about another agent in observation vector
+    NUM_STEPS_IN_OBS_HISTORY = 1 # number of time steps to store in observation vector
+    NUM_PAST_ACTIONS_IN_STATE = 0
     COLLISION_DIST = 0.0 # meters between agents' boundaries for collision
     GETTING_CLOSE_RANGE = 0.2 # meters between agents' boundaries for collision
+    STACKED_FRAMES = 1 # Num of inputs to DQN
     REWARD_MIN     = -100 # Reward Clipping
     REWARD_MAX     = 100 # Reward Clipping
+    MAX_ITER       = 40 # Max iteration (time limit)
+    TIMER_DURATION = 0.01 # In second visualization time for each step
+    ACTIONS_FROM_VALUE_FUNCTION = False # In second visualization time for each step
+    ACTIONS_FROM_POLICY_FUNCTION = True # In second visualization time for each step
     TRAIN_WITH_REGRESSION = False # Start training with regression phase before RL
-    LOAD_REGRESSION = True # Initialize training with regression network
-
-    MAX_NUM_AGENTS = 2
+    LOAD_REGRESSION = False # Initialize training with regression network
     MULTI_AGENT_ARCHS = ['RNN','WEIGHT_SHARING','VANILLA']
-    MULTI_AGENT_ARCH = 'VANILLA'
+    # MULTI_AGENT_ARCH = 'VANILLA'
     # MULTI_AGENT_ARCH = 'WEIGHT_SHARING'
-    # MULTI_AGENT_ARCH = 'RNN'
+    MULTI_AGENT_ARCH = 'RNN'
 
-    # #########################################################################
-    # # ALGORITHM PARAMETER
-    # DISCOUNT                = 0.9 # Discount factor
-    # TIME_MAX                = int(4/DT) # Tmax
-    # MAX_QUEUE_SIZE          = 100 # Max size of the queue
-    # PREDICTION_BATCH_SIZE   = 128
-    # IMAGE_WIDTH             = 84 # Input of the DNN
-    # IMAGE_HEIGHT            = 84
-    # EPISODES                = 400000 # Total number of episodes and annealing frequency
-    # ANNEALING_EPISODE_COUNT = 400000
-
-    # # OPTIMIZER PARAMETERS
-    # OPT_RMSPROP, OPT_ADAM   = range(2) # Initialize optimizer types as enum
-    # OPTIMIZER               = OPT_ADAM # Game choice: Either "game_grid" or "game_ale"
-    # LEARNING_RATE_REGRESSION_START = 1e-4 # Learning rate
-    # LEARNING_RATE_REGRESSION_END = 1e-4 # Learning rate
-    # LEARNING_RATE_RL_START     = 1e-4 # Learning rate
-    # LEARNING_RATE_RL_END     = 1e-4 # Learning rate
-    # RMSPROP_DECAY           = 0.99
-    # RMSPROP_MOMENTUM        = 0.0
-    # RMSPROP_EPSILON         = 0.1
-    # BETA_START              = 1e-4 # Entropy regularization hyper-parameter
-    # BETA_END                = 1e-4
-    # USE_GRAD_CLIP           = False # Gradient clipping
-    # GRAD_CLIP_NORM          = 40.0
-    # LOG_EPSILON             = 1e-6 # Epsilon (regularize policy lag in GA3C)
-    # TRAINING_MIN_BATCH_SIZE = 100 # Training min batch size - increasing the batch size increases the stability of the algorithm, but make learning slower
-
-    # #########################################################################
-    # # LOG AND SAVE
-    # TENSORBOARD                  = True # Enable TensorBoard
-    # TENSORBOARD_UPDATE_FREQUENCY = 50 # Update TensorBoard every X training steps
-    # SAVE_MODELS                  = True # Enable to save models every SAVE_FREQUENCY episodes
-    # SAVE_FREQUENCY               = 1000 # Save every SAVE_FREQUENCY episodes
-    # PRINT_STATS_FREQUENCY        = 1 # Print stats every PRINT_STATS_FREQUENCY episodes
-    # STAT_ROLLING_MEAN_WINDOW     = 1000 # The window to average stats
-    # RESULTS_FILENAME             = 'results.txt'# Results filename
-    # NETWORK_NAME                 = 'network'# Network checkpoint name
-
-    # #########################################################################
-    # # MORE EXPERIMENTAL PARAMETERS 
-    # MIN_POLICY = 0.0 # Minimum policy
+    SENSING_HORIZON  = np.inf
+    # SENSING_HORIZON  = 3.0
 
     HOST_AGENT_OBSERVATION_LENGTH = 4 # dist to goal, heading to goal, pref speed, radius
     OTHER_AGENT_OBSERVATION_LENGTH = 7 # other px, other py, other vx, other vy, other radius, combined radius, distance between
@@ -103,12 +73,13 @@ class Config:
     IS_ON_AVG_VECTOR = np.array([0.0])
     IS_ON_STD_VECTOR = np.array([1.0])
 
-    if MAX_NUM_AGENTS == 2:
+    if MAX_NUM_AGENTS_IN_ENVIRONMENT == 2:
         # NN input:
         # [dist to goal, heading to goal, pref speed, radius, other px, other py, other vx, other vy, other radius, combined radius, distance between]
+        MAX_NUM_OTHER_AGENTS_OBSERVED = 1
         OTHER_AGENT_FULL_OBSERVATION_LENGTH = OTHER_AGENT_OBSERVATION_LENGTH
         HOST_AGENT_STATE_SIZE = HOST_AGENT_OBSERVATION_LENGTH
-        FULL_STATE_LENGTH = HOST_AGENT_OBSERVATION_LENGTH + (MAX_NUM_AGENTS - 1) * OTHER_AGENT_FULL_OBSERVATION_LENGTH
+        FULL_STATE_LENGTH = HOST_AGENT_OBSERVATION_LENGTH + MAX_NUM_OTHER_AGENTS_OBSERVED * OTHER_AGENT_FULL_OBSERVATION_LENGTH
         FIRST_STATE_INDEX = 0
         MULTI_AGENT_ARCH = 'NONE'
 
@@ -117,20 +88,21 @@ class Config:
 
 
     # if MAX_NUM_AGENTS in [3,4]:
-    if MAX_NUM_AGENTS > 2:
+    if MAX_NUM_AGENTS_IN_ENVIRONMENT > 2:
         if MULTI_AGENT_ARCH == 'RNN':
             # NN input:
             # [num other agents, dist to goal, heading to goal, pref speed, radius, 
             #   other px, other py, other vx, other vy, other radius, dist btwn, combined radius,
             #   other px, other py, other vx, other vy, other radius, dist btwn, combined radius,
             #   other px, other py, other vx, other vy, other radius, dist btwn, combined radius]
+            MAX_NUM_OTHER_AGENTS_OBSERVED = 19
             OTHER_AGENT_FULL_OBSERVATION_LENGTH = OTHER_AGENT_OBSERVATION_LENGTH
             HOST_AGENT_STATE_SIZE = HOST_AGENT_OBSERVATION_LENGTH
-            FULL_STATE_LENGTH = RNN_HELPER_LENGTH + HOST_AGENT_OBSERVATION_LENGTH + (MAX_NUM_AGENTS - 1) * OTHER_AGENT_FULL_OBSERVATION_LENGTH
+            FULL_STATE_LENGTH = RNN_HELPER_LENGTH + HOST_AGENT_OBSERVATION_LENGTH + MAX_NUM_OTHER_AGENTS_OBSERVED * OTHER_AGENT_FULL_OBSERVATION_LENGTH
             FIRST_STATE_INDEX = 1
 
-            NN_INPUT_AVG_VECTOR = np.hstack([RNN_HELPER_AVG_VECTOR,HOST_AGENT_AVG_VECTOR,np.repeat(OTHER_AGENT_AVG_VECTOR,MAX_NUM_AGENTS-1)])
-            NN_INPUT_STD_VECTOR = np.hstack([RNN_HELPER_STD_VECTOR,HOST_AGENT_STD_VECTOR,np.repeat(OTHER_AGENT_STD_VECTOR,MAX_NUM_AGENTS-1)])
+            NN_INPUT_AVG_VECTOR = np.hstack([RNN_HELPER_AVG_VECTOR,HOST_AGENT_AVG_VECTOR,np.tile(OTHER_AGENT_AVG_VECTOR,MAX_NUM_OTHER_AGENTS_OBSERVED)])
+            NN_INPUT_STD_VECTOR = np.hstack([RNN_HELPER_STD_VECTOR,HOST_AGENT_STD_VECTOR,np.tile(OTHER_AGENT_STD_VECTOR,MAX_NUM_OTHER_AGENTS_OBSERVED)])
 
         elif MULTI_AGENT_ARCH in ['WEIGHT_SHARING','VANILLA']:
             # NN input:
@@ -138,13 +110,28 @@ class Config:
             #   other px, other py, other vx, other vy, other radius, dist btwn, combined radius, is_on,
             #   other px, other py, other vx, other vy, other radius, dist btwn, combined radius, is_on,
             #   other px, other py, other vx, other vy, other radius, dist btwn, combined radius, is_on]
+            MAX_NUM_OTHER_AGENTS_OBSERVED = 3
             OTHER_AGENT_FULL_OBSERVATION_LENGTH = OTHER_AGENT_OBSERVATION_LENGTH + IS_ON_LENGTH
             HOST_AGENT_STATE_SIZE = HOST_AGENT_OBSERVATION_LENGTH
-            FULL_STATE_LENGTH = HOST_AGENT_OBSERVATION_LENGTH + (MAX_NUM_AGENTS - 1) * OTHER_AGENT_FULL_OBSERVATION_LENGTH
+            FULL_STATE_LENGTH = HOST_AGENT_OBSERVATION_LENGTH + MAX_NUM_OTHER_AGENTS_OBSERVED * OTHER_AGENT_FULL_OBSERVATION_LENGTH
             FIRST_STATE_INDEX = 0
             
-            NN_INPUT_AVG_VECTOR = np.hstack([HOST_AGENT_AVG_VECTOR,np.repeat(np.hstack([OTHER_AGENT_AVG_VECTOR,IS_ON_AVG_VECTOR]),MAX_NUM_AGENTS-1)])
-            NN_INPUT_STD_VECTOR = np.hstack([HOST_AGENT_STD_VECTOR,np.repeat(np.hstack([OTHER_AGENT_STD_VECTOR,IS_ON_STD_VECTOR]),MAX_NUM_AGENTS-1)])
+            NN_INPUT_AVG_VECTOR = np.hstack([HOST_AGENT_AVG_VECTOR,np.tile(np.hstack([OTHER_AGENT_AVG_VECTOR,IS_ON_AVG_VECTOR]),MAX_NUM_OTHER_AGENTS_OBSERVED)])
+            NN_INPUT_STD_VECTOR = np.hstack([HOST_AGENT_STD_VECTOR,np.tile(np.hstack([OTHER_AGENT_STD_VECTOR,IS_ON_STD_VECTOR]),MAX_NUM_OTHER_AGENTS_OBSERVED)])
             
     FULL_LABELED_STATE_LENGTH = FULL_STATE_LENGTH + AGENT_ID_LENGTH
     NN_INPUT_SIZE = FULL_STATE_LENGTH
+
+
+
+    #     FULL_STATE_DIST_TO_GOAL_INDEX = 0
+    #     FULL_STATE_HEADING_TO_GOAL_INDEX = 1
+    #     FULL_STATE_PREF_SPEED_INDEX = 2
+    #     FULL_STATE_RADIUS_INDEX = 3
+    #     FULL_STATE_OTHER_PX_INDEX = 4
+    #     FULL_STATE_OTHER_PY_INDEX = 5
+    #     FULL_STATE_OTHER_VX_INDEX = 6
+    #     FULL_STATE_OTHER_VY_INDEX = 7
+    #     FULL_STATE_OTHER_RADIUS_INDEX = 8
+    #     FULL_STATE_DIST_BETWEEN_INDEX = 9
+    #     FULL_STATE_COMBINED_RADIUS_INDEX = 10
