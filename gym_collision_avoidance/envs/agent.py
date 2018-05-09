@@ -1,6 +1,7 @@
 import numpy as np
 from gym_collision_avoidance.envs.config import Config
 from gym_collision_avoidance.envs.util import *
+import operator
 
 class Agent():
     def __init__(self, start_x, start_y, goal_x, goal_y, radius, pref_speed, initial_heading, id):
@@ -55,8 +56,6 @@ class Agent():
         near_goal_threshold = 0.2
         is_near_goal = np.linalg.norm([self.pos_global_frame - self.goal_global_frame]) <= near_goal_threshold
         self.is_at_goal = is_near_goal
-        # if self.is_at_goal:
-            # print("Agent %i made it to goal!" %self.id)
 
     def update_state(self, action, dt):
         if self.is_at_goal or self.ran_out_of_time or self.in_collision:
@@ -69,6 +68,7 @@ class Agent():
         # self.past_actions[0,:] = action
 
         if self.action_time_lag > 0:
+            # This is a future feature... action_time_lag = 0 for now.
             # Store current action in dictionary, then look up the past action that should be executed this step
             self.chosen_action_dict[self.t] = action
             # print "-------------"
@@ -121,9 +121,6 @@ class Agent():
 
         self._check_if_at_goal()
 
-        # print("Agent id:", self.id)
-        # print(self.pos_global_frame)
-
         return
 
     def _update_state_history(self):
@@ -135,17 +132,17 @@ class Agent():
             self.global_state_history = np.vstack([self.global_state_history, np.hstack([self.t, global_state])])
             self.ego_state_history = np.vstack([self.ego_state_history, ego_state])
 
-    # def print_agent_info(self):
-    #     print '----------'
-    #     print 'Global Frame:'
-    #     print '(px,py):', self.pos_global_frame
-    #     print '(vx,vy):', self.vel_global_frame
-    #     print 'speed:', self.speed_global_frame
-    #     print 'heading:', self.heading_global_frame
-    #     print 'Body Frame:'
-    #     print '(vx,vy):', self.vel_ego_frame
-    #     print 'heading:', self.heading_ego_frame
-    #     print '----------'
+    def print_agent_info(self):
+        print('----------')
+        print('Global Frame:')
+        print('(px,py):', self.pos_global_frame)
+        print('(vx,vy):', self.vel_global_frame)
+        print('speed:', self.speed_global_frame)
+        print('heading:', self.heading_global_frame)
+        print('Body Frame:')
+        print('(vx,vy):', self.vel_ego_frame)
+        print('heading:', self.heading_ego_frame)
+        print('----------')
 
     def to_vector(self):
         global_state = np.array([self.pos_global_frame[0], self.pos_global_frame[1], \
@@ -166,13 +163,32 @@ class Agent():
 
         # Own agent state (ID is removed before inputting to NN, num other agents is used to rearrange other agents into sequence by NN)
         obs[0] = self.id 
+        obs[1] = self.policy_type == "PPO" # should be 1 if using PPO, 0 otherwise, so that RL trainer can make policy updates on PPO agents only
         if Config.MULTI_AGENT_ARCH == 'RNN':
             obs[Config.AGENT_ID_LENGTH] = 0 
         obs[Config.AGENT_ID_LENGTH+Config.FIRST_STATE_INDEX:Config.AGENT_ID_LENGTH+Config.FIRST_STATE_INDEX+Config.HOST_AGENT_STATE_SIZE] = \
                              self.dist_to_goal, self.heading_ego_frame, self.pref_speed, self.radius
 
+        other_agent_dists = {}
+        for i, other_agent in enumerate(agents):
+            if other_agent.id == self.id:
+                continue
+            # project other elements onto the new reference frame
+            rel_pos_to_other_global_frame = other_agent.pos_global_frame - self.pos_global_frame
+            dist_between_agent_centers = np.linalg.norm(rel_pos_to_other_global_frame)
+            dist_2_other = dist_between_agent_centers - self.radius - other_agent.radius
+            if dist_between_agent_centers > Config.SENSING_HORIZON:
+                # print "Agent too far away"
+                continue
+            other_agent_dists[i] = dist_2_other
+        sorted_pairs = sorted(other_agent_dists.items(), key=operator.itemgetter(1))
+        sorted_inds = [ind for (ind,pair) in sorted_pairs]
+        sorted_inds.reverse()
+        clipped_sorted_inds = sorted_inds[-Config.MAX_NUM_OTHER_AGENTS_OBSERVED:]
+        clipped_sorted_agents = [agents[i] for i in clipped_sorted_inds]
+
         i = 0
-        for other_agent in agents:
+        for other_agent in clipped_sorted_agents:
             if other_agent.id == self.id:
                 continue
             # project other elements onto the new reference frame
@@ -199,7 +215,7 @@ class Agent():
         if Config.MULTI_AGENT_ARCH == 'RNN':
             obs[Config.AGENT_ID_LENGTH] = i # Will be used by RNN for seq_length
         if Config.MULTI_AGENT_ARCH in ['WEIGHT_SHARING','VANILLA']:
-            for j in range(i,Config.MAX_NUM_AGENTS-1):
+            for j in range(i,Config.MAX_NUM_OTHER_AGENTS_OBSERVED):
                 start_index = Config.AGENT_ID_LENGTH + Config.FIRST_STATE_INDEX + Config.HOST_AGENT_STATE_SIZE + Config.OTHER_AGENT_FULL_OBSERVATION_LENGTH*j
                 end_index = Config.AGENT_ID_LENGTH + Config.FIRST_STATE_INDEX + Config.HOST_AGENT_STATE_SIZE + Config.OTHER_AGENT_FULL_OBSERVATION_LENGTH*(j+1)
                 other_obs[-1] = 0
@@ -211,7 +227,8 @@ class Agent():
         if Config.TRAIN_ON_MULTIPLE_AGENTS:
             return obs
         else:
-            return obs[1:]
+            # if only one agent is being trained on, the agent's ID is irrelevant (always 0), so cut it off obs vector
+            return obs[2:]
 
     def get_ref(self):
         #

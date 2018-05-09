@@ -21,13 +21,13 @@ class Config:
     TRAIN_MODE           = False # Enable to see the trained agent in action (for testing)
     PLAY_MODE           = False # Enable to see the trained agent in action (for testing)
     EVALUATE_MODE       = False # Enable to see the trained agent in action (for testing)
-    TRAIN_ON_MULTIPLE_AGENTS = True
-    # TRAIN_ON_MULTIPLE_AGENTS = False
+    #  TRAIN_ON_MULTIPLE_AGENTS = True
+    TRAIN_ON_MULTIPLE_AGENTS = False
 
     #########################################################################
     # COLLISION AVOIDANCE PARAMETER
     MAX_NUM_AGENTS_IN_ENVIRONMENT = 2
-    NUM_TEST_CASES = 500
+    NUM_TEST_CASES = 8
     PLOT_EPISODES = False # with matplotlib, plot after each episode
     PLOT_EVERY_N_EPISODES = 100 # for tensorboard visualization
     DT             = 0.2 # seconds between simulation time steps
@@ -51,9 +51,9 @@ class Config:
     TRAIN_WITH_REGRESSION = False # Start training with regression phase before RL
     LOAD_REGRESSION = False # Initialize training with regression network
     MULTI_AGENT_ARCHS = ['RNN','WEIGHT_SHARING','VANILLA']
-    # MULTI_AGENT_ARCH = 'VANILLA'
+    MULTI_AGENT_ARCH = 'VANILLA'
     # MULTI_AGENT_ARCH = 'WEIGHT_SHARING'
-    MULTI_AGENT_ARCH = 'RNN'
+    #  MULTI_AGENT_ARCH = 'RNN'
 
     SENSING_HORIZON  = np.inf
     # SENSING_HORIZON  = 3.0
@@ -61,7 +61,7 @@ class Config:
     HOST_AGENT_OBSERVATION_LENGTH = 4 # dist to goal, heading to goal, pref speed, radius
     OTHER_AGENT_OBSERVATION_LENGTH = 7 # other px, other py, other vx, other vy, other radius, combined radius, distance between
     RNN_HELPER_LENGTH = 1 # num other agents
-    AGENT_ID_LENGTH = 1 # id
+    AGENT_ID_LENGTH = 2 # id, 0/1 binary flag of which policy it's using
     IS_ON_LENGTH = 1 # 0/1 binary flag
 
     HOST_AGENT_AVG_VECTOR = np.array([0.0, 0.0, 1.0, 0.5]) # dist to goal, heading to goal, pref speed, radius
@@ -95,7 +95,7 @@ class Config:
             #   other px, other py, other vx, other vy, other radius, dist btwn, combined radius,
             #   other px, other py, other vx, other vy, other radius, dist btwn, combined radius,
             #   other px, other py, other vx, other vy, other radius, dist btwn, combined radius]
-            MAX_NUM_OTHER_AGENTS_OBSERVED = 19
+            MAX_NUM_OTHER_AGENTS_OBSERVED = 3
             OTHER_AGENT_FULL_OBSERVATION_LENGTH = OTHER_AGENT_OBSERVATION_LENGTH
             HOST_AGENT_STATE_SIZE = HOST_AGENT_OBSERVATION_LENGTH
             FULL_STATE_LENGTH = RNN_HELPER_LENGTH + HOST_AGENT_OBSERVATION_LENGTH + MAX_NUM_OTHER_AGENTS_OBSERVED * OTHER_AGENT_FULL_OBSERVATION_LENGTH
@@ -110,7 +110,7 @@ class Config:
             #   other px, other py, other vx, other vy, other radius, dist btwn, combined radius, is_on,
             #   other px, other py, other vx, other vy, other radius, dist btwn, combined radius, is_on,
             #   other px, other py, other vx, other vy, other radius, dist btwn, combined radius, is_on]
-            MAX_NUM_OTHER_AGENTS_OBSERVED = 3
+            MAX_NUM_OTHER_AGENTS_OBSERVED = 2
             OTHER_AGENT_FULL_OBSERVATION_LENGTH = OTHER_AGENT_OBSERVATION_LENGTH + IS_ON_LENGTH
             HOST_AGENT_STATE_SIZE = HOST_AGENT_OBSERVATION_LENGTH
             FULL_STATE_LENGTH = HOST_AGENT_OBSERVATION_LENGTH + MAX_NUM_OTHER_AGENTS_OBSERVED * OTHER_AGENT_FULL_OBSERVATION_LENGTH
