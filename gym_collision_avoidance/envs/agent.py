@@ -28,7 +28,8 @@ class Agent():
         self.action_time_lag = 0.0
 
         self.num_actions_to_store = 3
-        self.past_actions = np.zeros((self.num_actions_to_store,2))
+        self.action_dim = 2
+        self.past_actions = np.zeros((self.num_actions_to_store,self.action_dim))
         
         # Other parameters
         self.radius = radius
@@ -64,31 +65,23 @@ class Agent():
             self.vel_global_frame = np.array([0.0, 0.0])
             return
 
-        # self.past_actions = np.roll(self.past_actions,1,axis=0)
-        # self.past_actions[0,:] = action
+        self.past_actions = np.roll(self.past_actions,1,axis=0)
+        self.past_actions[0,:] = action
 
         if self.action_time_lag > 0:
             # This is a future feature... action_time_lag = 0 for now.
             # Store current action in dictionary, then look up the past action that should be executed this step
             self.chosen_action_dict[self.t] = action
-            # print "-------------"
-            # print "Agent id: %i" %self.id
-            # print "Current t:", self.t
-            # print "Current action:", action
             timestamp_of_action_to_execute = self.t - self.action_time_lag
-            # print "timestamp_of_action_to_execute:", timestamp_of_action_to_execute
             if timestamp_of_action_to_execute < 0:
-                # print "storing up actions...."
                 action_to_execute = np.array([0.0,0.0])
             else:
                 nearest_timestamp, _ = find_nearest(np.array(self.chosen_action_dict.keys()),timestamp_of_action_to_execute)
-                # print "nearest_timestamp:", nearest_timestamp
                 action_to_execute = self.chosen_action_dict[nearest_timestamp[0]]
-            # print "action_to_execute:", action_to_execute
         else:
             action_to_execute = action
 
-        selected_speed = action_to_execute[0]*self.pref_speed
+        selected_speed = action_to_execute[0]
         selected_heading = wrap(action_to_execute[1] + self.heading_global_frame) # in global frame
 
         dx = selected_speed * np.cos(selected_heading) * dt

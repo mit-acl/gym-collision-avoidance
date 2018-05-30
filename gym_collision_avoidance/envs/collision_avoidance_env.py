@@ -75,7 +75,7 @@ class CollisionAvoidanceEnv(gym.Env):
         self.viewer = None
 
         # Upper/Lower bounds on Actions
-        self.max_heading_change = np.pi/3
+        self.max_heading_change = np.pi/6
         self.min_heading_change = -self.max_heading_change
         self.min_speed = 0.0
         self.max_speed = 1.0
@@ -121,8 +121,8 @@ class CollisionAvoidanceEnv(gym.Env):
                 # num_agents = random.randint(2, 3)
                 # num_agents = random.randint(2, Config.MAX_NUM_AGENTS)
                 # num_agents = np.random.randint(2, 4)
-                side_length = 5
-                # side_length = random.uniform(4,8)
+                #  side_length = 5
+                side_length = np.random.uniform(4,8)
                 speed_bnds = [0.5, 1.5]
                 radius_bnds = [0.2, 0.8]
 
@@ -172,11 +172,11 @@ class CollisionAvoidanceEnv(gym.Env):
         return agents
 
     def _take_action(self, actions):
-        # print("[env] raw actions:", actions)
+        #  print("[env] raw actions:", actions)
         action_vectors = [np.array([0.0, 0.0]) for i in range(self.num_agents)]
         # First find next action of each agent -- Importantly done before agents update their state, mostly only impt for CADRL
         for i, agent in enumerate(self.agents):
-            heading = (2.0*self.max_heading_change*actions[i,1]) - self.max_heading_change
+            heading = self.max_heading_change*(2.*actions[i,1] - 1.)
             speed = agent.pref_speed * actions[i,0]
             if agent.is_at_goal or agent.in_collision:
                 action_vector = np.array([0.0, 0.0])
@@ -214,6 +214,8 @@ class CollisionAvoidanceEnv(gym.Env):
                         agent.in_collision = True
                     elif norm_zone_violation[i]:
                         rewards[i] = self.reward_norm_violation
+                    elif abs(agent.past_actions[0,1]) > 0.4:
+                        rewards[i] += -0.003
         rewards = np.clip(rewards, self.reward_collision, self.reward_at_goal)
         if not Config.TRAIN_ON_MULTIPLE_AGENTS:
             rewards = rewards[0]
@@ -231,7 +233,7 @@ class CollisionAvoidanceEnv(gym.Env):
                 angle=agent.heading_global_frame, origin=Point(agent.pos_global_frame[0],agent.pos_global_frame[1]), use_radians=True))
         agent_inds = list(range(len(self.agents)))
         for i in agent_inds:
-            other_inds = agent_inds[:i] + agent_inds[i+1 :]
+            other_inds = agent_inds[:i] + agent_inds[i+1:]
             for j in other_inds:
                 if agent_shapes[i].intersects(agent_shapes[j]):
                     collision_violation[i] = True    
@@ -246,27 +248,33 @@ class CollisionAvoidanceEnv(gym.Env):
         ran_out_of_time_condition = np.array([a.ran_out_of_time for a in self.agents])
         in_collision_condition = np.array([a.in_collision for a in self.agents])
         which_agents_done = np.logical_or(np.logical_or(at_goal_condition,ran_out_of_time_condition),in_collision_condition)
-        if Config.TRAIN_ON_MULTIPLE_AGENTS:
+        if Config.TRAIN_ON_MULTIPLE_AGENTS or Config.EVALUATE_MODE:
             game_over = np.all(which_agents_done)
         else:
             game_over = which_agents_done[0]
+
         return which_agents_done, game_over
 
     def step(self, actions):
+        #  print("-----------\n Step \n ----------------")
         # Take action
         self._take_action(actions)
+        #  print("Actions:", actions)
 
         # Collect rewards
         rewards = self._compute_rewards()
+        #  print("rewards:", rewards)
 
         # Take observation
         next_observations = self._get_obs()
-        
+        #  print("obs:", next_observations) 
+
         # Visualize env
         #  if self.display_screen: self.visualize_ego_frame(next_observations)
 
         # Check which agents' games are finished (at goal/collided/out of time)
         which_agents_done, game_over = self._check_which_agents_done()
+        #  print("which_agents_done:", which_agents_done, ", game_over:", game_over)
 
         which_agents_done_dict = {}
         for i, agent in enumerate(self.agents):
@@ -283,7 +291,6 @@ class CollisionAvoidanceEnv(gym.Env):
             agent_obs = agent.observe(self.agents)
             next_observations[i] = agent_obs
         return next_observations
-
 
     def reset(self):
         if self.agents is not None:
