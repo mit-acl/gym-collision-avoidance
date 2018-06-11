@@ -31,13 +31,12 @@ from gym_collision_avoidance.envs.cadrl_agent \
 from gym_collision_avoidance.envs.CADRL.scripts.multi \
         import gen_rand_testcases as tc
 
-import rospy
-from stage_ros.srv import CmdPosesRecScans
-#  from stage_ros.srv import CmdPosesRecScans, \
-#                            CmdPosesRecScansRequest, \
-#                            CmdPosesRecScansResponse
-#  from geometry_msgs.msg import Pose
-#  from sensor_msgs.msg import LaserScan
+if Config.USE_ROS:
+    import rospy
+    from stage_ros.srv import CmdPosesRecScans, \
+        CmdPosesRecScansRequest
+    from geometry_msgs.msg import Pose
+    #  from sensor_msgs.msg import LaserScan
 
 
 class CollisionAvoidanceEnv(gym.Env):
@@ -47,14 +46,16 @@ class CollisionAvoidanceEnv(gym.Env):
     }
 
     def __init__(self):
-        rospy.init_node('my_node_name')
-        # Connect to service
-        srv_name = '/command_poses_receive_scans'
-        rospy.wait_for_service(srv_name, timeout=5.0)
-        self.srv_cmd_poses_rec_scans = rospy.ServiceProxy(srv_name,
-                                                          CmdPosesRecScans)
-        rospy.loginfo("[%s] Srv: %s available.\n" % (rospy.get_name(),
-                                                     srv_name))
+
+        if Config.USE_ROS:
+            rospy.init_node('my_node_name')
+            # Connect to service
+            srv_name = '/command_poses_receive_scans'
+            rospy.wait_for_service(srv_name, timeout=5.0)
+            self.srv_cmd_poses_rec_scans = rospy.ServiceProxy(srv_name,
+                                                              CmdPosesRecScans)
+            rospy.loginfo("[%s] Srv: %s available.\n" % (rospy.get_name(),
+                                                         srv_name))
 
         self.id = 0
 
@@ -94,7 +95,7 @@ class CollisionAvoidanceEnv(gym.Env):
         self.viewer = None
 
         # Upper/Lower bounds on Actions
-        self.max_heading_change = np.pi/6
+        self.max_heading_change = np.pi/3
         self.min_heading_change = -self.max_heading_change
         self.min_speed = 0.0
         self.max_speed = 1.0
@@ -124,12 +125,10 @@ class CollisionAvoidanceEnv(gym.Env):
         if easy_test_cases:
             goal_x = np.random.choice([-1, 1])*np.random.uniform(2, 5)
             goal_y = np.random.uniform(-2, 2)
-            self.agents = np.array([Agent(0, 0, goal_x, goal_y,
-                                    0.5, 1.0, 0.5, 0),
-                                    Agent(goal_x, goal_y+5, 0, 5,
-                                    0.5, 1.0, 0.5, 1),
-                                    Agent(goal_x, goal_y-5, 0, -5,
-                                    0.5, 1.0, np.pi, 2)])
+            self.agents = np.array([
+                Agent(0, 0, goal_x, goal_y, 0.5, 1.0, 0.5, 0),
+                Agent(goal_x, goal_y+5, 0, 5, 0.5, 1.0, 0.5, 1),
+                Agent(goal_x, goal_y-5, 0, -5, 0.5, 1.0, np.pi, 2)])
         else:
             if self.evaluate:
                 self.test_case_index += 1
@@ -146,8 +145,8 @@ class CollisionAvoidanceEnv(gym.Env):
                 # num_agents = random.randint(2, 3)
                 # num_agents = random.randint(2, Config.MAX_NUM_AGENTS)
                 # num_agents = np.random.randint(2, 4)
-                #  side_length = 5
-                side_length = np.random.uniform(4, 8)
+                side_length = 5
+                #  side_length = np.random.uniform(4, 8)
                 speed_bnds = [0.5, 1.5]
                 radius_bnds = [0.2, 0.8]
 
@@ -255,20 +254,19 @@ class CollisionAvoidanceEnv(gym.Env):
         for i, agent in enumerate(self.agents):
             agent.update_state(action_vectors[i], self.dt)
 
-        '''
-        # Update each agent's position in Stage simulator
-        req = CmdPosesRecScansRequest()
-        for agent in self.agents:
-            pose_msg = Pose()
-            pose_msg.position.x = agent.pos_global_frame[0]
-            pose_msg.position.y = agent.pos_global_frame[1]
-            pose_msg.orientation.w = 1.0
-            req.poses.append(pose_msg)
-        resp = self.srv_cmd_poses_rec_scans(req)
-        # Then update each agent's laserscan
-        for i, agent in enumerate(self.agents):
-            agent.latest_laserscan = resp.laserscans[i]
-        '''
+        if Config.USE_ROS:
+            # Update each agent's position in Stage simulator
+            req = CmdPosesRecScansRequest()
+            for agent in self.agents:
+                pose_msg = Pose()
+                pose_msg.position.x = agent.pos_global_frame[0]
+                pose_msg.position.y = agent.pos_global_frame[1]
+                pose_msg.orientation.w = agent.heading_global_frame
+                req.poses.append(pose_msg)
+            resp = self.srv_cmd_poses_rec_scans(req)
+            # Then update each agent's laserscan
+            for i, agent in enumerate(self.agents):
+                agent.latest_laserscan = resp.laserscans[i]
 
     def _compute_rewards(self):
         if Config.TRAIN_ON_MULTIPLE_AGENTS:
@@ -294,8 +292,8 @@ class CollisionAvoidanceEnv(gym.Env):
                         agent.in_collision = True
                     elif norm_zone_violation[i]:
                         rewards[i] = self.reward_norm_violation
-                    elif abs(agent.past_actions[0, 1]) > 0.4:
-                        rewards[i] += -0.003
+                    #  elif abs(agent.past_actions[0, 1]) > 0.4:
+                    #      rewards[i] += -0.003
         rewards = np.clip(rewards, self.reward_collision, self.reward_at_goal)
         if not Config.TRAIN_ON_MULTIPLE_AGENTS:
             rewards = rewards[0]
@@ -595,8 +593,8 @@ class CollisionAvoidanceEnv(gym.Env):
 
         plt.draw()
         if self.evaluate:
-            fig_dir = '/home/mfe/code/\
-                    openai_baselines/baselines/ppo2/logs/test_cases/'
+            fig_dir = '/home/mfe/code/'\
+                    'openai_baselines/baselines/ppo2/logs/test_cases/'
             fig_name = self.agents[0].policy_type + '_' + \
                 str(self.test_case_num_agents) + 'agents_' + \
                 str(self.test_case_index) + '.png'

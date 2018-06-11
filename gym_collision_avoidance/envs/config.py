@@ -26,6 +26,8 @@ class Config:
 
     #########################################################################
     # COLLISION AVOIDANCE PARAMETER
+    USE_ROS = True
+    #  USE_ROS = True
     MAX_NUM_AGENTS_IN_ENVIRONMENT = 2
     NUM_TEST_CASES = 8
     PLOT_EPISODES = False # with matplotlib, plot after each episode
