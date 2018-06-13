@@ -3,6 +3,8 @@ from gym_collision_avoidance.envs.config import Config
 from gym_collision_avoidance.envs.util import wrap, find_nearest
 import operator
 
+from sensor_msgs.msg import LaserScan
+
 
 class Agent():
     def __init__(self, start_x, start_y, goal_x, goal_y, radius,
@@ -59,6 +61,9 @@ class Agent():
         self.update_state([0.0, 0.0], 0.0)
 
         self.min_dist_to_other_agents = np.inf
+
+        self.latest_laserscan = LaserScan()
+        self.latest_laserscan.ranges = 10*np.ones(Config.LASERSCAN_LENGTH)
 
     def _check_if_at_goal(self):
         near_goal_threshold = 0.2
@@ -283,6 +288,11 @@ class Agent():
                     Config.OTHER_AGENT_FULL_OBSERVATION_LENGTH*(j+1)
                 other_obs[-1] = 0
                 obs[start_index:end_index] = other_obs
+
+        if Config.USE_LASERSCAN_IN_OBSERVATION:
+            start_index = end_index
+            end_index = start_index + Config.LASERSCAN_LENGTH
+            obs[start_index:end_index] = self.latest_laserscan.ranges
 
         #  Only adds previous 1 action to state vector
         # past_actions = self.past_actions[1:3,:].flatten()

@@ -28,15 +28,18 @@ class Config:
     # COLLISION AVOIDANCE PARAMETER
     USE_ROS = True
     #  USE_ROS = True
+    USE_LASERSCAN_IN_OBSERVATION = True
+    #  USE_LASERSCAN_IN_OBSERVATION = False
     MAX_NUM_AGENTS_IN_ENVIRONMENT = 2
     NUM_TEST_CASES = 8
     PLOT_EPISODES = False # with matplotlib, plot after each episode
     PLOT_EVERY_N_EPISODES = 100 # for tensorboard visualization
     DT             = 0.2 # seconds between simulation time steps
     REWARD_AT_GOAL = 1.0 # Number of agents trying to get from start -> goal positions
-    REWARD_COLLISION = -0.25 # Number of agents trying to get from start -> goal positions
+    REWARD_COLLISION_WITH_AGENT = -0.25 # Number of agents trying to get from start -> goal positions
+    REWARD_COLLISION_WITH_WALL = -1.0 # Number of agents trying to get from start -> goal positions
     REWARD_GETTING_CLOSE   = -0.1 # Number of agents trying to get from start -> goal positions
-    REWARD_NORM_VIOLATION   = -0.05 # Number of agents trying to get from start -> goal positions
+    REWARD_ENTERED_NORM_ZONE   = -0.05 # Number of agents trying to get from start -> goal positions
     NUM_AGENT_STATES = 4 # Number of states (pos_x,pos_y,...)
     OTHER_OBS_LENGTH = 7 # number of states about another agent in observation vector
     NUM_STEPS_IN_OBS_HISTORY = 1 # number of time steps to store in observation vector
@@ -65,6 +68,7 @@ class Config:
     RNN_HELPER_LENGTH = 1 # num other agents
     AGENT_ID_LENGTH = 2 # id, 0/1 binary flag of which policy it's using
     IS_ON_LENGTH = 1 # 0/1 binary flag
+    LASERSCAN_LENGTH = 180 # num range readings in one scan
 
     HOST_AGENT_AVG_VECTOR = np.array([0.0, 0.0, 1.0, 0.5]) # dist to goal, heading to goal, pref speed, radius
     HOST_AGENT_STD_VECTOR = np.array([5.0, 3.14, 1.0, 1.0]) # dist to goal, heading to goal, pref speed, radius
@@ -85,9 +89,13 @@ class Config:
         FIRST_STATE_INDEX = 0
         MULTI_AGENT_ARCH = 'NONE'
 
-        NN_INPUT_AVG_VECTOR = np.hstack([HOST_AGENT_AVG_VECTOR,OTHER_AGENT_AVG_VECTOR])
-        NN_INPUT_STD_VECTOR = np.hstack([HOST_AGENT_STD_VECTOR,OTHER_AGENT_STD_VECTOR])
+        NN_INPUT_AVG_VECTOR = np.hstack([HOST_AGENT_AVG_VECTOR, OTHER_AGENT_AVG_VECTOR])
+        NN_INPUT_STD_VECTOR = np.hstack([HOST_AGENT_STD_VECTOR, OTHER_AGENT_STD_VECTOR])
 
+        if USE_LASERSCAN_IN_OBSERVATION:
+            FULL_STATE_LENGTH += LASERSCAN_LENGTH
+            NN_INPUT_AVG_VECTOR = np.hstack([NN_INPUT_AVG_VECTOR, 4*np.ones(LASERSCAN_LENGTH)])
+            NN_INPUT_STD_VECTOR = np.hstack([NN_INPUT_STD_VECTOR, 1*np.ones(LASERSCAN_LENGTH)])
 
     # if MAX_NUM_AGENTS in [3,4]:
     if MAX_NUM_AGENTS_IN_ENVIRONMENT > 2:
