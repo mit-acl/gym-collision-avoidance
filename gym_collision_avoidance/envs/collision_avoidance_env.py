@@ -5,12 +5,15 @@ MIT Aerospace Controls Lab
 '''
 
 import gym
-from gym import spaces
+import gym.spaces
+# from gym import spaces
 #  from gym.utils import seeding
 import numpy as np
 from shapely.geometry import Polygon, Point
 from shapely.affinity import translate, rotate
 import pickle
+import time
+from collections import OrderedDict
 
 
 import matplotlib.pyplot as plt
@@ -37,6 +40,7 @@ if Config.USE_ROS:
         CmdPosesRecScansRequest, \
         NewEpisode, NewEpisodeRequest
     from geometry_msgs.msg import Pose, Vector3
+    import subprocess
     #  from sensor_msgs.msg import LaserScan
 
 
@@ -48,23 +52,30 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def __init__(self):
 
+        self.id = 0
+        self.episode_step_number = 0
         if Config.USE_ROS:
-            rospy.init_node('my_node_name')
+            stage_ros_env_ns = "/stage_env_%i" % self.id
+            subprocess.Popen(["rosnode", "kill",
+                              stage_ros_env_ns+"/stage_ros"])
+            self.stage_ros_process = \
+                subprocess.Popen(["roslaunch", "stage_ros",
+                                  "stage_ros_node.launch",
+                                  "ns:=%s" % stage_ros_env_ns])
+            rospy.init_node('collision_avoidance_env_%i' % self.id)
             # Connect to service
-            srv_name = '/command_poses_receive_scans'
+            srv_name = '%s/command_poses_receive_scans' % stage_ros_env_ns
             rospy.wait_for_service(srv_name, timeout=5.0)
             self.srv_cmd_poses_rec_scans = rospy.ServiceProxy(srv_name,
                                                               CmdPosesRecScans)
             rospy.loginfo("[%s] Srv: %s available.\n" % (rospy.get_name(),
                                                          srv_name))
             # Connect to service
-            srv_name = '/new_episode'
+            srv_name = '%s/new_episode' % stage_ros_env_ns
             rospy.wait_for_service(srv_name, timeout=5.0)
             self.srv_new_episode = rospy.ServiceProxy(srv_name, NewEpisode)
             rospy.loginfo("[%s] Srv: %s available.\n" % (rospy.get_name(),
                                                          srv_name))
-
-        self.id = 0
 
         # Initialize Rewards
         self.reward_at_goal = Config.REWARD_AT_GOAL
@@ -72,9 +83,11 @@ class CollisionAvoidanceEnv(gym.Env):
         self.reward_collision_with_wall = Config.REWARD_COLLISION_WITH_WALL
         self.reward_getting_close = Config.REWARD_GETTING_CLOSE
         self.reward_entered_norm_zone = Config.REWARD_ENTERED_NORM_ZONE
+        self.reward_time_step = Config.REWARD_TIME_STEP
         self.possible_reward_values = \
             np.array([self.reward_at_goal,
                       self.reward_collision_with_agent,
+                      self.reward_time_step,
                       self.reward_collision_with_wall])
         self.min_possible_reward = np.min(self.possible_reward_values)
         self.max_possible_reward = np.max(self.possible_reward_values)
@@ -116,14 +129,20 @@ class CollisionAvoidanceEnv(gym.Env):
 
         self.action_space_type = Config.ACTION_SPACE_TYPE
         if self.action_space_type == Config.discrete:
-            self.action_space = spaces.Discrete(self.actions.num_actions)
+            self.action_space = gym.spaces.Discrete(self.actions.num_actions, dtype=np.float32)
         elif self.action_space_type == Config.continuous:
             self.low_action = np.array([self.min_speed,
                                         self.min_heading_change])
             self.high_action = np.array([self.max_speed,
                                          self.max_heading_change])
-            self.action_space = spaces.Box(self.low_action, self.high_action)
-        self.observation_space = spaces.Box(self.low_state, self.high_state)
+            self.action_space = gym.spaces.Box(self.low_action, self.high_action, dtype=np.float32)
+        self.observation_space = gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
+        # self.observation_space = np.array([gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
+        #                                    for _ in range(self.num_agents)])
+        # observation_space = gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
+        # self.observation_space = gym.spaces.Dict({})
+        # for i in range(self.num_agents):
+        #     self.observation_space.spaces["agent_"+str(i)] = observation_space
 
         self.agents = None
 
@@ -135,7 +154,7 @@ class CollisionAvoidanceEnv(gym.Env):
             req = NewEpisodeRequest()
             for agent in self.agents:
                 req.sizes.append(Vector3(x=agent.radius, y=agent.radius,
-                                         z=0.5))
+                                         z=0.1))
             self.srv_new_episode(req)
 
     def _init_agents(self, test_case=None, alg='PPO'):
@@ -157,6 +176,7 @@ class CollisionAvoidanceEnv(gym.Env):
             #      Agent(goal_x, goal_y-5, 0, -5, 0.5, 1.0, np.pi, 2)])
         else:
             if self.evaluate:
+                print("self.test_case_index:", self.test_case_index)
                 self.test_case_index += 1
                 self.test_case_num_agents = 2
                 # self.full_test_suite = True
@@ -255,7 +275,6 @@ class CollisionAvoidanceEnv(gym.Env):
         return agents
 
     def _take_action(self, actions):
-        #  print("[env] raw actions:", actions)
         action_vectors = [np.array([0.0, 0.0]) for i in range(self.num_agents)]
         # First find next action of each agent
         # Importantly done before agents update their state
@@ -271,7 +290,8 @@ class CollisionAvoidanceEnv(gym.Env):
                 action = actions[0]  # probably doesnt work anymore
                 action_vector = np.array([agent.pref_speed, action])
             elif agent.policy_type == 'PPO':
-                action_vector = np.array([speed, heading])
+                # action_vector = np.array([1.0, 0.0])
+                 action_vector = np.array([speed, heading])
             else:
                 action_vector = agent.find_next_action(self.agents)
             action_vectors[i] = action_vector
@@ -301,15 +321,17 @@ class CollisionAvoidanceEnv(gym.Env):
             agents = [self.agents[0]]
 
         # if nothing noteworthy happened in that timestep, reward = -0.01
-        rewards = -0.01*np.ones(len(agents))
+        rewards = self.reward_time_step*np.ones(len(agents))
         collision_with_agent, collision_with_wall, entered_norm_zone = \
-            self._check_social_zones()
+            self._check_for_collisions()
 
         for i, agent in enumerate(agents):
             if agent.is_at_goal:
                 if agent.was_at_goal_already is False:
                     # agents should only receive the goal reward once
                     rewards[i] = self.reward_at_goal
+                    # print("Agent %i: Arrived at goal!"
+                          # % agent.id)
             else:
                 # agents at their goal shouldn't be penalized if someone else
                 # bumps into them
@@ -317,9 +339,13 @@ class CollisionAvoidanceEnv(gym.Env):
                     if collision_with_agent[i]:
                         rewards[i] = self.reward_collision_with_agent
                         agent.in_collision = True
+                        # print("Agent %i: Collision with another agent!"
+                              # % agent.id)
                     elif collision_with_wall[i]:
                         rewards[i] = self.reward_collision_with_wall
                         agent.in_collision = True
+                        # print("Agent %i: Collision with wall!"
+                              # % agent.id)
                     #  elif entered_norm_zone[i]:
                     #      rewards[i] = self.reward_entered_norm_zone
                     #  elif abs(agent.past_actions[0, 1]) > 0.4:
@@ -330,7 +356,7 @@ class CollisionAvoidanceEnv(gym.Env):
             rewards = rewards[0]
         return rewards
 
-    def _check_social_zones(self):
+    def _check_for_collisions(self):
         collision_with_agent = [False for _ in self.agents]
         collision_with_wall = [False for _ in self.agents]
         entered_norm_zone = [False for _ in self.agents]
@@ -361,7 +387,8 @@ class CollisionAvoidanceEnv(gym.Env):
                 if agent_shapes[i].intersects(agent_front_zones[j]):
                     # Entered another agent's social zone!
                     entered_norm_zone[i] = True
-            if min(self.agents[i].latest_laserscan.ranges) < 0.3:
+            agent = self.agents[i]
+            if min(agent.latest_laserscan.ranges) - agent.radius < 1.0:
                 # Collision with wall!
                 collision_with_wall[i] = True
         return collision_with_agent, collision_with_wall, entered_norm_zone
@@ -381,14 +408,14 @@ class CollisionAvoidanceEnv(gym.Env):
             game_over = np.all(which_agents_done)
         else:
             game_over = which_agents_done[0]
-
         return which_agents_done, game_over
 
     def step(self, actions):
+        self.episode_step_number += 1
+        # time.sleep(0.05)
         #  print("-----------\n Step \n ----------------")
         # Take action
         self._take_action(actions)
-        #  print("Actions:", actions)
 
         # Collect rewards
         rewards = self._compute_rewards()
@@ -410,6 +437,9 @@ class CollisionAvoidanceEnv(gym.Env):
         for i, agent in enumerate(self.agents):
             which_agents_done_dict[agent.id] = which_agents_done[i]
 
+        #  if self.episode_step_number % 5 == 0:
+        # self._plot_episode()
+
         return next_observations, rewards, game_over, \
             {'which_agents_done': which_agents_done_dict}
 
@@ -427,9 +457,10 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def reset(self):
         #  print("--- Reset ---")
-        if self.agents is not None:
+        if self.agents is not None and Config.PLOT_EPISODES:
             self._plot_episode()
         self.begin_episode = True
+        self.episode_step_number = 0
         self._init_env(test_case=0)
         return self._get_obs()
         # TODO: confirm agent is getting correct scan on reset
@@ -534,9 +565,7 @@ class CollisionAvoidanceEnv(gym.Env):
         return self.viewer.render(return_rgb_array=rgb_array)
 
     def _plot_episode(self):
-        if not Config.PLOT_EPISODES:
-            return
-
+        
         fig = plt.figure(self.id, figsize=(10, 8))
         plt.clf()
 
@@ -550,6 +579,9 @@ class CollisionAvoidanceEnv(gym.Env):
         plt_colors.append([0.6350, 0.0780, 0.1840])  # chocolate
 
         ax = fig.add_subplot(1, 1, 1)
+
+        img = plt.imread("/home/mfe/code/Stage/worlds/bitmaps/mfe_hallway.png")
+        ax.imshow(img, extent=[-8,8,-8,8])
 
         max_time = max(
                 [agent.global_state_history[-1, 0] for agent in self.agents])

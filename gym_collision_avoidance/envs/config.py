@@ -3,6 +3,7 @@ import numpy as np
 class Config:
     #########################################################################
     # GENERAL PARAMETERS
+    COLLISION_AVOIDANCE = True
     continuous, discrete = range(2) # Initialize game types as enum
     ACTION_SPACE_TYPE   = continuous
     NET_ARCH            = 'NetworkVP_cnn' # Neural net architecture
@@ -26,35 +27,34 @@ class Config:
 
     #########################################################################
     # COLLISION AVOIDANCE PARAMETER
-    USE_ROS = True
-    #  USE_ROS = True
-    USE_LASERSCAN_IN_OBSERVATION = True
-    #  USE_LASERSCAN_IN_OBSERVATION = False
+    # USE_ROS = True
+    USE_ROS = False
+    # USE_LASERSCAN_IN_OBSERVATION = True
+    USE_LASERSCAN_IN_OBSERVATION = False
     MAX_NUM_AGENTS_IN_ENVIRONMENT = 2
     NUM_TEST_CASES = 8
     PLOT_EPISODES = False # with matplotlib, plot after each episode
     PLOT_EVERY_N_EPISODES = 100 # for tensorboard visualization
     DT             = 0.2 # seconds between simulation time steps
-    REWARD_AT_GOAL = 1.0 # Number of agents trying to get from start -> goal positions
-    REWARD_COLLISION_WITH_AGENT = -0.25 # Number of agents trying to get from start -> goal positions
-    REWARD_COLLISION_WITH_WALL = -1.0 # Number of agents trying to get from start -> goal positions
-    REWARD_GETTING_CLOSE   = -0.1 # Number of agents trying to get from start -> goal positions
-    REWARD_ENTERED_NORM_ZONE   = -0.05 # Number of agents trying to get from start -> goal positions
-    NUM_AGENT_STATES = 4 # Number of states (pos_x,pos_y,...)
-    OTHER_OBS_LENGTH = 7 # number of states about another agent in observation vector
+    REWARD_AT_GOAL = 1.0 # reward given when agent reaches goal position
+    REWARD_COLLISION_WITH_AGENT = -0.25 # reward given when agent collides with another agent
+    REWARD_COLLISION_WITH_WALL = -1.0 # reward given when agent collides with wall
+    REWARD_GETTING_CLOSE   = -0.1 # reward when agent gets close to another agent (unused?)
+    REWARD_ENTERED_NORM_ZONE   = -0.05 # reward when agent enters another agent's social zone
+    REWARD_TIME_STEP   = -0.01 # default reward given if none of the others apply (encourage speed)
+    # NUM_AGENT_STATES = 4 # Number of states (pos_x,pos_y,...)
+    # OTHER_OBS_LENGTH = 7 # number of states about another agent in observation vector
     NUM_STEPS_IN_OBS_HISTORY = 1 # number of time steps to store in observation vector
     NUM_PAST_ACTIONS_IN_STATE = 0
     COLLISION_DIST = 0.0 # meters between agents' boundaries for collision
     GETTING_CLOSE_RANGE = 0.2 # meters between agents' boundaries for collision
-    STACKED_FRAMES = 1 # Num of inputs to DQN
-    REWARD_MIN     = -100 # Reward Clipping
-    REWARD_MAX     = 100 # Reward Clipping
-    MAX_ITER       = 40 # Max iteration (time limit)
-    TIMER_DURATION = 0.01 # In second visualization time for each step
-    ACTIONS_FROM_VALUE_FUNCTION = False # In second visualization time for each step
-    ACTIONS_FROM_POLICY_FUNCTION = True # In second visualization time for each step
-    TRAIN_WITH_REGRESSION = False # Start training with regression phase before RL
-    LOAD_REGRESSION = False # Initialize training with regression network
+    # STACKED_FRAMES = 1 # Num of inputs to DQN
+    # REWARD_MIN     = -100 # Reward Clipping
+    # REWARD_MAX     = 100 # Reward Clipping
+    # MAX_ITER       = 40 # Max iteration (time limit)
+    # TIMER_DURATION = 0.01 # In second visualization time for each step
+    # TRAIN_WITH_REGRESSION = False # Start training with regression phase before RL
+    # LOAD_REGRESSION = False # Initialize training with regression network
     MULTI_AGENT_ARCHS = ['RNN','WEIGHT_SHARING','VANILLA']
     MULTI_AGENT_ARCH = 'VANILLA'
     # MULTI_AGENT_ARCH = 'WEIGHT_SHARING'
@@ -68,7 +68,7 @@ class Config:
     RNN_HELPER_LENGTH = 1 # num other agents
     AGENT_ID_LENGTH = 2 # id, 0/1 binary flag of which policy it's using
     IS_ON_LENGTH = 1 # 0/1 binary flag
-    LASERSCAN_LENGTH = 180 # num range readings in one scan
+    LASERSCAN_LENGTH = 20 # num range readings in one scan
 
     HOST_AGENT_AVG_VECTOR = np.array([0.0, 0.0, 1.0, 0.5]) # dist to goal, heading to goal, pref speed, radius
     HOST_AGENT_STD_VECTOR = np.array([5.0, 3.14, 1.0, 1.0]) # dist to goal, heading to goal, pref speed, radius
