@@ -14,6 +14,7 @@ from shapely.affinity import translate, rotate
 import pickle
 import time
 from collections import OrderedDict
+import itertools
 
 
 import matplotlib.pyplot as plt
@@ -159,12 +160,14 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def _init_agents(self, test_case=None, alg='PPO'):
         # Agents
-        #  easy_test_cases = True
+        # easy_test_cases = True
         easy_test_cases = False
         random_test_cases = True
         if easy_test_cases:
-            goal_x = np.random.uniform(-3, 3)
-            goal_y = np.random.uniform(1, 5)
+            goal_x = 3
+            goal_y = 3
+            # goal_x = np.random.uniform(-3, 3)
+            # goal_y = np.random.uniform(1, 5)
             self.agents = np.array([
                 Agent(goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, 0),
                 Agent(-goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, 1)])
@@ -187,9 +190,8 @@ class CollisionAvoidanceEnv(gym.Env):
                 test_case = test_cases[self.test_case_index]
 
             elif random_test_cases:
-                num_agents = 2
-                # num_agents = random.randint(2, 3)
-                # num_agents = random.randint(2, Config.MAX_NUM_AGENTS)
+                # num_agents = 3
+                num_agents = np.random.randint(2, Config.MAX_NUM_AGENTS_IN_ENVIRONMENT)
                 # num_agents = np.random.randint(2, 4)
                 side_length = 4
                 #  side_length = np.random.uniform(4, 8)
@@ -244,12 +246,12 @@ class CollisionAvoidanceEnv(gym.Env):
                 agent_policy_list = [-1 for _ in range(np.shape(test_case)[0])]
         else:
             # Random mix of agents following various policies
+            # agent_policy_list = np.random.choice(len(policies),
+            #                                      np.shape(test_case)[0],
+            #                                      p=[1.0, 0.0, 0.0, 0.0])
             agent_policy_list = np.random.choice(len(policies),
                                                  np.shape(test_case)[0],
-                                                 p=[1.0, 0.0, 0.0, 0.0])
-            #  agent_policy_list = np.random.choice(len(policies),
-            #                                       np.shape(test_case)[0],
-            #                                       p=[0.9, 0.05, 0.05, 0.0])
+                                                 p=[0.9, 0.05, 0.05, 0.0])
             if 0 not in agent_policy_list:
                 # Make sure at least one agent is following PPO
                 #  (otherwise waste of time...)
@@ -275,6 +277,7 @@ class CollisionAvoidanceEnv(gym.Env):
         return agents
 
     def _take_action(self, actions):
+        # print("[env] raw actions:", actions)
         action_vectors = [np.array([0.0, 0.0]) for i in range(self.num_agents)]
         # First find next action of each agent
         # Importantly done before agents update their state
@@ -323,7 +326,8 @@ class CollisionAvoidanceEnv(gym.Env):
         # if nothing noteworthy happened in that timestep, reward = -0.01
         rewards = self.reward_time_step*np.ones(len(agents))
         collision_with_agent, collision_with_wall, entered_norm_zone = \
-            self._check_for_collisions()
+            self._check_for_collisions_fast()
+            # self._check_for_collisions()
 
         for i, agent in enumerate(agents):
             if agent.is_at_goal:
@@ -331,7 +335,7 @@ class CollisionAvoidanceEnv(gym.Env):
                     # agents should only receive the goal reward once
                     rewards[i] = self.reward_at_goal
                     # print("Agent %i: Arrived at goal!"
-                          # % agent.id)
+                    #       % agent.id)
             else:
                 # agents at their goal shouldn't be penalized if someone else
                 # bumps into them
@@ -340,7 +344,7 @@ class CollisionAvoidanceEnv(gym.Env):
                         rewards[i] = self.reward_collision_with_agent
                         agent.in_collision = True
                         # print("Agent %i: Collision with another agent!"
-                              # % agent.id)
+                        #       % agent.id)
                     elif collision_with_wall[i]:
                         rewards[i] = self.reward_collision_with_wall
                         agent.in_collision = True
@@ -348,8 +352,8 @@ class CollisionAvoidanceEnv(gym.Env):
                               # % agent.id)
                     #  elif entered_norm_zone[i]:
                     #      rewards[i] = self.reward_entered_norm_zone
-                    #  elif abs(agent.past_actions[0, 1]) > 0.4:
-                    #      rewards[i] += -0.003
+                    elif abs(agent.past_actions[0, 1]) > 0.4:
+                        rewards[i] += -0.003
         rewards = np.clip(rewards, self.min_possible_reward,
                           self.max_possible_reward)
         if not Config.TRAIN_ON_MULTIPLE_AGENTS:
@@ -393,6 +397,32 @@ class CollisionAvoidanceEnv(gym.Env):
                 collision_with_wall[i] = True
         return collision_with_agent, collision_with_wall, entered_norm_zone
 
+    def _check_for_collisions_fast(self):
+        # NOTE: This method a) doesn't compute social zones
+        #                   b) redundantly computes agent intersections twice
+        collision_with_agent = [False for _ in self.agents]
+        collision_with_wall = [False for _ in self.agents]
+        entered_norm_zone = [False for _ in self.agents]
+        agent_shapes = []
+        agent_front_zones = []
+        agent_inds = list(range(len(self.agents)))
+        agent_pairs = list(itertools.combinations(agent_inds, 2))
+        for i, j in agent_pairs:
+            agent = self.agents[i]
+            other_agent = self.agents[j]
+            dist_btwn = np.linalg.norm(
+                agent.pos_global_frame - other_agent.pos_global_frame)
+            combined_radius = agent.radius + other_agent.radius
+            if dist_btwn <= combined_radius:
+                # Collision with another agent!
+                collision_with_agent[i] = True
+        for i in agent_inds:
+            agent = self.agents[i]
+            if min(agent.latest_laserscan.ranges) - agent.radius < 1.0:
+                # Collision with wall!
+                collision_with_wall[i] = True
+        return collision_with_agent, collision_with_wall, entered_norm_zone
+
     def _check_which_agents_done(self):
         at_goal_condition = np.array(
                 [a.is_at_goal for a in self.agents])
@@ -404,8 +434,11 @@ class CollisionAvoidanceEnv(gym.Env):
             np.logical_or(
                 np.logical_or(at_goal_condition, ran_out_of_time_condition),
                 in_collision_condition)
-        if Config.TRAIN_ON_MULTIPLE_AGENTS or Config.EVALUATE_MODE:
+        if Config.EVALUATE_MODE:
             game_over = np.all(which_agents_done)
+        elif Config.TRAIN_ON_MULTIPLE_AGENTS:
+            game_over = np.all(which_agents_done)
+            # game_over = which_agents_done[0]
         else:
             game_over = which_agents_done[0]
         return which_agents_done, game_over
@@ -439,6 +472,11 @@ class CollisionAvoidanceEnv(gym.Env):
 
         #  if self.episode_step_number % 5 == 0:
         # self._plot_episode()
+
+        # print("[env] next_observations:", next_observations)
+        # print("[env] rewards:", rewards)
+        # print("[env] game_over:", game_over)
+        # print("[env] which_agents_done_dict:", which_agents_done_dict)
 
         return next_observations, rewards, game_over, \
             {'which_agents_done': which_agents_done_dict}

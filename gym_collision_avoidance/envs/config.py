@@ -6,6 +6,7 @@ class Config:
     COLLISION_AVOIDANCE = True
     continuous, discrete = range(2) # Initialize game types as enum
     ACTION_SPACE_TYPE   = continuous
+    ACTION_SPACE_LENGTH = 2
     NET_ARCH            = 'NetworkVP_cnn' # Neural net architecture
     ALL_ARCHS           = ['NetworkVP_cnn','NetworkVP_cnn_2'] # Can add more model types here
     TRAIN_MODELS        = True # Enable to train
@@ -22,8 +23,8 @@ class Config:
     TRAIN_MODE           = False # Enable to see the trained agent in action (for testing)
     PLAY_MODE           = False # Enable to see the trained agent in action (for testing)
     EVALUATE_MODE       = False # Enable to see the trained agent in action (for testing)
-    #  TRAIN_ON_MULTIPLE_AGENTS = True
-    TRAIN_ON_MULTIPLE_AGENTS = False
+    TRAIN_ON_MULTIPLE_AGENTS = True
+    # TRAIN_ON_MULTIPLE_AGENTS = False
 
     #########################################################################
     # COLLISION AVOIDANCE PARAMETER
@@ -31,7 +32,7 @@ class Config:
     USE_ROS = False
     # USE_LASERSCAN_IN_OBSERVATION = True
     USE_LASERSCAN_IN_OBSERVATION = False
-    MAX_NUM_AGENTS_IN_ENVIRONMENT = 2
+    MAX_NUM_AGENTS_IN_ENVIRONMENT = 5
     NUM_TEST_CASES = 8
     PLOT_EPISODES = False # with matplotlib, plot after each episode
     PLOT_EVERY_N_EPISODES = 100 # for tensorboard visualization
@@ -116,19 +117,19 @@ class Config:
 
         elif MULTI_AGENT_ARCH in ['WEIGHT_SHARING','VANILLA']:
             # NN input:
-            # [dist to goal, heading to goal, pref speed, radius, 
+            # [dist to goal, heading to goal, pref speed, radius,
             #   other px, other py, other vx, other vy, other radius, dist btwn, combined radius, is_on,
             #   other px, other py, other vx, other vy, other radius, dist btwn, combined radius, is_on,
             #   other px, other py, other vx, other vy, other radius, dist btwn, combined radius, is_on]
-            MAX_NUM_OTHER_AGENTS_OBSERVED = 2
+            MAX_NUM_OTHER_AGENTS_OBSERVED = MAX_NUM_AGENTS_IN_ENVIRONMENT - 1
             OTHER_AGENT_FULL_OBSERVATION_LENGTH = OTHER_AGENT_OBSERVATION_LENGTH + IS_ON_LENGTH
             HOST_AGENT_STATE_SIZE = HOST_AGENT_OBSERVATION_LENGTH
             FULL_STATE_LENGTH = HOST_AGENT_OBSERVATION_LENGTH + MAX_NUM_OTHER_AGENTS_OBSERVED * OTHER_AGENT_FULL_OBSERVATION_LENGTH
             FIRST_STATE_INDEX = 0
-            
+
             NN_INPUT_AVG_VECTOR = np.hstack([HOST_AGENT_AVG_VECTOR,np.tile(np.hstack([OTHER_AGENT_AVG_VECTOR,IS_ON_AVG_VECTOR]),MAX_NUM_OTHER_AGENTS_OBSERVED)])
             NN_INPUT_STD_VECTOR = np.hstack([HOST_AGENT_STD_VECTOR,np.tile(np.hstack([OTHER_AGENT_STD_VECTOR,IS_ON_STD_VECTOR]),MAX_NUM_OTHER_AGENTS_OBSERVED)])
-            
+
     FULL_LABELED_STATE_LENGTH = FULL_STATE_LENGTH + AGENT_ID_LENGTH
     NN_INPUT_SIZE = FULL_STATE_LENGTH
 
