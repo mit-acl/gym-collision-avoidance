@@ -322,3 +322,19 @@ class Agent():
             ref_prll = goal_direction
         ref_orth = np.array([-ref_prll[1], ref_prll[0]])  # rotate by 90 deg
         return ref_prll, ref_orth
+
+if __name__ == '__main__':
+    start_x = 5
+    start_y = 10
+    goal_x = 2
+    goal_y = -5
+    radius = 0.5
+    pref_speed = 1.2
+    initial_heading = 0.0
+    id = 0
+    # agent = Agent(start_x, start_y, goal_x, goal_y, radius,
+    #              pref_speed, initial_heading, id)
+    agents = [Agent(start_x, start_y, goal_x, goal_y, radius,
+                 pref_speed, initial_heading, i) for i in range(4)]
+    agents[0].observe(agents)
+    print("Created Agent.")

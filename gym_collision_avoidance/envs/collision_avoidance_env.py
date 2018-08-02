@@ -42,6 +42,7 @@ if Config.USE_ROS:
         NewEpisode, NewEpisodeRequest
     from geometry_msgs.msg import Pose, Vector3
     import subprocess
+    import rosgraph
     #  from sensor_msgs.msg import LaserScan
 
 
@@ -56,23 +57,33 @@ class CollisionAvoidanceEnv(gym.Env):
         self.id = 0
         self.episode_step_number = 0
         if Config.USE_ROS:
-            stage_ros_env_ns = "/stage_env_%i" % self.id
+            try:
+                rosgraph.Master('/rostopic').getPid()
+            except:
+                raise Exception("No ROS Master exists! Please start \
+                    one externally and re-start this script.")
+
+            self._update_static_world_id(id=0)
+            self.world_filename = "/home/mfe/code/Stage/worlds/{world_name}.world".format(world_name=self.world_name)
+            self.stage_ros_env_ns = "/stage_env_%i" % self.id
             subprocess.Popen(["rosnode", "kill",
-                              stage_ros_env_ns+"/stage_ros"])
+                              self.stage_ros_env_ns+"/stage_ros"])
             self.stage_ros_process = \
                 subprocess.Popen(["roslaunch", "stage_ros",
                                   "stage_ros_node.launch",
-                                  "ns:=%s" % stage_ros_env_ns])
+                                  "ns:=%s" % self.stage_ros_env_ns,
+                                  "world_filename:=%s"
+                                  % self.world_filename])
             rospy.init_node('collision_avoidance_env_%i' % self.id)
             # Connect to service
-            srv_name = '%s/command_poses_receive_scans' % stage_ros_env_ns
+            srv_name = '%s/command_poses_receive_scans' % self.stage_ros_env_ns
             rospy.wait_for_service(srv_name, timeout=5.0)
             self.srv_cmd_poses_rec_scans = rospy.ServiceProxy(srv_name,
                                                               CmdPosesRecScans)
             rospy.loginfo("[%s] Srv: %s available.\n" % (rospy.get_name(),
                                                          srv_name))
             # Connect to service
-            srv_name = '%s/new_episode' % stage_ros_env_ns
+            srv_name = '%s/new_episode' % self.stage_ros_env_ns
             rospy.wait_for_service(srv_name, timeout=5.0)
             self.srv_new_episode = rospy.ServiceProxy(srv_name, NewEpisode)
             rospy.loginfo("[%s] Srv: %s available.\n" % (rospy.get_name(),
@@ -149,14 +160,35 @@ class CollisionAvoidanceEnv(gym.Env):
 
         # self.reset()
 
+    def _update_static_world_id(self, id=None):
+        if id is None:
+            # self.static_world_id = 2
+            self.static_world_id = np.random.randint(0,3)
+        else:
+            self.static_world_id = 0
+        self.world_name = "cadrl_{id}".format(id=self.static_world_id)
+        self.world_bitmap_filename = "/home/mfe/code/Stage/worlds/bitmaps/{world_name}.png".format(world_name=self.world_name)
+
     def _init_env(self, test_case=None, alg='PPO'):
         self._init_agents(test_case=test_case, alg=alg)
         if Config.USE_ROS:
             req = NewEpisodeRequest()
             for agent in self.agents:
+                # Update each agent's radius in Stage simulator
                 req.sizes.append(Vector3(x=agent.radius, y=agent.radius,
                                          z=0.1))
-            self.srv_new_episode(req)
+                # Update each agent's position in Stage simulator
+                pose_msg = Pose()
+                pose_msg.position.x = agent.pos_global_frame[0]
+                pose_msg.position.y = agent.pos_global_frame[1]
+                pose_msg.orientation.w = agent.heading_global_frame
+                req.poses.append(pose_msg)
+            self._update_static_world_id()
+            req.bitmap_path = self.world_bitmap_filename
+            resp = self.srv_new_episode(req)
+            # Then update each agent's laserscan
+            for i, agent in enumerate(self.agents):
+                agent.latest_laserscan = resp.laserscans[i]
 
     def _init_agents(self, test_case=None, alg='PPO'):
         # Agents
@@ -190,8 +222,8 @@ class CollisionAvoidanceEnv(gym.Env):
                 test_case = test_cases[self.test_case_index]
 
             elif random_test_cases:
-                # num_agents = 3
-                num_agents = np.random.randint(2, Config.MAX_NUM_AGENTS_IN_ENVIRONMENT)
+                num_agents = 2
+                # num_agents = np.random.randint(2, Config.MAX_NUM_AGENTS_IN_ENVIRONMENT)
                 # num_agents = np.random.randint(2, 4)
                 side_length = 4
                 #  side_length = np.random.uniform(4, 8)
@@ -353,6 +385,7 @@ class CollisionAvoidanceEnv(gym.Env):
                     #  elif entered_norm_zone[i]:
                     #      rewards[i] = self.reward_entered_norm_zone
                     elif abs(agent.past_actions[0, 1]) > 0.4:
+                        # Slightly penalize wiggly behavior
                         rewards[i] += -0.003
         rewards = np.clip(rewards, self.min_possible_reward,
                           self.max_possible_reward)
@@ -360,46 +393,45 @@ class CollisionAvoidanceEnv(gym.Env):
             rewards = rewards[0]
         return rewards
 
-    def _check_for_collisions(self):
-        collision_with_agent = [False for _ in self.agents]
-        collision_with_wall = [False for _ in self.agents]
-        entered_norm_zone = [False for _ in self.agents]
-        agent_shapes = []
-        agent_front_zones = []
-        for agent in self.agents:
-            width = agent.radius
-            length = agent.radius + 0.5
-            agent_shapes.append(Point(agent.pos_global_frame[0],
-                                      agent.pos_global_frame[1]).buffer(
-                                          agent.radius))
-            agent_front_zones.append(rotate(translate(
-                Polygon([(0, -width), (length, -width),
-                         (length, width), (0, width)]),
-                xoff=agent.pos_global_frame[0],
-                yoff=agent.pos_global_frame[1]),
-                angle=agent.heading_global_frame,
-                origin=Point(agent.pos_global_frame[0],
-                             agent.pos_global_frame[1]),
-                use_radians=True))
-        agent_inds = list(range(len(self.agents)))
-        for i in agent_inds:
-            other_inds = agent_inds[:i] + agent_inds[i+1:]
-            for j in other_inds:
-                if agent_shapes[i].intersects(agent_shapes[j]):
-                    # Collision with another agent!
-                    collision_with_agent[i] = True
-                if agent_shapes[i].intersects(agent_front_zones[j]):
-                    # Entered another agent's social zone!
-                    entered_norm_zone[i] = True
-            agent = self.agents[i]
-            if min(agent.latest_laserscan.ranges) - agent.radius < 1.0:
-                # Collision with wall!
-                collision_with_wall[i] = True
-        return collision_with_agent, collision_with_wall, entered_norm_zone
+    # def _check_for_collisions(self):
+    #     collision_with_agent = [False for _ in self.agents]
+    #     collision_with_wall = [False for _ in self.agents]
+    #     entered_norm_zone = [False for _ in self.agents]
+    #     agent_shapes = []
+    #     agent_front_zones = []
+    #     for agent in self.agents:
+    #         width = agent.radius
+    #         length = agent.radius + 0.5
+    #         agent_shapes.append(Point(agent.pos_global_frame[0],
+    #                                   agent.pos_global_frame[1]).buffer(
+    #                                       agent.radius))
+    #         agent_front_zones.append(rotate(translate(
+    #             Polygon([(0, -width), (length, -width),
+    #                      (length, width), (0, width)]),
+    #             xoff=agent.pos_global_frame[0],
+    #             yoff=agent.pos_global_frame[1]),
+    #             angle=agent.heading_global_frame,
+    #             origin=Point(agent.pos_global_frame[0],
+    #                          agent.pos_global_frame[1]),
+    #             use_radians=True))
+    #     agent_inds = list(range(len(self.agents)))
+    #     for i in agent_inds:
+    #         other_inds = agent_inds[:i] + agent_inds[i+1:]
+    #         for j in other_inds:
+    #             if agent_shapes[i].intersects(agent_shapes[j]):
+    #                 # Collision with another agent!
+    #                 collision_with_agent[i] = True
+    #             if agent_shapes[i].intersects(agent_front_zones[j]):
+    #                 # Entered another agent's social zone!
+    #                 entered_norm_zone[i] = True
+    #         agent = self.agents[i]
+    #         if min(agent.latest_laserscan.ranges) - agent.radius < 1.0:
+    #             # Collision with wall!
+    #             collision_with_wall[i] = True
+    #     return collision_with_agent, collision_with_wall, entered_norm_zone
 
     def _check_for_collisions_fast(self):
-        # NOTE: This method a) doesn't compute social zones
-        #                   b) redundantly computes agent intersections twice
+        # NOTE: This method doesn't compute social zones
         collision_with_agent = [False for _ in self.agents]
         collision_with_wall = [False for _ in self.agents]
         entered_norm_zone = [False for _ in self.agents]
@@ -418,7 +450,7 @@ class CollisionAvoidanceEnv(gym.Env):
                 collision_with_agent[i] = True
         for i in agent_inds:
             agent = self.agents[i]
-            if min(agent.latest_laserscan.ranges) - agent.radius < 1.0:
+            if min(agent.latest_laserscan.ranges) - agent.radius < 0.1:
                 # Collision with wall!
                 collision_with_wall[i] = True
         return collision_with_agent, collision_with_wall, entered_norm_zone
@@ -445,7 +477,7 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def step(self, actions):
         self.episode_step_number += 1
-        # time.sleep(0.05)
+        # time.sleep(1)
         #  print("-----------\n Step \n ----------------")
         # Take action
         self._take_action(actions)
@@ -502,6 +534,13 @@ class CollisionAvoidanceEnv(gym.Env):
         self._init_env(test_case=0)
         return self._get_obs()
         # TODO: confirm agent is getting correct scan on reset
+
+    def close(self):
+        print("--- Closing CollisionAvoidanceEnv! ---")
+        if Config.USE_ROS:
+            subprocess.Popen(["rosnode", "kill",
+                              self.stage_ros_env_ns+"/stage_ros"])
+        return
 
     def render(self, mode='human', close=False):
         if not Config.ANIMATE_EPISODES:
@@ -603,7 +642,7 @@ class CollisionAvoidanceEnv(gym.Env):
         return self.viewer.render(return_rgb_array=rgb_array)
 
     def _plot_episode(self):
-        
+
         fig = plt.figure(self.id, figsize=(10, 8))
         plt.clf()
 
@@ -618,8 +657,8 @@ class CollisionAvoidanceEnv(gym.Env):
 
         ax = fig.add_subplot(1, 1, 1)
 
-        img = plt.imread("/home/mfe/code/Stage/worlds/bitmaps/mfe_hallway.png")
-        ax.imshow(img, extent=[-8,8,-8,8])
+        # img = plt.imread(self.world_bitmap_filename)
+        # ax.imshow(img, extent=[-8, 8, -8, 8], cmap=plt.cm.gray)
 
         max_time = max(
                 [agent.global_state_history[-1, 0] for agent in self.agents])
@@ -904,3 +943,15 @@ def gen_circle_test_case(num_agents, radius):
         tc[i, 2] = radius*np.cos(theta_end)
         tc[i, 3] = radius*np.sin(theta_end)
     return tc
+
+if __name__ == '__main__':
+    env = CollisionAvoidanceEnv()
+    print("Created environment.")
+    env.reset()
+    print("Reset environment.")
+    num_agents = len(env.agents)
+    actions = np.zeros((num_agents,2), dtype=np.float32)
+    num_steps = 10
+    for i in range(num_steps):
+        env.step(actions)
+    print("Sent {steps} steps to environment.".format(steps=num_steps))

@@ -32,17 +32,18 @@ class Config:
     USE_ROS = False
     # USE_LASERSCAN_IN_OBSERVATION = True
     USE_LASERSCAN_IN_OBSERVATION = False
-    MAX_NUM_AGENTS_IN_ENVIRONMENT = 5
+    MAX_NUM_AGENTS_IN_ENVIRONMENT = 2
     NUM_TEST_CASES = 8
     PLOT_EPISODES = False # with matplotlib, plot after each episode
     PLOT_EVERY_N_EPISODES = 100 # for tensorboard visualization
     DT             = 0.2 # seconds between simulation time steps
     REWARD_AT_GOAL = 1.0 # reward given when agent reaches goal position
     REWARD_COLLISION_WITH_AGENT = -0.25 # reward given when agent collides with another agent
-    REWARD_COLLISION_WITH_WALL = -1.0 # reward given when agent collides with wall
+    REWARD_COLLISION_WITH_WALL = -0.25 # reward given when agent collides with wall
     REWARD_GETTING_CLOSE   = -0.1 # reward when agent gets close to another agent (unused?)
     REWARD_ENTERED_NORM_ZONE   = -0.05 # reward when agent enters another agent's social zone
-    REWARD_TIME_STEP   = -0.01 # default reward given if none of the others apply (encourage speed)
+    REWARD_TIME_STEP   = 0.0 # default reward given if none of the others apply (encourage speed)
+    # REWARD_TIME_STEP   = -0.01 # default reward given if none of the others apply (encourage speed)
     # NUM_AGENT_STATES = 4 # Number of states (pos_x,pos_y,...)
     # OTHER_OBS_LENGTH = 7 # number of states about another agent in observation vector
     NUM_STEPS_IN_OBS_HISTORY = 1 # number of time steps to store in observation vector
@@ -96,7 +97,7 @@ class Config:
         if USE_LASERSCAN_IN_OBSERVATION:
             FULL_STATE_LENGTH += LASERSCAN_LENGTH
             NN_INPUT_AVG_VECTOR = np.hstack([NN_INPUT_AVG_VECTOR, 4*np.ones(LASERSCAN_LENGTH)])
-            NN_INPUT_STD_VECTOR = np.hstack([NN_INPUT_STD_VECTOR, 1*np.ones(LASERSCAN_LENGTH)])
+            NN_INPUT_STD_VECTOR = np.hstack([NN_INPUT_STD_VECTOR, 2*np.ones(LASERSCAN_LENGTH)])
 
     # if MAX_NUM_AGENTS in [3,4]:
     if MAX_NUM_AGENTS_IN_ENVIRONMENT > 2:
