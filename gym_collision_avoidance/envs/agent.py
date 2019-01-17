@@ -1,6 +1,7 @@
 import numpy as np
 from gym_collision_avoidance.envs.config import Config
 from gym_collision_avoidance.envs.util import wrap, find_nearest
+from gym_collision_avoidance.envs.policies import PPOPolicy
 import operator
 import math
 
@@ -8,9 +9,8 @@ from sensor_msgs.msg import LaserScan
 
 class Agent():
     def __init__(self, start_x, start_y, goal_x, goal_y, radius,
-                 pref_speed, initial_heading, id):
-        # self.policy_type = "A3C"
-        self.policy_type = "PPO"
+                 pref_speed, initial_heading, policy, id):
+        self.policy = policy
 
         # Global Frame states
         self.pos_global_frame = np.array([start_x, start_y], dtype='float64')
@@ -210,7 +210,7 @@ class Agent():
         obs[0] = self.id
         # obs[1] should be 1 if using PPO, 0 otherwise,
         #  so that RL trainer can make policy updates on PPO agents only
-        obs[1] = self.policy_type == "PPO"
+        obs[1] = isinstance(self.policy, type(PPOPolicy))
         if Config.MULTI_AGENT_ARCH == 'RNN':
             obs[Config.AGENT_ID_LENGTH] = 0
         obs[Config.AGENT_ID_LENGTH + Config.FIRST_STATE_INDEX:

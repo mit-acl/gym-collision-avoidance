@@ -138,7 +138,7 @@ def compute_multi_net_param(num_agents):
     # layers_info.append(np.array([[1, 1]]));
 
     multi_net_param = Multiagent_network_param(layers_info, layers_type)
-    # for layer in xrange(len(layers_info)-1):
+    # for layer in range(len(layers_info)-1):
     #   print 'layer', layer
     #   print multi_net_param.symmetric_indices[layer]
     # raw_input()
@@ -150,7 +150,7 @@ def find_nn_ranges(num_agents, NN_ranges):
     num_states = 7 + 8 * (num_agents-1)
     input_avg_vec = np.zeros((num_states,)); input_avg_vec[0:7] = NN_ranges[0][0].copy()
     input_std_vec = np.zeros((num_states,)); input_std_vec[0:7] = NN_ranges[1][0].copy()
-    for i in xrange(num_agents-1):
+    for i in range(num_agents-1):
         a = 7 + 8 * i
         b = 7 + 8 * (i+1)
         input_avg_vec[a:b] = NN_ranges[0][1].copy()
@@ -689,7 +689,7 @@ class NN_navigation_value:
             pedData.rawStates_2_agentCentricStates(\
                 agent_next_states, other_agents_next_state, self.num_agents)
 
-        # for i in xrange(num_pts):
+        # for i in range(num_pts):
         #   ref_prll, ref_orth, agent_centric_states[i,:] = \
         #       pedData.rawState_2_agentCentricState( \
         #       agent_next_states[i,:], other_agent_next_state)
@@ -757,12 +757,12 @@ class NN_navigation_value:
         num_other_agents = len(other_agents_state)
         if other_agents_action is None:
             other_agents_action = []
-            for tt in xrange(num_other_agents):
+            for tt in range(num_other_agents):
                 other_agent_speed = np.linalg.norm(other_agents_state_in[tt][2:4])
                 other_agent_angle = np.arctan2(other_agents_state_in[tt][3], other_agents_state_in[tt][2])
                 other_agents_action.append(np.array([other_agent_speed, other_agent_angle]))
         # update other agents' velocity
-        for tt in xrange(num_other_agents):
+        for tt in range(num_other_agents):
             other_agents_state[tt][2] = other_agents_action[tt][0] * np.cos(other_agents_action[tt][1])
             other_agents_state[tt][3] = other_agents_action[tt][0] * np.sin(other_agents_action[tt][1])
 
@@ -774,7 +774,7 @@ class NN_navigation_value:
 
         # print 'other_agent_state, other_agent_action', other_agent_state, other_agent_action
         other_agents_next_state = []
-        for tt in xrange(num_other_agents):
+        for tt in range(num_other_agents):
             # dt_forward_other = min(1,0, dt_forward)
             other_agents_next_state.append(self.update_state(other_agents_state[tt], \
                             other_agents_action[tt], dt_forward))
@@ -789,7 +789,7 @@ class NN_navigation_value:
         min_dists_mat = np.zeros((num_actions, num_other_agents))
         if_collide_mat = np.zeros((num_actions, num_other_agents))
         cur_dist_vec = np.zeros((num_other_agents,))
-        for tt in xrange(num_other_agents):
+        for tt in range(num_other_agents):
             min_dists_mat[:,tt], if_collide_mat[:,tt] = self.if_actions_collide(agent_state, 
                         actions_theta, other_agents_state[tt], other_agents_action[tt], dt_forward)
         
@@ -1130,7 +1130,7 @@ class NN_navigation_value:
             # print 'lower cost2go subgoals:', lower_cost_to_go_subgoals
 
             agent_states = np.zeros((len(lower_cost_to_go_inds),len(agent_state)))
-            for i in xrange(len(lower_cost_to_go_inds)):
+            for i in range(len(lower_cost_to_go_inds)):
                 state = copy.deepcopy(agent_state)
                 state[6:8] = lower_cost_to_go_subgoals[i,0:2]
                 # state[2] = agent_state[5] * np.cos(agent_state[4])
@@ -1558,7 +1558,7 @@ class NN_navigation_value:
         #   if_collide = np.logical_or(if_collide, if_collide_pt)
         
         # sampling loop version
-        # for i in xrange(num_actions):
+        # for i in range(num_actions):
         #   t = 0.0
         #   while t <= delta_t:
         #       agent_pos = agent_state[0:2] + agent_vels[i,:] * t
@@ -1576,7 +1576,7 @@ class NN_navigation_value:
     #   num_incr = 9
     #   agent1_incr = (agent_next_state[0:2] - agent_state[0:2]) / float(num_incr)
     #   agent2_incr = (other_agent_next_state[0:2] - other_agent_state[0:2]) / float(num_incr)
-    #   for i in xrange(num_incr + 1):
+    #   for i in range(num_incr + 1):
     #       agent_pos = agent_state[0:2] + agent1_incr * i
     #       other_agent_pos = other_agent_state[0:2] + agent2_incr * i
     #       if self.if_pos_collide(agent_pos, other_agent_pos, radius):
@@ -1611,7 +1611,7 @@ class NN_navigation_value:
         else:
             num_states = agent_states.shape[0]
             # states_nn = np.zeros((num_states, 14))
-            # for i in xrange(num_states):
+            # for i in range(num_states):
             #   ref_prll, ref_orth, states_nn[i,:] = \
             #       pedData.rawState_2_agentCentricState( \
             #       agent_states[i,:], other_agent_state)
@@ -1653,7 +1653,7 @@ class NN_navigation_value:
         num_agents = len(test_case)
         agents_states = []
 
-        for i in xrange(num_agents):
+        for i in range(num_agents):
             agent_state = np.zeros((10,)); 
             agent_state[0:2] = test_case[i,0:2]; agent_state[6:8] = test_case[i,2:4];
             agent_state[9] = 0.0
@@ -1704,7 +1704,7 @@ class NN_navigation_value:
         if ifNonCoop:
             if_non_coop_vec = np.random.randint(2, size=(num_agents,))
 
-        for i in xrange(num_agents):
+        for i in range(num_agents):
             traj_raw_multi.append([])
         time_to_complete = np.zeros((num_agents,))
         agents_dt = np.ones((num_agents,))
@@ -1720,7 +1720,7 @@ class NN_navigation_value:
         next_agents_states = copy.deepcopy(agents_states)
         agents_speeds = np.zeros((num_agents,))
         max_t_vec = np.zeros((num_agents,))
-        for i in xrange(num_agents):
+        for i in range(num_agents):
             agents_speeds[i] = agents_states[i][5]
             max_t_vec[i] = 3.0 * (np.linalg.norm(test_case[i, 2:4] - test_case[i, 0:2]) / agents_speeds[i])
         max_t = np.amax(max_t_vec)
@@ -1740,12 +1740,12 @@ class NN_navigation_value:
         while True:
             # append to stats
             time_vec.append(t)
-            for i in xrange(num_agents):
+            for i in range(num_agents):
                 traj_raw_multi[i].append(agents_states[i].copy())
 
             # compute if completed and dt
             # dt_nominal = 0.1
-            for i in xrange(num_agents):
+            for i in range(num_agents):
                 dist_2_goal = np.linalg.norm(agents_states[i][0:2] - agents_states[i][6:8])
                 if_completed_vec[i] = dist_2_goal < DIST_2_GOAL_THRES
                 agents_dt[i] = dist_2_goal/agents_speeds[i]
@@ -1757,8 +1757,8 @@ class NN_navigation_value:
             dt_vec.append(dt)
             
             # collision (TODO)
-            for i in xrange(num_agents):
-                for j in xrange(i):
+            for i in range(num_agents):
+                for j in range(i):
                     dist_mat[i,j] = np.linalg.norm(agents_states[i][0:2] - agents_states[j][0:2]) - \
                                     agents_states[i][8] - agents_states[j][8]
                     dist_mat[j,i] = dist_mat[i,j]
@@ -1782,7 +1782,7 @@ class NN_navigation_value:
                 time_past_one_ind += 1
             dt_past_vec = np.asarray(dt_vec[time_past_one_ind:])
 
-            for i in xrange(num_agents):
+            for i in range(num_agents):
                 if len(time_vec) != 0:
                     # if np.random.rand()>0.5 or filtered_actions_theta_close[i] is None:
                     past_vel = np.asarray(traj_raw_multi[i][time_past_one_ind:])[:,2:5]
@@ -1792,13 +1792,13 @@ class NN_navigation_value:
 
             # propagate forward in time
             rl_random = np.random.rand()
-            for i in xrange(num_agents):
+            for i in range(num_agents):
                 agent_state = agents_states[i]
                 if not if_completed_vec[i]:
                     other_agents_states = [x for j, x in enumerate(agents_states) if j!=i]
                     # other_agents_actions = [x for j, x in enumerate(filtered_actions_theta) if i!=j]
                     other_agents_actions = []
-                    for j in xrange(num_agents):
+                    for j in range(num_agents):
                         if j != i:
                             if dist_mat[i,j] < 0.5:
                                 other_agents_actions.append(filtered_actions_theta_close[j])

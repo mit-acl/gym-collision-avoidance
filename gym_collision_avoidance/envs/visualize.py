@@ -1,5 +1,6 @@
 import numpy as np
 from gym_collision_avoidance.envs.util import find_nearest, rgba2rgb
+import matplotlib.pyplot as plt
 
 plt_colors = []
 plt_colors.append([0.8500, 0.3250, 0.0980])  # red
@@ -11,7 +12,7 @@ plt_colors.append([0.3010, 0.7450, 0.9330])  # cyan
 plt_colors.append([0.6350, 0.0780, 0.1840])  # chocolate
 
 def plot_episode(agents, in_evaluate_mode, test_case_index=0):
-    fig = plt.figure(self.id, figsize=(10, 8))
+    fig = plt.figure(0, figsize=(10, 8))
     plt.clf()
 
     ax = fig.add_subplot(1, 1, 1)
@@ -100,12 +101,12 @@ def plot_episode(agents, in_evaluate_mode, test_case_index=0):
     if in_evaluate_mode:
         fig_dir = '/home/mfe/code/'\
                 'openai_baselines/baselines/ppo2/logs/test_cases/'
-        fig_name = agents[0].policy_type + '_' + \
+        fig_name = str(agents[0].policy) + '_' + \
             str(len(agents)) + 'agents_' + \
             str(test_case_index) + '.png'
         plt.savefig(fig_dir+fig_name)
-    plt.pause(0.0001)
-    # plt.pause(5.0)
+    # plt.pause(0.0001)
+    plt.pause(5.0)
 
 
     # def render(self, mode='human', close=False):

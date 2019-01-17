@@ -36,7 +36,7 @@ class Neural_network_regr_multi:
 		self.num_layers = len(layers_info)
 		self.num_hidden_layers = self.num_layers - 2
 		self.layers_dim = []
-		for i in xrange(len(layers_info)):
+		for i in range(len(layers_info)):
 			self.layers_dim.append(int(np.sum(layers_info[i][:,0]*layers_info[i][:,1])))
 		print(self.layers_dim)
 		self.input_dim = self.layers_dim[0]
@@ -71,7 +71,7 @@ class Neural_network_regr_multi:
 		return
 
 	def load_neural_network(self, filename):
-		nn_list = pickle.load(open(filename, "rb"))
+		nn_list = pickle.load(open(filename, "rb"), encoding='latin1')
 		self.W = nn_list[0]
 		self.b = nn_list[1]
 		self.avg_vec = nn_list[2]
@@ -94,7 +94,7 @@ class Neural_network_regr_multi:
 		#print 'input_dim, output_dim', input_dim, output_dim
 		#print 'hidden_layers_size' , hidden_layers_size
 		self.layers_dim = []
-		for i in  xrange(len(layers_info)):
+		for i in  range(len(layers_info)):
 			self.layers_dim.append(int(np.sum(layers_info[i][:,0]*layers_info[i][:,1])))
 		#print self.layers_dim
 		self.num_layers = self.num_hidden_layers + 2
@@ -141,13 +141,13 @@ class Neural_network_regr_multi:
 		self.sym_b = list()
 		self.sym_db = list()
 		# ith layer, jth symmetry block
-		for i in xrange(self.num_hidden_layers+1):
+		for i in range(self.num_hidden_layers+1):
 			sym_W_layer = list()
 			sym_dW_layer = list()
 			sym_b_layer = list()
 			sym_db_layer = list()
 			# W, dW
-			for j in xrange(len(self.multiagent_net_param.symmetric_indices[i])):
+			for j in range(len(self.multiagent_net_param.symmetric_indices[i])):
 				a = self.multiagent_net_param.symmetric_indices[i][j][0, 0]
 				b = self.multiagent_net_param.symmetric_indices[i][j][0, 1]
 				c = self.multiagent_net_param.symmetric_indices[i][j][0, 2]
@@ -155,7 +155,7 @@ class Neural_network_regr_multi:
 				sym_W_layer.append(self.W[i][a:b,c:d].copy())
 				sym_dW_layer.append(np.zeros((b-a, d-c)))
 			# b, db
-			for k in xrange(len(self.multiagent_net_param.symmetric_indices_b[i])):
+			for k in range(len(self.multiagent_net_param.symmetric_indices_b[i])):
 				a = self.multiagent_net_param.symmetric_indices_b[i][k][0, 0]
 				b = self.multiagent_net_param.symmetric_indices_b[i][k][0, 1]
 				sym_b_layer.append(self.b[i][0,a:b].copy())
@@ -175,13 +175,13 @@ class Neural_network_regr_multi:
 		self.sym_b = list()
 		self.sym_db = list()
 		# ith layer, jth symmetry block
-		for i in xrange(self.num_hidden_layers+1):
+		for i in range(self.num_hidden_layers+1):
 			sym_W_layer = list()
 			sym_dW_layer = list()
 			sym_b_layer = list()
 			sym_db_layer = list()
 			# W, dW
-			for j in xrange(len(self.multiagent_net_param.symmetric_indices[i])):
+			for j in range(len(self.multiagent_net_param.symmetric_indices[i])):
 				num_rows = self.multiagent_net_param.symmetric_indices[i][j][0,1] - \
 							self.multiagent_net_param.symmetric_indices[i][j][0,0]
 				num_cols = self.multiagent_net_param.symmetric_indices[i][j][0,3] - \
@@ -190,7 +190,7 @@ class Neural_network_regr_multi:
 					(np.random.rand(num_rows, num_cols)-0.5))
 				sym_dW_layer.append(np.zeros((num_rows, num_cols)))
 			# b, db
-			for k in xrange(len(self.multiagent_net_param.symmetric_indices_b[i])):
+			for k in range(len(self.multiagent_net_param.symmetric_indices_b[i])):
 				num_cols = self.multiagent_net_param.symmetric_indices_b[i][k][0,1] - \
 					self.multiagent_net_param.symmetric_indices_b[i][k][0,0]
 				sym_b_layer.append(np.zeros((1, num_cols)))
@@ -207,7 +207,7 @@ class Neural_network_regr_multi:
 		self.dW = list()
 		self.b = list()
 		self.db = list()
-		for i in xrange(self.num_hidden_layers+1):
+		for i in range(self.num_hidden_layers+1):
 			if self.multiagent_net_param.layers_type[i] == 'conn':
 				layer_input_dim = self.layers_dim[i]
 				layer_output_dim = self.layers_dim[i+1]
@@ -227,10 +227,10 @@ class Neural_network_regr_multi:
 		self.symIndices_2_mat()
 
 	def symIndices_2_mat(self):
-		for i in xrange(self.num_hidden_layers+1):
+		for i in range(self.num_hidden_layers+1):
 			# W
-			for j in xrange(len(self.multiagent_net_param.symmetric_indices[i])):
-				for jj in xrange(self.multiagent_net_param.symmetric_indices[i][j].shape[0]):
+			for j in range(len(self.multiagent_net_param.symmetric_indices[i])):
+				for jj in range(self.multiagent_net_param.symmetric_indices[i][j].shape[0]):
 					a = self.multiagent_net_param.symmetric_indices[i][j][jj,0]
 					b = self.multiagent_net_param.symmetric_indices[i][j][jj,1]
 					c = self.multiagent_net_param.symmetric_indices[i][j][jj,2]
@@ -244,8 +244,8 @@ class Neural_network_regr_multi:
 
 					self.W[i][a:b,c:d] = self.sym_W[i][j]
 			# b
-			for k in xrange(len(self.multiagent_net_param.symmetric_indices_b[i])):
-				for kk in xrange(self.multiagent_net_param.symmetric_indices_b[i][k].shape[0]):
+			for k in range(len(self.multiagent_net_param.symmetric_indices_b[i])):
+				for kk in range(self.multiagent_net_param.symmetric_indices_b[i][k].shape[0]):
 					a = self.multiagent_net_param.symmetric_indices_b[i][k][kk,0]
 					b = self.multiagent_net_param.symmetric_indices_b[i][k][kk,1]
 					# print 'i,k,a,b', i, k, a, b
@@ -255,20 +255,20 @@ class Neural_network_regr_multi:
 					self.b[i][0,a:b] = self.sym_b[i][k]
 
 	def dW_2_symIndices(self):
-		for i in xrange(self.num_hidden_layers+1):
+		for i in range(self.num_hidden_layers+1):
 			# update sym_dW
-			for j in xrange(len(self.multiagent_net_param.symmetric_indices[i])):
+			for j in range(len(self.multiagent_net_param.symmetric_indices[i])):
 				self.sym_dW[i][j][:] = 0
-				for jj in xrange(self.multiagent_net_param.symmetric_indices[i][j].shape[0]):
+				for jj in range(self.multiagent_net_param.symmetric_indices[i][j].shape[0]):
 					a = self.multiagent_net_param.symmetric_indices[i][j][jj,0]
 					b = self.multiagent_net_param.symmetric_indices[i][j][jj,1]
 					c = self.multiagent_net_param.symmetric_indices[i][j][jj,2]
 					d = self.multiagent_net_param.symmetric_indices[i][j][jj,3]
 					self.sym_dW[i][j] += self.dW[i][a:b,c:d]
 			# update sym_db
-			for k in xrange(len(self.multiagent_net_param.symmetric_indices_b[i])):
+			for k in range(len(self.multiagent_net_param.symmetric_indices_b[i])):
 				self.sym_db[i][k][:] = 0
-				for kk in xrange(self.multiagent_net_param.symmetric_indices_b[i][k].shape[0]):
+				for kk in range(self.multiagent_net_param.symmetric_indices_b[i][k].shape[0]):
 					a = self.multiagent_net_param.symmetric_indices_b[i][k][kk,0]
 					b = self.multiagent_net_param.symmetric_indices_b[i][k][kk,1]
 					self.sym_db[i][k] += self.db[i][a:b]
@@ -281,12 +281,12 @@ class Neural_network_regr_multi:
 				step_size = step_size / 1.5
 			# print 'fixed decay, step size', step_size
 			# gradient udpate
-			for i in xrange(self.num_hidden_layers+1):
+			for i in range(self.num_hidden_layers+1):
 				# update sym_dW
-				for j in xrange(len(self.multiagent_net_param.symmetric_indices[i])):
+				for j in range(len(self.multiagent_net_param.symmetric_indices[i])):
 					self.sym_W[i][j] -= step_size * self.sym_dW[i][j]
 				# update sym_db
-				for k in xrange(len(self.multiagent_net_param.symmetric_indices_b[i])):
+				for k in range(len(self.multiagent_net_param.symmetric_indices_b[i])):
 					self.sym_b[i][k] -= step_size * self.sym_db[i][k]
 
 		# method 2: sqrt_decay
@@ -295,26 +295,26 @@ class Neural_network_regr_multi:
 			epsilon = param.sgd_step_epsilon
 			step_size = c / (np.sqrt(iteration) + epsilon)
 			# gradient udpate
-			for i in xrange(self.num_hidden_layers+1):
+			for i in range(self.num_hidden_layers+1):
 				# update sym_dW
-				for j in xrange(len(self.multiagent_net_param.symmetric_indices[i])):
+				for j in range(len(self.multiagent_net_param.symmetric_indices[i])):
 					self.sym_W[i][j] -= step_size * self.sym_dW[i][j]
 				# update sym_db
-				for k in xrange(len(self.multiagent_net_param.symmetric_indices_b[i])):
+				for k in range(len(self.multiagent_net_param.symmetric_indices_b[i])):
 					self.sym_b[i][k] -= step_size * self.sym_db[i][k]
 
 		# method 3: sum of gradients
 		elif param.sgd_stepsize_mode == 'sum_of_grad':
 			c = param.sgd_step_c
 			epsilon = param.sgd_step_epsilon
-			for i in xrange(self.num_hidden_layers+1):
+			for i in range(self.num_hidden_layers+1):
 				# update sym_dW
-				for j in xrange(len(self.multiagent_net_param.symmetric_indices[i])):
+				for j in range(len(self.multiagent_net_param.symmetric_indices[i])):
 					self.sum_sym_dW[i][j] += np.square(self.sym_dW[i][j])
 					self.sym_W[i][j] -= c / (np.sqrt(self.sum_sym_dW[i][j]) + epsilon) \
 										* self.sym_dW[i][j]
 				# update sym_db
-				for k in xrange(len(self.multiagent_net_param.symmetric_indices_b[i])):
+				for k in range(len(self.multiagent_net_param.symmetric_indices_b[i])):
 					self.sum_sym_db[i][k] += np.square(self.sym_db[i][k])
 					self.sym_b[i][k] -= c / (np.sqrt(self.sum_sym_db[i][k]) + epsilon) \
 										 * self.sym_db[i][k]
@@ -329,14 +329,14 @@ class Neural_network_regr_multi:
 				alpha = 0.99
 			if (iteration % 200) == 0:
 				step_size = step_size / 1.5
-			for i in xrange(self.num_hidden_layers+1):
+			for i in range(self.num_hidden_layers+1):
 				# update sym_dW
-				for j in xrange(len(self.multiagent_net_param.symmetric_indices[i])):
+				for j in range(len(self.multiagent_net_param.symmetric_indices[i])):
 					self.sum_sym_dW[i][j] = alpha * self.sum_sym_dW[i][j] \
 										- step_size * self.sym_dW[i][j]
 					self.sym_W[i][j] += self.sum_sym_dW[i][j]
 				# update sym_db
-				for k in xrange(len(self.multiagent_net_param.symmetric_indices_b[i])):
+				for k in range(len(self.multiagent_net_param.symmetric_indices_b[i])):
 					self.sum_sym_db[i][k] = alpha * self.sum_sym_db[i][k] \
 										- step_size * self.sym_db[i][k]
 					self.sym_b[i][k] += self.sum_sym_db[i][k]
@@ -344,15 +344,15 @@ class Neural_network_regr_multi:
 		# method 5: rmsprop
 		elif param.sgd_stepsize_mode == 'rmsprop':
 			alpha = 0.9
-			for i in xrange(self.num_hidden_layers+1):
+			for i in range(self.num_hidden_layers+1):
 				# update sym_dW
-				for j in xrange(len(self.multiagent_net_param.symmetric_indices[i])):
+				for j in range(len(self.multiagent_net_param.symmetric_indices[i])):
 					self.sum_sym_dW[i][j] = alpha * self.sum_sym_dW[i][j] + \
 										(1-alpha) * np.square(self.sym_dW[i][j])
 					self.sym_W[i][j] -= 0.01 * step_size * self.sym_dW[i][j] / \
 									(np.sqrt(self.sum_sym_dW[i][j])+0.001)
 				# update sym_db
-				for k in xrange(len(self.multiagent_net_param.symmetric_indices_b[i])):
+				for k in range(len(self.multiagent_net_param.symmetric_indices_b[i])):
 					self.sum_sym_db[i][k] = alpha * self.sum_sym_db[i][k] + \
 										(1-alpha) * np.square(self.sym_db[i][k])
 					self.sym_b[i][k] -= 0.01 * step_size * self.sym_db[i][k] / \
@@ -368,19 +368,19 @@ class Neural_network_regr_multi:
 		# for sum of grad
 		self.sum_sym_dW = copy.deepcopy(self.sym_dW)
 		self.sum_sym_db = copy.deepcopy(self.sym_db)
-		for i in xrange(self.num_hidden_layers+1):
+		for i in range(self.num_hidden_layers+1):
 			# update sym_dW
-			for j in xrange(len(self.multiagent_net_param.symmetric_indices[i])):
+			for j in range(len(self.multiagent_net_param.symmetric_indices[i])):
 				self.sum_sym_dW[i][j][:] = 0
 			# update sym_db
-			for k in xrange(len(self.multiagent_net_param.symmetric_indices_b[i])):
+			for k in range(len(self.multiagent_net_param.symmetric_indices_b[i])):
 				self.sum_sym_db[i][k][:] = 0
 
 
 	def initialize_derivatives(self):
 		self.dW = list()
 		self.db = list()
-		for i in xrange(self.num_hidden_layers+1):
+		for i in range(self.num_hidden_layers+1):
 			if self.multiagent_net_param.layers_type[i] == 'conn':
 				layer_input_dim = self.layers_dim[i]
 				layer_output_dim = self.layers_dim[i+1]
@@ -462,7 +462,7 @@ class Neural_network_regr_multi:
 		# 	if_nn_nav = True
 		# 	num_other_agents = (X.shape[1] - 7 ) / 8
 		# 	agent_off_indices = []
-		# 	for i in xrange(1, num_other_agents+1):
+		# 	for i in range(1, num_other_agents+1):
 		# 		inds = np.where(X[:,7+(8*i)-1] < 1e-5)[0]
 		# 		agent_off_indices.append(inds)
 		# 		assert(np.all(X[inds, 7+8*(i-1):7+(8*i)]==0))
@@ -475,7 +475,7 @@ class Neural_network_regr_multi:
 		nb_layers = self.num_hidden_layers + 1
 		forward_prop_o = []
 		backward_prop_xi = []
-		for i in xrange(nb_layers):
+		for i in range(nb_layers):
 			forward_prop_o.append(np.empty([1,1]))
 			backward_prop_xi.append(np.empty([1,1]))
 
@@ -484,7 +484,7 @@ class Neural_network_regr_multi:
 		out = X.copy()
 		y_out = Y.copy()
 		# one step back prop
-		for layer in xrange(nb_layers-1):
+		for layer in range(nb_layers-1):
 			# RelU
 			# print 'layer', layer
 			# print 'self.W[layer].shape', self.W[layer].shape
@@ -499,7 +499,7 @@ class Neural_network_regr_multi:
 				forward_prop_o[layer] = np.zeros((num_pts, next_layer_size))
 				cur_s_ind = 0
 				next_s_ind = 0
-				for ii in xrange(self.multiagent_net_param.layers_info[layer].shape[0]):
+				for ii in range(self.multiagent_net_param.layers_info[layer].shape[0]):
 					num_agents = self.multiagent_net_param.layers_info[layer][ii,0]
 					stride = self.multiagent_net_param.layers_info[layer][ii,1]
 					cur_e_ind = cur_s_ind + num_agents * stride
@@ -528,7 +528,7 @@ class Neural_network_regr_multi:
 			# if if_nn_nav == True and self.multiagent_net_param.layers_info[layer+1].shape[0] == 2:
 			# 	stride = self.multiagent_net_param.layers_info[layer+1][1,1]
 			# 	start_ind = self.multiagent_net_param.layers_info[layer+1][0,1]
-			# 	for tt in xrange(num_other_agents):
+			# 	for tt in range(num_other_agents):
 			# 		forward_prop_o[layer][agent_off_indices[tt],start_ind:start_ind+stride] = 0
 			# 		start_ind += stride
 					# raw_input()
@@ -558,7 +558,7 @@ class Neural_network_regr_multi:
 		ds = ds / batch_size
 		backward_prop_xi[nb_layers-1] = ds.copy()
 
-		for j in xrange(nb_layers-1, 0, -1):
+		for j in range(nb_layers-1, 0, -1):
 			if self.multiagent_net_param.layers_type[j] == 'conn':
 				# print 'j', j
 				# print 'backward_prop_xi[j].shape', backward_prop_xi[j].shape
@@ -583,11 +583,11 @@ class Neural_network_regr_multi:
 				backward_prop_xi[j-1] = np.zeros((num_pts, np.sum(prev_layer_size)))
 				cur_s_ind = 0
 				prev_s_ind = 0
-				for jj in xrange(self.multiagent_net_param.layers_info[j].shape[0]):
+				for jj in range(self.multiagent_net_param.layers_info[j].shape[0]):
 					num_agents = self.multiagent_net_param.layers_info[j][jj,0]
 					stride = self.multiagent_net_param.layers_info[j][jj,1]
 					cur_e_ind = cur_s_ind + stride
-					for jjj in xrange(num_agents):
+					for jjj in range(num_agents):
 						prev_e_ind = prev_s_ind + stride
 						# print backward_prop_xi[j-1][:,prev_s_ind:prev_e_ind].shape
 						# print 'what', cur_s_ind, cur_e_ind, backward_prop_xi[j][:,cur_s_ind:cur_e_ind].shape
@@ -663,7 +663,7 @@ class Neural_network_regr_multi:
 			num_samples = param.sgd_batch_size
 
 		# main loop
-		for i in xrange(param.nb_iter):
+		for i in range(param.nb_iter):
 			if ERM == 1 or param.sgd_batch_size > nb_examples: #if full gradient
 				batch_examples = np.arange(nb_examples)
 				batch_size = nb_examples
@@ -724,7 +724,7 @@ class Neural_network_regr_multi:
 		# 	if_nn_nav = True
 		# 	num_other_agents = (X.shape[1] - 7 ) / 8
 		# 	agent_off_indices = []
-		# 	for i in xrange(1, num_other_agents+1):
+		# 	for i in range(1, num_other_agents+1):
 		# 		inds = np.where(X[:,7+(8*i)-1] < 1e-5)[0]
 		# 		agent_off_indices.append(inds)
 		# 		try:
@@ -736,7 +736,7 @@ class Neural_network_regr_multi:
 
 		nb_layers = self.num_hidden_layers + 1
 		out = X
-		for layer in xrange(nb_layers-1):
+		for layer in range(nb_layers-1):
 			if self.multiagent_net_param.layers_type[layer] == 'conn':
 				tmp = np.dot(out, self.W[layer]) \
 					+ np.matlib.repmat(self.b[layer], nb_examples, 1)
@@ -750,7 +750,7 @@ class Neural_network_regr_multi:
 					continue
 				cur_s_ind = 0
 				next_s_ind = 0
-				for ii in xrange(self.multiagent_net_param.layers_info[layer].shape[0]):
+				for ii in range(self.multiagent_net_param.layers_info[layer].shape[0]):
 					num_agents = self.multiagent_net_param.layers_info[layer][ii,0]
 					stride = self.multiagent_net_param.layers_info[layer][ii,1]
 					cur_e_ind = cur_s_ind + num_agents * stride
@@ -780,7 +780,7 @@ class Neural_network_regr_multi:
 			# if if_nn_nav == True and self.multiagent_net_param.layers_info[layer+1].shape[0] == 2:
 			# 	stride = self.multiagent_net_param.layers_info[layer+1][1,1]
 			# 	start_ind = self.multiagent_net_param.layers_info[layer+1][0,1]
-			# 	for tt in xrange(num_other_agents):
+			# 	for tt in range(num_other_agents):
 			# 		out[agent_off_indices[tt],start_ind:start_ind+stride] = 0
 			# 		start_ind += stride
 
@@ -814,11 +814,11 @@ class Neural_network_regr_multi:
 		layer_info = self.multiagent_net_param.layers_info[0]
 		
 		num_perturbations = 10
-		for perturb in xrange(num_perturbations):
+		for perturb in range(num_perturbations):
 			# generate perturbation
 			start_ind = 0
 			X_raw_cp = X_raw.copy()
-			for i in xrange(layer_info.shape[0]):
+			for i in range(layer_info.shape[0]):
 				num_type = layer_info[i,0]
 				stride = layer_info[i,1]
 				if num_type > 1:

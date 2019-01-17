@@ -44,7 +44,7 @@ def computeStats(traj_raw_multi):
 	num_pts = time_vec.shape[0]
 	# initialize
 	time_to_reach_goal = time_vec[-1] * np.ones((num_agents,))
-	for i in xrange(num_agents):
+	for i in range(num_agents):
 		time_to_reach_goal[i] = max(time_vec[-1], np.linalg.norm(traj_raw_multi[i+1][0, 0:2] \
 					- traj_raw_multi[i+1][0, 6:8])/traj_raw_multi[i+1][0, 5])
 	traj_lengths = np.zeros((num_agents,))
@@ -55,8 +55,8 @@ def computeStats(traj_raw_multi):
 
 
 	# compute time to reach goal
-	for kk in xrange(num_pts):
-		for i in xrange(num_agents):
+	for kk in range(num_pts):
+		for i in range(num_agents):
 			# whether reached goal
 			if (if_completed_vec[i] == False) and \
 				(np.linalg.norm(traj_raw_multi[i+1][kk,0:2] - \
@@ -82,13 +82,13 @@ def computeStats(traj_raw_multi):
 				if_completed_vec[i] = True
 
 	# did not reach goals
-	for i in xrange(num_agents):
+	for i in range(num_agents):
 		if if_completed_vec[i] == False:
 			time_to_reach_goal[i] += 5.0
 
 	# compute min_dist
-	for i in xrange(num_agents):
-		for j in xrange(i):
+	for i in range(num_agents):
+		for j in range(i):
 			dist_vec = np.linalg.norm(traj_raw_multi[i+1][:,0:2] - \
 				traj_raw_multi[j+1][:,0:2], axis=1)
 			min_dist_tmp = np.amin(dist_vec) - traj_raw_multi[i+1][0,8] \
@@ -96,7 +96,7 @@ def computeStats(traj_raw_multi):
 			if min_dist_tmp < min_sepDist:
 				min_sepDist = min_dist_tmp
 	# debugging
-	# for i in xrange(num_agents):
+	# for i in range(num_agents):
 	# 	try:
 	# 		assert(time_to_reach_goal[i] >= np.linalg.norm(traj_raw_multi[i+1][0,0:2]-\
 	# 			traj_raw_multi[i+1][0,6:8])/traj_raw_multi[i+1][0,5])
@@ -162,7 +162,7 @@ def findEndTime_first(traj_raw_multi):
 	traj_raw = traj_raw_multi[1]
 	# print traj_raw.shape
 	goal = traj_raw[0,6:8]
-	for i in xrange(num_pts):
+	for i in range(num_pts):
 		dist = np.linalg.norm(traj_raw[i,0:2] - goal)
 		# print dist, time_vec[i], dist/traj_raw[0,5], time_vec[i] + dist / traj_raw[0,5]
 		if dist < DIST_2_GOAL_THRES:
@@ -181,7 +181,7 @@ def process_raw_data(trajs_raw_multi, num_agents_in_network):
 	# raw_input()
 
 	num_pts = 0
-	for i in xrange(len(trajs_raw_multi)):
+	for i in range(len(trajs_raw_multi)):
 		num_agents = len(trajs_raw_multi[i]) - 1
 		try: 
 			assert(num_agents <= num_agents_in_network)
@@ -208,12 +208,12 @@ def process_raw_data(trajs_raw_multi, num_agents_in_network):
 		traj_pts = time_vec.shape[0]
 		# traj_end_time = traj[traj_pts-1, 0]
 		num_agents = len(traj) - 1
-		for aa in xrange(num_agents-1):
+		for aa in range(num_agents-1):
 			traj_new = swap_OrderInTrajMulti(traj, aa)
 			traj_end_time = findEndTime_first(traj_new)
 			# plot_traj_raw_multi(traj_new, 'agent %d' %aa, str(aa))
 			last_time = time_vec[0]
-			for j in xrange(traj_pts):
+			for j in range(traj_pts):
 				# if time_vec[j] < last_time + 0.1:
 				# 	continue
 				# if within one second of end, break
@@ -223,14 +223,14 @@ def process_raw_data(trajs_raw_multi, num_agents_in_network):
 				assert(traj_new[1][j,5] > 0.1)
 				
 				agent_state = traj_new[1][j,:]
-				others_state = [traj_new[tt][j,:] for tt in xrange(2, len(traj_new))]
+				others_state = [traj_new[tt][j,:] for tt in range(2, len(traj_new))]
 				ref_prll, ref_orth, state_nn = \
 					rawState_2_agentCentricState(agent_state, others_state, num_agents_in_network)
-				min_dists = [np.linalg.norm(traj_new[1][j,0:2] - traj_new[tt][j,0:2]) for tt in xrange(2, len(traj_new))]
+				min_dists = [np.linalg.norm(traj_new[1][j,0:2] - traj_new[tt][j,0:2]) for tt in range(2, len(traj_new))]
 				min_dist = min(min_dists)
 
 				# for computing px, py, angle_diff, speed_diff
-				for k in xrange(j, traj_pts):
+				for k in range(j, traj_pts):
 					if time_vec[k] - time_vec[j] > dt_thres:
 						dist_traveled = traj_new[1][k,0:2] - traj_new[1][j,0:2]
 						px = np.dot(dist_traveled, ref_prll) / (time_vec[k] - time_vec[j])
@@ -252,7 +252,7 @@ def process_raw_data(trajs_raw_multi, num_agents_in_network):
 	X = processed_trajs[0:ind,:]
 	Y = processed_resp[0:ind,:]
 	# check
-	for i in xrange(len(X)):
+	for i in range(len(X)):
 		try:
 			assert(Y[i,4] < GAMMA ** (X[i,0]/DT_NORMAL) + EPS)
 		except:
@@ -285,7 +285,7 @@ def rawState_2_agentCentricState(agent_state, others_state_in, num_agents_in_net
 		print('num_agents, num_agents_in_network', num_agents, num_agents_in_network)
 		assert(0)
 	state_nn = np.zeros((7+8*(num_agents_in_network-1),))
-	for i in xrange(num_agents-1, num_agents_in_network-1):
+	for i in range(num_agents-1, num_agents_in_network-1):
 		# state_nn[7+8*i:7+8*i+7] = [0.0, 0.0, -8.0, 0.0, 0.35, 0.70, 8.0]
 		state_nn[7+8*i:7+8*i+7] = [-2.0, -2.0, -10, -10.0, -0.2, -0.2, -2.0]
 	# print 'agent_state', agent_state
@@ -353,12 +353,12 @@ def rawState_2_agentCentricState(agent_state, others_state_in, num_agents_in_net
 		state_nn[7+8*i:7+8*(i+1)] = [other_vx, other_vy, rel_pos_x, rel_pos_y, other_radius, \
 			self_radius+other_radius, dist_2_other, is_on]
 
-	for i in xrange(num_agents-1, num_agents_in_network-1):
+	for i in range(num_agents-1, num_agents_in_network-1):
 		state_nn[7+8*i:7+8*(i+1)-1] = state_nn[7:7+8-1]
-	# for i in xrange(num_agents-1, num_agents_in_network-1):
+	# for i in range(num_agents-1, num_agents_in_network-1):
 	# 	state_nn[7+8*i:7+8*(i+1)-1] = state_nn[7+8*(i-1):7+8*i-1]
 
-	# others_columns_inds = [7 + 6 + 8*(tt) for tt in xrange(num_agents_in_network-1)] 
+	# others_columns_inds = [7 + 6 + 8*(tt) for tt in range(num_agents_in_network-1)] 
 	# min_dist_2_others = min(state_nn[others_columns_inds])
 	# if_collide = min_dist_2_others < GETTING_CLOSE_RANGE
 	# state_nn[3] = if_collide
@@ -380,7 +380,7 @@ def rawStates_2_agentCentricStates(agent_states, others_states_in, num_agents_in
 	assert(num_agents <= num_agents_in_network)
 	num_rawStates = agent_states.shape[0]
 	states_nn = np.zeros((num_rawStates, 7+8*(num_agents_in_network-1)))
-	for i in xrange(num_agents-1, num_agents_in_network-1):
+	for i in range(num_agents-1, num_agents_in_network-1):
 		# states_nn[:,7+8*i:7+8*i+7] = np.matlib.repmat(\
 			# np.array([0.0, 0.0, -8.0, 0.0, 0.35, 0.70, 8.0]), num_rawStates, 1)
 		states_nn[:,7+8*i:7+8*i+7] = np.matlib.repmat(\
@@ -455,13 +455,13 @@ def rawStates_2_agentCentricStates(agent_states, others_states_in, num_agents_in
 		states_nn[:,7+8*i:7+8*(i+1)] = np.vstack((other_vx, other_vy, rel_pos_x, rel_pos_y, other_radius, \
 			self_radius+other_radius, dist_2_other, is_on)).transpose()
 
-	for i in xrange(num_agents-1, num_agents_in_network-1):
+	for i in range(num_agents-1, num_agents_in_network-1):
 		states_nn[:,7+8*i:7+8*(i+1)-1] = states_nn[:,7:7+8-1]
 
-	# for i in xrange(num_agents-1, num_agents_in_network-1):
+	# for i in range(num_agents-1, num_agents_in_network-1):
 	# 	states_nn[:,7+8*i:7+8*(i+1)-1] = states_nn[:,7+8*(i-1):7+8*i-1]
 	# states_nn[:,4:6] = 0
-	# others_columns_inds = [7 + 6 + 8*(tt) for tt in xrange(num_agents_in_network-1)] 
+	# others_columns_inds = [7 + 6 + 8*(tt) for tt in range(num_agents_in_network-1)] 
 	# min_dist_2_others = np.min(states_nn[:,others_columns_inds], axis = 1)
 	# if_collide = min_dist_2_others < GETTING_CLOSE_RANGE
 	# states_nn[:,3] = if_collide
@@ -492,7 +492,7 @@ def agentCentricState_2_rawState_noRotate(agentCentricState):
 	# print num_other_agents
 	# print 'here'
 	# raw_input()
-	for i in xrange(num_other_agents):
+	for i in range(num_other_agents):
 		other_agent_state = np.zeros((10,))
 		partial_state = agentCentricState[7+8*i:7+8*(i+1)]
 		# skip if not active
@@ -575,10 +575,10 @@ def find_bins(Y_raw, num_bins=11, center_value=0.001, lb=-1.0, ub=1.0):
 	bins[0] = min(lb, -Y_sort_high[(num_upper_bins-1)*high_stride])
 	bins[num_lower_bins] = - center_value
 	bins[num_lower_bins+1] = center_value
-	for i in xrange(1, num_upper_bins):
+	for i in range(1, num_upper_bins):
 		bins[num_lower_bins + 1 + i] = Y_sort_high[i*high_stride]
 	# print 'num_lower_bins', num_lower_bins
-	for i in xrange(1, num_lower_bins):
+	for i in range(1, num_lower_bins):
 		bins[i] = -bins[num_bins-i]
 	# print bins
 
@@ -589,7 +589,7 @@ def find_bins(Y_raw, num_bins=11, center_value=0.001, lb=-1.0, ub=1.0):
 
 	# compute other statistics
 	bin_centers = np.zeros(num_bins)
-	for i in xrange(num_bins):
+	for i in range(num_bins):
 		bins_centers = (bins[i] + bins[i+1]) / 2.0
 	bin_centers[0] = lb
 	bin_centers[-1] = ub 
@@ -597,8 +597,8 @@ def find_bins(Y_raw, num_bins=11, center_value=0.001, lb=-1.0, ub=1.0):
 
 	# might be inefficient / but ok b/c executed once
 	bin_assignment = (num_bins-1) * np.ones((Y_raw.shape[0],))
-	for i in xrange(Y_raw.shape[0]):
-		for j in xrange(1,num_bins):
+	for i in range(Y_raw.shape[0]):
+		for j in range(1,num_bins):
 			if Y_raw[i] < bins[j]:
 				bin_assignment[i] = j-1
 				break
@@ -613,11 +613,11 @@ def filterDominateClass(bins, bin_assignments):
 	num_samples = bin_assignments.shape[0]
 	num_classes = bins.shape[0] - 1
 	counts = np.zeros((num_classes,))
-	for i in xrange(num_samples):
+	for i in range(num_samples):
 		counts[bin_assignments[i]] += 1
 	inds_all = np.empty((0,))
 	num_data_pts = 0
-	for i in xrange(num_classes):
+	for i in range(num_classes):
 		if counts[i] > 0.2 * num_samples:
 			inds = np.where(bin_assignments == i)[0]
 			rand_perm = np.random.permutation(np.arange(counts[i]))
@@ -658,7 +658,7 @@ def plot_traj_raw_multi(traj_raw_multi, title_string, figure_name=None):
 		= computeStats(traj_raw_multi)
 
 	# plot traj and goal
-	for i in xrange(1, len(traj_raw_multi)):
+	for i in range(1, len(traj_raw_multi)):
 		# stationary (for plotting static case)
 		# if traj_lengths[i-1] < EPS:
 		# 	continue
@@ -675,8 +675,8 @@ def plot_traj_raw_multi(traj_raw_multi, title_string, figure_name=None):
 	# print traj_lengths
 
 	# plot heading direction
-	# for i in xrange(time_vec.shape[0]):
-	# 	for j in xrange(1, len(traj_raw_multi)):
+	# for i in range(time_vec.shape[0]):
+	# 	for j in range(1, len(traj_raw_multi)):
 	# 		plt.plot([traj_raw_multi[j][i,0], traj_raw_multi[j][i,0]+0.3 * np.cos(traj_raw_multi[j][i,4])], \
 	# 			[traj_raw_multi[j][i,1], traj_raw_multi[j][i,1]+0.3 * np.sin(traj_raw_multi[j][i,4])],\
 	# 			c=plt_colors[j-1], ls='-',linewidth=1)
@@ -686,10 +686,10 @@ def plot_traj_raw_multi(traj_raw_multi, title_string, figure_name=None):
 	cur_time = -100.0
 	has_plotted_collision = False
 	agent_plot_pos = np.random.rand(len(traj_raw_multi)-1,2)
-	for i in xrange(time_vec.shape[0]):
+	for i in range(time_vec.shape[0]):
 		if (time_vec[i] - cur_time) >= 1.5 - EPS:
 			cur_time = time_vec[i]
-			for j in xrange(1, len(traj_raw_multi)):
+			for j in range(1, len(traj_raw_multi)):
 				# if np.linalg.norm(agent_plot_pos[j-1, :] \
 				# 	- traj_raw_multi[j][i, 0:2]) > EPS:
 				if cur_time < time_to_reach_goal[j-1]-0.5:
@@ -706,7 +706,7 @@ def plot_traj_raw_multi(traj_raw_multi, title_string, figure_name=None):
 					agent_plot_pos[j-1, :] = traj_raw_multi[j][i, 0:2].copy()
 			counter += 1
 	# end pos
-	for j in xrange(1, len(traj_raw_multi)):
+	for j in range(1, len(traj_raw_multi)):
 		color_ind = (j - 1) % len(plt_colors)
 		plt_color = plt_colors[color_ind]
 		if j % 2 == 0:
@@ -745,7 +745,7 @@ def generateNegValueSamples(dataset_value):
 	neg_dataset = dataset_value.copy()
 	values = np.zeros((num_neg_samples,1))
 	num_pts = int(num_neg_samples / 5.0)
-	for i in xrange(num_pts):
+	for i in range(num_pts):
 		# just need to perturb first agent, b/c network symmetrical
 		agent_state = neg_dataset[i,0:7]
 		other_agent_state = neg_dataset[i,7:15]
@@ -772,7 +772,7 @@ def generateNegValueSamples(dataset_value):
 
 def reflectTraj(traj_raw_multi):
 	traj_raw_multi_refl = copy.deepcopy(traj_raw_multi)
-	for i in xrange(1, len(traj_raw_multi)):
+	for i in range(1, len(traj_raw_multi)):
 		traj_raw_multi_refl[i][:,1] = -traj_raw_multi[i][:,1]
 		traj_raw_multi_refl[i][:,3] = -traj_raw_multi[i][:,3]
 		traj_raw_multi_refl[i][:,4] = -traj_raw_multi[i][:,4]
@@ -791,7 +791,7 @@ if __name__ == '__main__':
 	# plot_traj_raw_multi(trajs_raw_multi[2], 'input raw trajectory (from pickle file)')
 	# plot_traj_raw_multi(trajs_raw_multi[49], 'input raw trajectory (from pickle file)')
 
-	# for i in xrange(25, 50):
+	# for i in range(25, 50):
 		# plot_traj_raw_multi(trajs_raw_multi[i], 'input raw trajectory (from pickle file)')
 
 	# load processed trajs

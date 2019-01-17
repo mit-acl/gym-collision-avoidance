@@ -20,11 +20,12 @@ from gym_collision_avoidance.envs.config import Config
 from gym_collision_avoidance.envs.util import find_nearest, rgba2rgb
 
 from gym_collision_avoidance.envs.agent import Agent
-from gym_collision_avoidance.envs.static_agent import StaticAgent
-from gym_collision_avoidance.envs.non_cooperative_agent \
-        import NonCooperativeAgent
-from gym_collision_avoidance.envs.cadrl_agent \
-        import CADRLAgent
+from gym_collision_avoidance.envs.policies.StaticPolicy import StaticPolicy
+from gym_collision_avoidance.envs.policies.NonCooperativePolicy import NonCooperativePolicy
+from gym_collision_avoidance.envs.policies.RVOPolicy import RVOPolicy
+from gym_collision_avoidance.envs.policies.PPOPolicy import PPOPolicy
+from gym_collision_avoidance.envs.policies.CADRLPolicy import CADRLPolicy
+
 from gym_collision_avoidance.envs.CADRL.scripts.multi \
         import gen_rand_testcases as tc
 from gym_collision_avoidance.envs.visualize import plot_episode
@@ -111,8 +112,8 @@ class CollisionAvoidanceEnv(gym.Env):
     def step(self, actions):
         ###############################
         # This is the main function. An external process will compute an action for every agent
-        # then call env.step(actions). The agents take those actions (or ignore them if running
-        # a different policy), then we check if any agents have earned a reward (collision/goal/...).
+        # then call env.step(actions). The agents take those actions,
+        # then we check if any agents have earned a reward (collision/goal/...).
         # Then agents take an observation of the new world state. We compute whether each agent is done
         # (collided/reached goal/ran out of time) and if everyone's done, the episode ends.
         # We return the relevant info back to the process that called env.step(actions).
@@ -149,7 +150,8 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def reset(self):
         if self.agents is not None and Config.PLOT_EPISODES:
-            visualize.plot_episode(self.agents, self.evaluate, self.test_case_index)
+            print("plot!!")
+            plot_episode(self.agents, self.evaluate, self.test_case_index)
         self.begin_episode = True
         self.episode_step_number = 0
         self._init_env(test_case=0)
@@ -166,34 +168,10 @@ class CollisionAvoidanceEnv(gym.Env):
     def _take_action(self, actions):
         ###############################
         # This function sends an action to each Agent object's update_state method.
-        # Only the PPO agents should listen to the action coming from the external process;
-        # everyone else (e.g. static, noncoop) has their own agent.find_next_action
-        # method ==> for non-ppo agents we ignore the contents of their rows of "actions"!!
         ###############################
 
-        action_vectors = [np.array([0.0, 0.0]) for i in range(self.num_agents)]
-
-        # First extract next action of each agent from "actions"
         for i, agent in enumerate(self.agents):
-            if agent.is_at_goal or agent.in_collision:
-                action_vector = np.array([0.0, 0.0])
-            elif agent.policy_type == 'CADRL':
-                action_vector = agent.find_next_action(self.agents)
-            elif agent.policy_type == 'DQN':  # TODO: Fix this up
-                action = actions[0]  # probably doesnt work anymore
-                action_vector = np.array([agent.pref_speed, action])
-            elif agent.policy_type == 'PPO':
-                # mfe's ppo network outputs actions btwn 0-1 (beta distr)
-                heading = self.max_heading_change*(2.*actions[i, 1] - 1.)
-                speed = agent.pref_speed * actions[i, 0]
-                action_vector = np.array([speed, heading])
-            else:
-                action_vector = agent.find_next_action(self.agents)
-            action_vectors[i] = action_vector
-
-        # ...then update their states based on chosen actions
-        for i, agent in enumerate(self.agents):
-            agent.update_state(action_vectors[i], self.dt)
+            agent.update_state(actions[i,:], self.dt)
 
         if Config.USE_STAGE_ROS:
             update_agents_in_stage_ros()
@@ -248,7 +226,7 @@ class CollisionAvoidanceEnv(gym.Env):
 
             self.agents = self._cadrl_test_case_to_agents(test_case, alg=alg)
         self.which_agents_running_ppo = \
-            [agent.id for agent in self.agents if agent.policy_type == 'PPO']
+            [agent.id for agent in self.agents if isinstance(agent.policy, type(PPOPolicy))]
         self.num_agents_running_ppo = len(self.which_agents_running_ppo)
 
     def _cadrl_test_case_to_agents(self, test_case, alg='PPO'):
@@ -259,24 +237,19 @@ class CollisionAvoidanceEnv(gym.Env):
         ###############################
 
         agents = []
-        policies = [Agent, NonCooperativeAgent, StaticAgent, CADRLAgent]
+        policies = [NonCooperativePolicy, StaticPolicy]
         if self.evaluate:
-            if alg == 'PPO':
-                # All PPO agents
-                agent_policy_list = [0 for _ in range(np.shape(test_case)[0])]
-            elif alg == 'CADRL':
-                # All CADRL agents
-                agent_policy_list = [-1 for _ in range(np.shape(test_case)[0])]
+            agent_policy_list = [CADRLPolicy for _ in range(np.shape(test_case)[0])]
         else:
             # Random mix of agents following various policies
-            agent_policy_list = np.random.choice(len(policies),
+            agent_policy_list = np.random.choice(policies,
                                                  np.shape(test_case)[0],
-                                                 p=[0.9, 0.05, 0.05, 0.0])
-            if 0 not in agent_policy_list:
-                # Make sure at least one agent is following PPO
-                #  (otherwise waste of time...)
-                random_agent_id = np.random.randint(len(agent_policy_list))
-                agent_policy_list[random_agent_id] = 0
+                                                 p=[0.5, 0.5])
+            # if 0 not in agent_policy_list:
+            #     # Make sure at least one agent is following PPO
+            #     #  (otherwise waste of time...)
+            #     random_agent_id = np.random.randint(len(agent_policy_list))
+            #     agent_policy_list[random_agent_id] = 0
         for i, agent in enumerate(test_case):
             px = agent[0]
             py = agent[1]
@@ -291,9 +264,7 @@ class CollisionAvoidanceEnv(gym.Env):
             else:
                 heading = np.random.uniform(-np.pi, np.pi)
 
-            agents.append(policies[agent_policy_list[i]](px, py, gx, gy,
-                                                         radius, pref_speed,
-                                                         heading, i))
+            agents.append(Agent(px, py, gx, gy, radius, pref_speed, heading, agent_policy_list[i](), i))
         return agents
 
     def _compute_rewards(self):
