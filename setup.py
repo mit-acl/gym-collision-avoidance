@@ -3,7 +3,7 @@ from setuptools import setup
 setup(name='gym_collision_avoidance',
       version='0.0.1',
       install_requires=['gym>=0.2.3',
-          'matplotlib',
+          'matplotlib==2.1.2', # 2.1.2 to support python2.7 -___-
           'shapely'
           ]
 )

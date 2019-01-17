@@ -22,14 +22,13 @@ class Config:
     PLOT_EPISODES       = False
     TRAIN_MODE           = False # Enable to see the trained agent in action (for testing)
     PLAY_MODE           = False # Enable to see the trained agent in action (for testing)
-    EVALUATE_MODE       = False # Enable to see the trained agent in action (for testing)
+    EVALUATE_MODE       = True # Enable to see the trained agent in action (for testing)
     TRAIN_ON_MULTIPLE_AGENTS = True
     # TRAIN_ON_MULTIPLE_AGENTS = False
 
     #########################################################################
     # COLLISION AVOIDANCE PARAMETER
-    # USE_ROS = True
-    USE_ROS = False
+    USE_STAGE_ROS = False
     # USE_LASERSCAN_IN_OBSERVATION = True
     USE_LASERSCAN_IN_OBSERVATION = False
     MAX_NUM_AGENTS_IN_ENVIRONMENT = 2

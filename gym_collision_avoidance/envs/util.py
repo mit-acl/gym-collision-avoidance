@@ -37,3 +37,18 @@ def rgba2rgb(rgba):
     g = max(min((1 - alpha) * 1.0 + alpha * rgba[1],1.0),0.0)
     b = max(min((1 - alpha) * 1.0 + alpha * rgba[2],1.0),0.0)
     return [r,g,b]
+
+def yaw_to_quaternion(yaw):
+    pitch = 0; roll = 0
+    cy = np.cos(yaw * 0.5);
+    sy = np.sin(yaw * 0.5);
+    cp = np.cos(pitch * 0.5);
+    sp = np.sin(pitch * 0.5);
+    cr = np.cos(roll * 0.5);
+    sr = np.sin(roll * 0.5);
+
+    qw = cy * cp * cr + sy * sp * sr;
+    qx = cy * cp * sr - sy * sp * cr;
+    qy = sy * cp * sr + cy * sp * cr;
+    qz = sy * cp * cr - cy * sp * sr;
+    return qx, qy, qz, qw

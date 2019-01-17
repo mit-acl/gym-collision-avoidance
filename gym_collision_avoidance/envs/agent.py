@@ -2,9 +2,9 @@ import numpy as np
 from gym_collision_avoidance.envs.config import Config
 from gym_collision_avoidance.envs.util import wrap, find_nearest
 import operator
+import math
 
 from sensor_msgs.msg import LaserScan
-
 
 class Agent():
     def __init__(self, start_x, start_y, goal_x, goal_y, radius,
@@ -44,6 +44,7 @@ class Agent():
             5*np.linalg.norm(self.pos_global_frame -
                              self.goal_global_frame)/self.pref_speed
         self.t = 0.0
+        self.step_num = 0
 
         self.is_at_goal = False
         self.was_at_goal_already = False
@@ -56,8 +57,12 @@ class Agent():
         self.min_y = -20.0
         self.max_y = 20.0
 
-        self.global_state_history = None
-        self.ego_state_history = None
+        self.global_state_dim = 11
+        self.num_global_states_in_history = 100
+        self.global_state_history = np.empty((self.num_global_states_in_history, self.global_state_dim))
+        self.ego_state_dim = 3
+        self.num_ego_states_in_history = 100
+        self.ego_state_history = np.empty((self.num_ego_states_in_history, self.ego_state_dim))
         self.update_state([0.0, 0.0], 0.0)
 
         self.min_dist_to_other_agents = np.inf
@@ -67,9 +72,7 @@ class Agent():
 
     def _check_if_at_goal(self):
         near_goal_threshold = 0.2
-        is_near_goal = np.linalg.norm([self.pos_global_frame -
-                                       self.goal_global_frame]) \
-            <= near_goal_threshold
+        is_near_goal = (self.pos_global_frame[0] - self.goal_global_frame[0])**2 + (self.pos_global_frame[1] - self.goal_global_frame[1])**2 <= near_goal_threshold**2
         self.is_at_goal = is_near_goal
 
     def update_state(self, action, dt):
@@ -81,8 +84,9 @@ class Agent():
             self.vel_global_frame = np.array([0.0, 0.0])
             return
 
-        self.past_actions = np.roll(self.past_actions, 1, axis=0)
-        self.past_actions[0, :] = action
+        # Store past actions
+        # self.past_actions = np.roll(self.past_actions, 1, axis=0)
+        # self.past_actions[0, :] = action
 
         if self.action_time_lag > 0:
             # This is a future feature... action_time_lag = 0 for now.
@@ -130,7 +134,7 @@ class Agent():
                                       ref_prll_angle_global_frame)
 
         # Compute velocity w.r.t. ref_prll, ref_orthog coordinate axes
-        cur_speed = np.linalg.norm(self.vel_global_frame)
+        cur_speed = math.sqrt(self.vel_global_frame[0]**2 + self.vel_global_frame[1]**2) # much faster than np.linalg.norm
         v_prll = cur_speed * np.cos(self.heading_ego_frame)
         v_orthog = cur_speed * np.sin(self.heading_ego_frame)
         self.vel_ego_frame = np.array([v_prll, v_orthog])
@@ -138,6 +142,7 @@ class Agent():
         # Update time left so agent does not run around forever
         self.time_remaining_to_reach_goal -= dt
         self.t += dt
+        self.step_num += 1
         if self.time_remaining_to_reach_goal <= 0.0:
             self.ran_out_of_time = True
 
@@ -149,15 +154,17 @@ class Agent():
 
     def _update_state_history(self):
         global_state, ego_state = self.to_vector()
-        if self.global_state_history is None or self.ego_state_history is None:
-            self.global_state_history = np.expand_dims(
-                    np.hstack([self.t, global_state]), axis=0)
-            self.ego_state_history = np.expand_dims(ego_state, axis=0)
-        else:
-            self.global_state_history = np.vstack([
-                self.global_state_history, np.hstack([self.t, global_state])])
-            self.ego_state_history = np.vstack([self.ego_state_history,
-                                                ego_state])
+        self.global_state_history[self.step_num, :] = global_state
+        self.ego_state_history[self.step_num, :] = ego_state
+        # if self.global_state_history is None or self.ego_state_history is None:
+        #     self.global_state_history = np.expand_dims(
+        #             np.hstack([self.t, global_state]), axis=0)
+        #     self.ego_state_history = np.expand_dims(ego_state, axis=0)
+        # else:
+        #     self.global_state_history = np.vstack([
+        #         self.global_state_history, np.hstack([self.t, global_state])])
+        #     self.ego_state_history = np.vstack([self.ego_state_history,
+        #                                         ego_state])
 
     def print_agent_info(self):
         print('----------')
@@ -172,7 +179,8 @@ class Agent():
         print('----------')
 
     def to_vector(self):
-        global_state = np.array([self.pos_global_frame[0],
+        global_state = np.array([self.t,
+                                 self.pos_global_frame[0],
                                  self.pos_global_frame[1],
                                  self.goal_global_frame[0],
                                  self.goal_global_frame[1],
@@ -182,7 +190,7 @@ class Agent():
                                  self.vel_global_frame[1],
                                  self.speed_global_frame,
                                  self.heading_global_frame])
-        ego_state = np.array([self.dist_to_goal, self.heading_ego_frame])
+        ego_state = np.array([self.t, self.dist_to_goal, self.heading_ego_frame])
         return global_state, ego_state
 
     def observe(self, agents):
@@ -315,7 +323,7 @@ class Agent():
         # ref_orthog: vector orthogonal to ref_prll
         #
         goal_direction = self.goal_global_frame - self.pos_global_frame
-        self.dist_to_goal = np.linalg.norm(goal_direction)
+        self.dist_to_goal = math.sqrt(goal_direction[0]**2 + goal_direction[1]**2)
         if self.dist_to_goal > 1e-8:
             ref_prll = goal_direction / self.dist_to_goal
         else:
