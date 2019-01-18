@@ -1,17 +1,24 @@
 import numpy as np
 import collision_avoidance_env
+import test_cases as tc
 
 ### Minimum working example
 
-# Initialize the environment
+# Instantiate the environment
 env = collision_avoidance_env.CollisionAvoidanceEnv()
-# TODO: create way of initialzing an experiment
-obs = env.reset() # Get agents' initial observations
 
-# Set up agents' actions as np array
+# Set agent configuration (start/goal pos, radius, size, policy)
+num_agents = 2
+test_case_index = 0
+agents = tc.get_testcase_old_and_crappy(num_agents, test_case_index)
+env.init_agents(agents)
+
+# Set up empty np array for agents' actions
 num_agents = len(env.agents)
 num_actions_per_agent = 2 # speed, delta heading angle
 actions = np.zeros((num_agents, num_actions_per_agent), dtype=np.float32)
+
+obs = env.reset() # Get agents' initial observations
 
 # Alternate btwn sending actions to the environment, receiving feedback
 num_steps = 50
@@ -27,7 +34,9 @@ for i in range(num_steps):
     print(obs)
     if game_over:
         print("All agents finished!")
-        obs = env.reset()
+        # To start a new episode...
+        # env.init_agents(agents) # again with new test case
+        # obs = env.reset()
         break
 
 print("Experiment over.")
