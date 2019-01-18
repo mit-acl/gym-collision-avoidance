@@ -14,24 +14,28 @@ agents = tc.get_testcase_old_and_crappy(num_agents, test_case_index)
 env.init_agents(agents)
 
 # Set up empty np array for agents' actions
-num_agents = len(env.agents)
 num_actions_per_agent = 2 # speed, delta heading angle
-actions = np.zeros((num_agents, num_actions_per_agent), dtype=np.float32)
+actions = np.zeros((len(env.agents), num_actions_per_agent), dtype=np.float32)
 
 obs = env.reset() # Get agents' initial observations
 
 # Alternate btwn sending actions to the environment, receiving feedback
 num_steps = 50
 for i in range(num_steps):
-    # Fill in actions with something interesting (e.g. using obs)
+
+    # Query the agents' policies (e.g. using obs vector or list of agents)
+    # Note: This needs to occur before updating the real agent positions!
     for agent_index, agent in enumerate(env.agents):
         actions[agent_index,:] = agent.policy.find_next_action(obs, env.agents, agent_index)
-    # state_of_real_agents = None
-    # for agent in env.agents:
-    #   if agent.policy is "real":
-    #       agent.set_state(state_of_real_agents[i])
+    
+    # # Update position of real agents based on real sensor data (if necessary)
+    # for state in state_of_real_agents:
+    #     agent = env.agents[state.id]
+    #     agent.set_state(state_of_real_agents[i])
+    
+    # Run a simulation step (check for collisions, move sim agents)
     obs, rewards, game_over, which_agents_done = env.step(actions)
-    print(obs)
+
     if game_over:
         print("All agents finished!")
         # To start a new episode...

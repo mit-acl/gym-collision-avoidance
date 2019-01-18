@@ -5,6 +5,9 @@ from gym_collision_avoidance.envs.policies.NonCooperativePolicy import NonCooper
 from gym_collision_avoidance.envs.policies.RVOPolicy import RVOPolicy
 from gym_collision_avoidance.envs.policies.PPOPolicy import PPOPolicy
 from gym_collision_avoidance.envs.policies.CADRLPolicy import CADRLPolicy
+from gym_collision_avoidance.envs.policies.ExternalPolicy import ExternalPolicy
+from gym_collision_avoidance.envs.dynamics.DiffDriveDynamics import DiffDriveDynamics
+from gym_collision_avoidance.envs.dynamics.ExternalDynamics import ExternalDynamics
 from gym_collision_avoidance.envs.config import Config
 
 def get_testcase_old_and_crappy(num_agents, index):
@@ -20,8 +23,12 @@ def cadrl_test_case_to_agents(test_case, alg='PPO'):
     ###############################
 
     agents = []
-    policies = [NonCooperativePolicy, StaticPolicy]
+    # policies = [NonCooperativePolicy, StaticPolicy]
+    # dynamics_models = [DiffDriveDynamics, ExternalDynamics]
     if Config.EVALUATE_MODE:
+        # agent_policy_list = [ExternalPolicy for _ in range(np.shape(test_case)[0])]
+        # agent_dynamics_list = [ExternalDynamics for _ in range(np.shape(test_case)[0])]
+        agent_dynamics_list = [DiffDriveDynamics for _ in range(np.shape(test_case)[0])]
         agent_policy_list = [CADRLPolicy for _ in range(np.shape(test_case)[0])]
         # agent_policy_list = [NonCooperativePolicy for _ in range(np.shape(test_case)[0])]
         # agent_policy_list = [StaticPolicy for _ in range(np.shape(test_case)[0])]
@@ -49,7 +56,7 @@ def cadrl_test_case_to_agents(test_case, alg='PPO'):
         else:
             heading = np.random.uniform(-np.pi, np.pi)
 
-        agents.append(Agent(px, py, gx, gy, radius, pref_speed, heading, agent_policy_list[i](), i))
+        agents.append(Agent(px, py, gx, gy, radius, pref_speed, heading, agent_policy_list[i], agent_dynamics_list[i], i))
     return agents
 
 

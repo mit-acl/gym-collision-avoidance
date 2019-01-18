@@ -1,7 +1,9 @@
 import numpy as np
 from gym_collision_avoidance.envs.config import Config
 from gym_collision_avoidance.envs.util import wrap, find_nearest
-from gym_collision_avoidance.envs.policies import PPOPolicy
+from gym_collision_avoidance.envs.dynamics.ExternalDynamics import ExternalDynamics
+from gym_collision_avoidance.envs.policies.ExternalPolicy import ExternalPolicy
+from gym_collision_avoidance.envs.policies.PPOPolicy import PPOPolicy
 import operator
 import math
 
@@ -9,8 +11,9 @@ from sensor_msgs.msg import LaserScan
 
 class Agent():
     def __init__(self, start_x, start_y, goal_x, goal_y, radius,
-                 pref_speed, initial_heading, policy, id):
-        self.policy = policy
+                 pref_speed, initial_heading, policy, dynamics_model, id):
+        self.policy = policy()
+        self.dynamics_model = dynamics_model(self)
 
         # Global Frame states
         self.pos_global_frame = np.array([start_x, start_y], dtype='float64')
@@ -88,57 +91,26 @@ class Agent():
         # self.past_actions = np.roll(self.past_actions, 1, axis=0)
         # self.past_actions[0, :] = action
 
-        if self.action_time_lag > 0:
-            # This is a future feature... action_time_lag = 0 for now.
-            # Store current action in dictionary,
-            # then look up the past action that should be executed this step
-            self.chosen_action_dict[self.t] = action
-            timestamp_of_action_to_execute = self.t - self.action_time_lag
-            if timestamp_of_action_to_execute < 0:
-                action_to_execute = np.array([0.0, 0.0])
-            else:
-                nearest_timestamp, _ = find_nearest(np.array(
-                    self.chosen_action_dict.keys()),
-                    timestamp_of_action_to_execute)
-                action_to_execute = \
-                    self.chosen_action_dict[nearest_timestamp[0]]
-        else:
-            action_to_execute = action
+        # if self.action_time_lag > 0:
+        #     # This is a future feature... action_time_lag = 0 for now.
+        #     # Store current action in dictionary,
+        #     # then look up the past action that should be executed this step
+        #     self.chosen_action_dict[self.t] = action
+        #     timestamp_of_action_to_execute = self.t - self.action_time_lag
+        #     if timestamp_of_action_to_execute < 0:
+        #         action_to_execute = np.array([0.0, 0.0])
+        #     else:
+        #         nearest_timestamp, _ = find_nearest(np.array(
+        #             self.chosen_action_dict.keys()),
+        #             timestamp_of_action_to_execute)
+        #         action_to_execute = \
+        #             self.chosen_action_dict[nearest_timestamp[0]]
+        # else:
+        #     action_to_execute = action
 
-        selected_speed = action_to_execute[0]
-        selected_heading = wrap(action_to_execute[1] +
-                                self.heading_global_frame)  # in global frame
+        self.dynamics_model.step(action, dt)
 
-        dx = selected_speed * np.cos(selected_heading) * dt
-        dy = selected_speed * np.sin(selected_heading) * dt
-        self.pos_global_frame += np.array([dx, dy])
-
-        # Constrain xy position (global) to be within some rect from origin
-        #  self.pos_global_frame[0] = np.clip(self.pos_global_frame[0],
-        #                                     self.min_x, self.max_x)
-        #  self.pos_global_frame[1] = np.clip(self.pos_global_frame[1],
-        #                                     self.min_y, self.max_y)
-
-        self.vel_global_frame[0] = selected_speed * np.cos(selected_heading)
-        self.vel_global_frame[1] = selected_speed * np.sin(selected_heading)
-        self.speed_global_frame = selected_speed
-        self.delta_heading_global_frame = wrap(selected_heading -
-                                               self.heading_global_frame)
-        self.heading_global_frame = selected_heading
-
-        # Compute heading w.r.t. ref_prll, ref_orthog coordinate axes
-        self.ref_prll, self.ref_orth = self.get_ref()
-        ref_prll_angle_global_frame = np.arctan2(self.ref_prll[1],
-                                                 self.ref_prll[0])
-        self.heading_ego_frame = wrap(self.heading_global_frame -
-                                      ref_prll_angle_global_frame)
-
-        # Compute velocity w.r.t. ref_prll, ref_orthog coordinate axes
-        cur_speed = math.sqrt(self.vel_global_frame[0]**2 + self.vel_global_frame[1]**2) # much faster than np.linalg.norm
-        v_prll = cur_speed * np.cos(self.heading_ego_frame)
-        v_orthog = cur_speed * np.sin(self.heading_ego_frame)
-        self.vel_ego_frame = np.array([v_prll, v_orthog])
-
+        self.dynamics_model.update_ego_frame()
 
         self._update_state_history()
 
@@ -157,15 +129,6 @@ class Agent():
         global_state, ego_state = self.to_vector()
         self.global_state_history[self.step_num, :] = global_state
         self.ego_state_history[self.step_num, :] = ego_state
-        # if self.global_state_history is None or self.ego_state_history is None:
-        #     self.global_state_history = np.expand_dims(
-        #             np.hstack([self.t, global_state]), axis=0)
-        #     self.ego_state_history = np.expand_dims(ego_state, axis=0)
-        # else:
-        #     self.global_state_history = np.vstack([
-        #         self.global_state_history, np.hstack([self.t, global_state])])
-        #     self.ego_state_history = np.vstack([self.ego_state_history,
-        #                                         ego_state])
 
     def print_agent_info(self):
         print('----------')
@@ -211,7 +174,7 @@ class Agent():
         obs[0] = self.id
         # obs[1] should be 1 if using PPO, 0 otherwise,
         #  so that RL trainer can make policy updates on PPO agents only
-        obs[1] = isinstance(self.policy, type(PPOPolicy))
+        obs[1] = isinstance(self.policy, PPOPolicy)
         if Config.MULTI_AGENT_ARCH == 'RNN':
             obs[Config.AGENT_ID_LENGTH] = 0
         obs[Config.AGENT_ID_LENGTH + Config.FIRST_STATE_INDEX:
