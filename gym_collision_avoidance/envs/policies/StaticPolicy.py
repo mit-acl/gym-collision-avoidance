@@ -1,3 +1,4 @@
+import numpy as np
 from gym_collision_avoidance.envs.policies.Policy import Policy
 
 class StaticPolicy(Policy):
