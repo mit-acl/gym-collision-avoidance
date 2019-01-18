@@ -21,19 +21,15 @@ def plot_episode(agents, in_evaluate_mode, test_case_index=0):
     # ax.imshow(img, extent=[-8, 8, -8, 8], cmap=plt.cm.gray)
 
     max_time = max(
-            [agent.global_state_history[-1, 0] for agent in agents])
+            [agent.global_state_history[agent.step_num-1, 0] for agent in agents])
     max_time_alpha_scalar = 1.2
     for i, agent in enumerate(agents):
-        if agent.global_state_history.ndim == 1:
-            # if there's only 1 timestep in state history
-            agent.global_state_history = np.expand_dims(
-                    agent.global_state_history, axis=0)
-            agent.body_state_history = np.expand_dims(
-                    agent.body_state_history, axis=0)
+
+        # Plot line through agent trajectory
         color_ind = i % len(plt_colors)
         plt_color = plt_colors[color_ind]
-        plt.plot(agent.global_state_history[:, 1],
-                 agent.global_state_history[:, 2],
+        plt.plot(agent.global_state_history[:agent.step_num, 1],
+                 agent.global_state_history[:agent.step_num, 2],
                  color=plt_color, ls='-', linewidth=2)
         plt.plot(agent.global_state_history[0, 3],
                  agent.global_state_history[0, 4],
@@ -41,9 +37,9 @@ def plot_episode(agents, in_evaluate_mode, test_case_index=0):
 
         # Display circle at agent pos every circle_spacing (nom 1.5 sec)
         circle_spacing = 0.4
-        circle_times = np.arange(0.0, agent.global_state_history[-1, 0],
+        circle_times = np.arange(0.0, agent.global_state_history[agent.step_num-1, 0],
                                  circle_spacing)
-        _, circle_inds = find_nearest(agent.global_state_history[:, 0],
+        _, circle_inds = find_nearest(agent.global_state_history[:agent.step_num, 0],
                                       circle_times)
         for ind in circle_inds:
             alpha = 1 - \
@@ -54,10 +50,11 @@ def plot_episode(agents, in_evaluate_mode, test_case_index=0):
                          radius=agent.radius, fc=c, ec=plt_color,
                          fill=True))
 
+        # Display text of current timestamp every text_spacing (nom 1.5 sec)
         text_spacing = 1.5
-        text_times = np.arange(0.0, agent.global_state_history[-1, 0],
+        text_times = np.arange(0.0, agent.global_state_history[agent.step_num-1, 0],
                                text_spacing)
-        _, text_inds = find_nearest(agent.global_state_history[:, 0],
+        _, text_inds = find_nearest(agent.global_state_history[:agent.step_num, 0],
                                     text_times)
         for ind in text_inds:
             y_text_offset = 0.1
@@ -71,8 +68,9 @@ def plot_episode(agents, in_evaluate_mode, test_case_index=0):
             ax.text(agent.global_state_history[ind, 1]-0.15,
                     agent.global_state_history[ind, 2]+y_text_offset,
                     '%.1f' % agent.global_state_history[ind, 0], color=c)
+        
         # Also display circle at agent position at end of trajectory
-        ind = -1
+        ind = agent.step_num - 1
         alpha = 1 - \
             agent.global_state_history[ind, 0] / \
             (max_time_alpha_scalar*max_time)
@@ -106,7 +104,7 @@ def plot_episode(agents, in_evaluate_mode, test_case_index=0):
             str(test_case_index) + '.png'
         plt.savefig(fig_dir+fig_name)
     # plt.pause(0.0001)
-    plt.pause(5.0)
+    plt.pause(1.0)
 
 
     # def render(self, mode='human', close=False):

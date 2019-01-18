@@ -139,16 +139,17 @@ class Agent():
         v_orthog = cur_speed * np.sin(self.heading_ego_frame)
         self.vel_ego_frame = np.array([v_prll, v_orthog])
 
+
+        self._update_state_history()
+
+        self._check_if_at_goal()
+        
         # Update time left so agent does not run around forever
         self.time_remaining_to_reach_goal -= dt
         self.t += dt
         self.step_num += 1
         if self.time_remaining_to_reach_goal <= 0.0:
             self.ran_out_of_time = True
-
-        self._update_state_history()
-
-        self._check_if_at_goal()
 
         return
 

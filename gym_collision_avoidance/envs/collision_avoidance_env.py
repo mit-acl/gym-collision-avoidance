@@ -138,6 +138,9 @@ class CollisionAvoidanceEnv(gym.Env):
         # Take observation
         next_observations = self._get_obs()
 
+        if self.episode_step_number % 5:
+            plot_episode(self.agents, self.evaluate, self.test_case_index)
+
         # Check which agents' games are finished (at goal/collided/out of time)
         which_agents_done, game_over = self._check_which_agents_done()
 
@@ -150,7 +153,6 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def reset(self):
         if self.agents is not None and Config.PLOT_EPISODES:
-            print("plot!!")
             plot_episode(self.agents, self.evaluate, self.test_case_index)
         self.begin_episode = True
         self.episode_step_number = 0
@@ -239,7 +241,8 @@ class CollisionAvoidanceEnv(gym.Env):
         agents = []
         policies = [NonCooperativePolicy, StaticPolicy]
         if self.evaluate:
-            agent_policy_list = [CADRLPolicy for _ in range(np.shape(test_case)[0])]
+            # agent_policy_list = [CADRLPolicy for _ in range(np.shape(test_case)[0])]
+            agent_policy_list = [NonCooperativePolicy for _ in range(np.shape(test_case)[0])]
         else:
             # Random mix of agents following various policies
             agent_policy_list = np.random.choice(policies,
@@ -293,7 +296,7 @@ class CollisionAvoidanceEnv(gym.Env):
                     # agents should only receive the goal reward once
                     rewards[i] = self.reward_at_goal
                     # print("Agent %i: Arrived at goal!"
-                    #       % agent.id)
+                          # % agent.id)
             else:
                 # agents at their goal shouldn't be penalized if someone else
                 # bumps into them
@@ -302,7 +305,7 @@ class CollisionAvoidanceEnv(gym.Env):
                         rewards[i] = self.reward_collision_with_agent
                         agent.in_collision = True
                         # print("Agent %i: Collision with another agent!"
-                        #       % agent.id)
+                              # % agent.id)
                     elif collision_with_wall[i]:
                         rewards[i] = self.reward_collision_with_wall
                         agent.in_collision = True
@@ -337,6 +340,7 @@ class CollisionAvoidanceEnv(gym.Env):
             if dist_btwn <= combined_radius:
                 # Collision with another agent!
                 collision_with_agent[i] = True
+                collision_with_agent[j] = True
         for i in agent_inds:
             agent = self.agents[i]
             if min(agent.latest_laserscan.ranges) - agent.radius < 0.1:
