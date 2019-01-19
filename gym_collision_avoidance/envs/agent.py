@@ -1,7 +1,6 @@
 import numpy as np
 from gym_collision_avoidance.envs.config import Config
 from gym_collision_avoidance.envs.util import wrap, find_nearest
-from gym_collision_avoidance.envs.dynamics.ExternalDynamics import ExternalDynamics
 from gym_collision_avoidance.envs.policies.ExternalPolicy import ExternalPolicy
 from gym_collision_avoidance.envs.policies.PPOPolicy import PPOPolicy
 import operator
@@ -47,6 +46,7 @@ class Agent():
             5*np.linalg.norm(self.pos_global_frame -
                              self.goal_global_frame)/self.pref_speed
         self.t = 0.0
+        self.t_offset = None
         self.step_num = 0
 
         self.is_at_goal = False
@@ -60,13 +60,18 @@ class Agent():
         self.min_y = -20.0
         self.max_y = 20.0
 
+        self.num_states_in_history = 1000
         self.global_state_dim = 11
-        self.num_global_states_in_history = 100
-        self.global_state_history = np.empty((self.num_global_states_in_history, self.global_state_dim))
+        self.global_state_history = np.empty((self.num_states_in_history, self.global_state_dim))
         self.ego_state_dim = 3
-        self.num_ego_states_in_history = 100
-        self.ego_state_history = np.empty((self.num_ego_states_in_history, self.ego_state_dim))
-        self.update_state([0.0, 0.0], 0.0)
+        self.ego_state_history = np.empty((self.num_states_in_history, self.ego_state_dim))
+
+        self.dynamics_model.update_ego_frame()
+        # self._update_state_history()
+        # self._check_if_at_goal()
+        # self.take_action([0.0, 0.0])
+
+        self.dt_nominal = Config.DT
 
         self.min_dist_to_other_agents = np.inf
 
@@ -78,7 +83,29 @@ class Agent():
         is_near_goal = (self.pos_global_frame[0] - self.goal_global_frame[0])**2 + (self.pos_global_frame[1] - self.goal_global_frame[1])**2 <= near_goal_threshold**2
         self.is_at_goal = is_near_goal
 
-    def update_state(self, action, dt):
+    def set_state(self, px, py, vx=None, vy=None, heading=None):
+        if vx is None or vy is None:
+            if self.step_num == 0:
+                # On first timestep, just set to zero
+                self.vel_global_frame = np.array([0,0])
+            else:
+                # Interpolate velocity from last pos
+                self.vel_global_frame = (np.array([px, py]) - self.pos_global_frame) / self.dt_nominal
+        else:
+            self.vel_global_frame = np.array([vx, vy])
+
+        if heading is None:
+            # Estimate heading to be the direction of the velocity vector
+            heading = np.arctan2(self.vel_global_frame[1], self.vel_global_frame[0])
+            self.delta_heading_global_frame = wrap(heading - self.heading_global_frame)
+        else:
+            self.delta_heading_global_frame = wrap(heading - self.heading_global_frame)
+
+        self.pos_global_frame = np.array([px, py])
+        self.speed_global_frame = np.linalg.norm(self.vel_global_frame)
+        self.heading_global_frame = heading
+
+    def take_action(self, action, dt):
         if self.is_at_goal or self.ran_out_of_time or self.in_collision:
             if self.is_at_goal:
                 self.was_at_goal_already = True
@@ -108,6 +135,8 @@ class Agent():
         # else:
         #     action_to_execute = action
 
+        # In the case of ExternalDynamics, this call does nothing,
+        # but set_state was called instead
         self.dynamics_model.step(action, dt)
 
         self.dynamics_model.update_ego_frame()

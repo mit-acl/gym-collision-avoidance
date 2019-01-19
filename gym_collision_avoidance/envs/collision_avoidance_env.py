@@ -14,23 +14,12 @@ import time
 from collections import OrderedDict
 import itertools
 import copy
-
 import matplotlib.pyplot as plt
 
 from gym_collision_avoidance.envs.config import Config
 from gym_collision_avoidance.envs.util import find_nearest, rgba2rgb
-
-from gym_collision_avoidance.envs.agent import Agent
-from gym_collision_avoidance.envs.policies.StaticPolicy import StaticPolicy
-from gym_collision_avoidance.envs.policies.NonCooperativePolicy import NonCooperativePolicy
-from gym_collision_avoidance.envs.policies.RVOPolicy import RVOPolicy
-from gym_collision_avoidance.envs.policies.PPOPolicy import PPOPolicy
-from gym_collision_avoidance.envs.policies.CADRLPolicy import CADRLPolicy
-
-from gym_collision_avoidance.envs.CADRL.scripts.multi \
-        import gen_rand_testcases as tc
 from gym_collision_avoidance.envs.visualize import plot_episode
-from gym_collision_avoidance.envs.test_cases import preset_testCases, gen_circle_test_case
+from gym_collision_avoidance.envs.agent import Agent
 
 if Config.USE_STAGE_ROS:
     from geometry_msgs.msg import Pose, Vector3
@@ -60,7 +49,7 @@ class CollisionAvoidanceEnv(gym.Env):
 
         # Simulation Parameters
         self.num_agents = Config.MAX_NUM_AGENTS_IN_ENVIRONMENT
-        self.dt = Config.DT
+        self.dt_nominal = Config.DT
 
         # Collision Parameters
         self.collision_dist = Config.COLLISION_DIST
@@ -110,7 +99,7 @@ class CollisionAvoidanceEnv(gym.Env):
 
         self.agents = None
 
-    def step(self, actions):
+    def step(self, actions, dt=None):
         ###############################
         # This is the main function. An external process will compute an action for every agent
         # then call env.step(actions). The agents take those actions,
@@ -128,10 +117,13 @@ class CollisionAvoidanceEnv(gym.Env):
         # - info_dict: metadata (more details) that help in training, for example
         ###############################
 
+        if dt is None:
+            dt = self.dt_nominal
+
         self.episode_step_number += 1
 
         # Take action
-        self._take_action(actions)
+        self._take_action(actions, dt)
 
         # Collect rewards
         rewards = self._compute_rewards()
@@ -139,8 +131,8 @@ class CollisionAvoidanceEnv(gym.Env):
         # Take observation
         next_observations = self._get_obs()
 
-        if self.episode_step_number % 5:
-            plot_episode(self.agents, self.evaluate, self.test_case_index)
+        # if self.episode_step_number % 5:
+        #     plot_episode(self.agents, self.evaluate, self.test_case_index)
 
         # Check which agents' games are finished (at goal/collided/out of time)
         which_agents_done, game_over = self._check_which_agents_done()
@@ -168,13 +160,13 @@ class CollisionAvoidanceEnv(gym.Env):
                               self.stage_ros_env_ns+"/stage_ros"])
         return
 
-    def _take_action(self, actions):
+    def _take_action(self, actions, dt):
         ###############################
-        # This function sends an action to each Agent object's update_state method.
+        # This function sends an action to each Agent object's take_action method.
         ###############################
 
         for i, agent in enumerate(self.agents):
-            agent.update_state(actions[i,:], self.dt)
+            agent.take_action(actions[i,:], dt)
 
         if Config.USE_STAGE_ROS:
             update_agents_in_stage_ros()

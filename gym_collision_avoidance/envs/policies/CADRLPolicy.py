@@ -6,7 +6,7 @@ from gym_collision_avoidance.envs import util
 
 class CADRLPolicy(Policy):
     def __init__(self):
-        Policy().__init__()
+        Policy.__init__(self)
 
         num_agents = 4
         file_dir = os.path.dirname(os.path.realpath(__file__)) + '/../CADRL/scripts/multi'
@@ -17,7 +17,6 @@ class CADRLPolicy(Policy):
         self.value_net = nn_nav.load_NN_navigation_value(file_dir, num_agents, mode, passing_side, filename=filename, ifPrint=False)
 
     def find_next_action(self, obs, agents, i):
-        # print "[find_next_action] Agent %i:" %(self.id)
         host_agent = agents[i]
         other_agents = agents[:i]+agents[i+1:]
         agent_state = self.convert_host_state_to_cadrl_state(host_agent)

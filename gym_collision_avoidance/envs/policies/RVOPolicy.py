@@ -3,7 +3,7 @@ from gym_collision_avoidance.envs.policies.Policy import Policy
 
 class RVOPolicy(Policy):
     def __init__(self):
-        super().__init__(self)
+        Policy.__init__(self)
         self.dt = Config.DT
         neighbor_dist = Config.SENSING_HORIZON
         max_neighbors = Config.MAX_NUM_AGENTS_IN_ENVIRONMENT
@@ -40,6 +40,7 @@ class RVOPolicy(Policy):
         self.is_init = True
 
     def find_next_action(self, obs, agents, agent_index):
+        raise NotImplementedError
         # Initialize vectors on first call to infer number of agents
         if not self.is_init:
             self.n_agents = len(agents)

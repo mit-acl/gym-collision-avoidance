@@ -12,6 +12,9 @@ plt_colors.append([0.3010, 0.7450, 0.9330])  # cyan
 plt_colors.append([0.6350, 0.0780, 0.1840])  # chocolate
 
 def plot_episode(agents, in_evaluate_mode, test_case_index=0):
+    if max([agent.step_num for agent in agents]) == 0:
+        return
+
     fig = plt.figure(0, figsize=(10, 8))
     plt.clf()
 
@@ -20,8 +23,7 @@ def plot_episode(agents, in_evaluate_mode, test_case_index=0):
     # img = plt.imread(self.world_bitmap_filename)
     # ax.imshow(img, extent=[-8, 8, -8, 8], cmap=plt.cm.gray)
 
-    max_time = max(
-            [agent.global_state_history[agent.step_num-1, 0] for agent in agents])
+    max_time = max([agent.global_state_history[agent.step_num-1, 0] for agent in agents] + [1e-4])
     max_time_alpha_scalar = 1.2
     for i, agent in enumerate(agents):
 
@@ -103,8 +105,8 @@ def plot_episode(agents, in_evaluate_mode, test_case_index=0):
             str(len(agents)) + 'agents_' + \
             str(test_case_index) + '.png'
         plt.savefig(fig_dir+fig_name)
-    # plt.pause(0.0001)
-    plt.pause(1.0)
+    plt.pause(0.0001)
+    # plt.pause(1.0)
 
 
     # def render(self, mode='human', close=False):

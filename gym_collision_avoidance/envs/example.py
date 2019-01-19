@@ -8,9 +8,7 @@ import test_cases as tc
 env = collision_avoidance_env.CollisionAvoidanceEnv()
 
 # Set agent configuration (start/goal pos, radius, size, policy)
-num_agents = 2
-test_case_index = 0
-agents = tc.get_testcase_old_and_crappy(num_agents, test_case_index)
+agents = tc.get_testcase_hololens_and_cadrl()
 env.init_agents(agents)
 
 # Set up empty np array for agents' actions
@@ -28,10 +26,11 @@ for i in range(num_steps):
     for agent_index, agent in enumerate(env.agents):
         actions[agent_index,:] = agent.policy.find_next_action(obs, env.agents, agent_index)
     
-    # # Update position of real agents based on real sensor data (if necessary)
-    # for state in state_of_real_agents:
-    #     agent = env.agents[state.id]
-    #     agent.set_state(state_of_real_agents[i])
+    # Update position of real agents based on real sensor data (if necessary)
+    state_of_real_agents = [[2, i+np.random.normal(0, 0.1), 2+i+np.random.normal(0, 0.1)]]
+    for state in state_of_real_agents:
+        agent = env.agents[state[0]]
+        agent.set_state(px=state[1], py=state[2])
     
     # Run a simulation step (check for collisions, move sim agents)
     obs, rewards, game_over, which_agents_done = env.step(actions)

@@ -71,7 +71,12 @@ class Neural_network_regr_multi:
 		return
 
 	def load_neural_network(self, filename):
-		nn_list = pickle.load(open(filename, "rb"), encoding='latin1')
+		with open(filename, 'rb') as fo:
+		    try:
+		        nn_list = pickle.load(fo)
+		    except UnicodeDecodeError:  #python 3.x
+		        fo.seek(0)
+		        nn_list = pickle.load(fo, encoding='latin1')
 		self.W = nn_list[0]
 		self.b = nn_list[1]
 		self.avg_vec = nn_list[2]

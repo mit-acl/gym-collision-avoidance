@@ -3,14 +3,13 @@ from gym_collision_avoidance.envs.dynamics.Dynamics import Dynamics
 from gym_collision_avoidance.envs.util import wrap, find_nearest
 import math
 
-class DiffDriveDynamics(Dynamics):
+class UnicycleDynamics(Dynamics):
     def __init__(self, agent):
-        super().__init__(agent)
+        Dynamics.__init__(self, agent)
 
     def step(self, action, dt):
         selected_speed = action[0]
-        selected_heading = wrap(action[1] +
-                                self.agent.heading_global_frame)  # in global frame
+        selected_heading = wrap(action[1] + self.agent.heading_global_frame)
 
         dx = selected_speed * np.cos(selected_heading) * dt
         dy = selected_speed * np.sin(selected_heading) * dt
