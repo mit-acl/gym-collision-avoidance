@@ -1,7 +1,7 @@
 import numpy as np
 import os
 from gym_collision_avoidance.envs.policies.Policy import Policy
-from gym_collision_avoidance.envs.CADRL.scripts.multi import nn_navigation_value_multi as nn_nav
+from gym_collision_avoidance.envs.policies.CADRL.scripts.multi import nn_navigation_value_multi as nn_nav
 from gym_collision_avoidance.envs import util
 
 class CADRLPolicy(Policy):
@@ -9,7 +9,7 @@ class CADRLPolicy(Policy):
         Policy.__init__(self)
 
         num_agents = 4
-        file_dir = os.path.dirname(os.path.realpath(__file__)) + '/../CADRL/scripts/multi'
+        file_dir = os.path.dirname(os.path.realpath(__file__)) + '/CADRL/scripts/multi'
 
         # load value_net
         mode = 'rotate_constr'; passing_side = 'right'; iteration = 1300

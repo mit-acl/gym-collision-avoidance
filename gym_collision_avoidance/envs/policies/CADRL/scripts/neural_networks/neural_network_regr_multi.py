@@ -4,9 +4,9 @@ import numpy as np
 import numpy.matlib
 import pickle
 import matplotlib.pyplot as plt
-from gym_collision_avoidance.envs.CADRL.scripts.neural_networks.test_data import generate_symmetric_sinusoids
-from gym_collision_avoidance.envs.CADRL.scripts.neural_networks.nn_training_param import NN_training_param
-from gym_collision_avoidance.envs.CADRL.scripts.neural_networks.multiagent_network_param import Multiagent_network_param
+from gym_collision_avoidance.envs.policies.CADRL.scripts.neural_networks.test_data import generate_symmetric_sinusoids
+from gym_collision_avoidance.envs.policies.CADRL.scripts.neural_networks.nn_training_param import NN_training_param
+from gym_collision_avoidance.envs.policies.CADRL.scripts.neural_networks.multiagent_network_param import Multiagent_network_param
 import os
 import time
 import copy

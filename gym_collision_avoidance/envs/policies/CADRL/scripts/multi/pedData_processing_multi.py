@@ -9,7 +9,7 @@ import numpy.matlib
 import pickle
 import matplotlib.pyplot as plt
 import time
-from gym_collision_avoidance.envs.CADRL.scripts.multi import global_var as gb
+from gym_collision_avoidance.envs.policies.CADRL.scripts.multi import global_var as gb
 import copy
 
 # setting up global variables

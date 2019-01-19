@@ -13,11 +13,11 @@ import os
 import time
 import copy
 
-from gym_collision_avoidance.envs.CADRL.scripts.neural_networks import neural_network_regr_multi as nn
-from gym_collision_avoidance.envs.CADRL.scripts.multi import pedData_processing_multi as pedData
-from gym_collision_avoidance.envs.CADRL.scripts.neural_networks.nn_training_param import NN_training_param
-from gym_collision_avoidance.envs.CADRL.scripts.neural_networks.multiagent_network_param import Multiagent_network_param
-from gym_collision_avoidance.envs.CADRL.scripts.multi import global_var as gb
+from gym_collision_avoidance.envs.policies.CADRL.scripts.neural_networks import neural_network_regr_multi as nn
+from gym_collision_avoidance.envs.policies.CADRL.scripts.multi import pedData_processing_multi as pedData
+from gym_collision_avoidance.envs.policies.CADRL.scripts.neural_networks.nn_training_param import NN_training_param
+from gym_collision_avoidance.envs.policies.CADRL.scripts.neural_networks.multiagent_network_param import Multiagent_network_param
+from gym_collision_avoidance.envs.policies.CADRL.scripts.multi import global_var as gb
 
 
 # setting up global variables
