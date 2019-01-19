@@ -5,6 +5,7 @@ from gym_collision_avoidance.envs.policies.NonCooperativePolicy import NonCooper
 from gym_collision_avoidance.envs.policies.RVOPolicy import RVOPolicy
 from gym_collision_avoidance.envs.policies.PPOPolicy import PPOPolicy
 from gym_collision_avoidance.envs.policies.CADRLPolicy import CADRLPolicy
+from gym_collision_avoidance.envs.policies.GA3CCADRLPolicy import GA3CCADRLPolicy
 from gym_collision_avoidance.envs.policies.ExternalPolicy import ExternalPolicy
 from gym_collision_avoidance.envs.dynamics.UnicycleDynamics import UnicycleDynamics
 from gym_collision_avoidance.envs.dynamics.ExternalDynamics import ExternalDynamics

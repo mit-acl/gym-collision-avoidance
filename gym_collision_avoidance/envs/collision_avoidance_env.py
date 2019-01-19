@@ -172,7 +172,8 @@ class CollisionAvoidanceEnv(gym.Env):
             update_agents_in_stage_ros()
 
     def init_agents(self, agents):
-        self.agents = copy.deepcopy(agents)
+        self.agents = agents
+        # self.agents = copy.deepcopy(agents)
 
     def _compute_rewards(self):
         ###############################
