@@ -1,6 +1,6 @@
 import numpy as np
-import collision_avoidance_env
-import test_cases as tc
+from gym_collision_avoidance.envs import collision_avoidance_env
+from gym_collision_avoidance.envs import test_cases as tc
 
 ### Minimum working example
 
