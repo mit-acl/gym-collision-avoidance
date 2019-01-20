@@ -10,9 +10,10 @@ from sensor_msgs.msg import LaserScan
 
 class Agent():
     def __init__(self, start_x, start_y, goal_x, goal_y, radius,
-                 pref_speed, initial_heading, policy, dynamics_model, id):
+                 pref_speed, initial_heading, policy, dynamics_model, sensors, id):
         self.policy = policy()
         self.dynamics_model = dynamics_model(self)
+        self.sensors = [sensor() for sensor in sensors]
 
         # Global Frame states
         self.pos_global_frame = np.array([start_x, start_y], dtype='float64')
@@ -153,6 +154,10 @@ class Agent():
             self.ran_out_of_time = True
 
         return
+
+    def sense(self, agents, top_down_map):
+        for sensor in self.sensors:
+            sensor.sense(agents, top_down_map)
 
     def _update_state_history(self):
         global_state, ego_state = self.to_vector()

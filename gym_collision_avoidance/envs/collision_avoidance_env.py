@@ -131,8 +131,8 @@ class CollisionAvoidanceEnv(gym.Env):
         # Take observation
         next_observations = self._get_obs()
 
-        # if self.episode_step_number % 5:
-        #     plot_episode(self.agents, self.evaluate, self.test_case_index)
+        if self.episode_step_number % 5:
+            plot_episode(self.agents, self.evaluate, self.test_case_index)
 
         # Check which agents' games are finished (at goal/collided/out of time)
         which_agents_done, game_over = self._check_which_agents_done()
@@ -168,8 +168,20 @@ class CollisionAvoidanceEnv(gym.Env):
         for i, agent in enumerate(self.agents):
             agent.take_action(actions[i,:], dt)
 
+        top_down_map = self.update_top_down_map()
+        for i, agent in enumerate(self.agents):
+            agent.sense(self.agents, top_down_map)
+
         if Config.USE_STAGE_ROS:
             update_agents_in_stage_ros()
+
+    def update_top_down_map(self):
+        top_down_map = self.static_map.copy()
+
+        for agent in self.agents:
+            top_down_map[]
+
+        return top_down_map
 
     def init_agents(self, agents):
         self.agents = agents
