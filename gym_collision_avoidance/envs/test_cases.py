@@ -14,7 +14,7 @@ from gym_collision_avoidance.envs.config import Config
 def get_testcase_hololens_and_cadrl():
     goal_x = 3
     goal_y = 3
-    agents = [Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, CADRLPolicy, UnicycleDynamics, 0),
+    agents = [Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamics, 0),
               Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, CADRLPolicy, UnicycleDynamics, 0),
               Agent(-goal_x, goal_y, goal_x, -goal_y, 0.5, 1.0, 0.5, ExternalPolicy, ExternalDynamics, 1)]
     return agents
