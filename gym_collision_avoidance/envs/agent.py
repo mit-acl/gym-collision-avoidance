@@ -6,6 +6,8 @@ from gym_collision_avoidance.envs.policies.PPOPolicy import PPOPolicy
 import operator
 import math
 
+import matplotlib.pyplot as plt
+
 from sensor_msgs.msg import LaserScan
 
 class Agent():
@@ -155,9 +157,13 @@ class Agent():
 
         return
 
-    def sense(self, agents, top_down_map):
+    def sense(self, agents, agent_index, top_down_map):
+        self.sensor_data = []
         for sensor in self.sensors:
-            sensor.sense(agents, top_down_map)
+            sensor_data = sensor.sense(agents, agent_index, top_down_map)
+            self.sensor_data.append(sensor_data)
+            plt.imshow(sensor_data)
+            plt.pause(1.0)
 
     def _update_state_history(self):
         global_state, ego_state = self.to_vector()
