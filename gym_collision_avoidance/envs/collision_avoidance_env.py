@@ -156,8 +156,8 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def update_top_down_map(self):
         self.map.add_agents_to_map(self.agents)
-        plt.imshow(self.map.map)
-        plt.pause(0.1)
+        # plt.imshow(self.map.map)
+        # plt.pause(0.1)
 
     def init_agents(self, agents):
         self.agents = agents
@@ -243,7 +243,9 @@ class CollisionAvoidanceEnv(gym.Env):
         for i in agent_inds:
             agent = self.agents[i]
             [pi, pj], in_map = self.map.world_coordinates_to_map_indices(agent.pos_global_frame)
-            if in_map and self.map.static_map[pi, pj] == 1:
+            mask = self.map.get_agent_map_indices([pi, pj], agent.radius)
+            if in_map and np.any(self.map.static_map[mask]):
+            # if in_map and self.map.static_map[pi, pj] == 1:
                 # Collision with wall!
                 collision_with_wall[i] = True
         return collision_with_agent, collision_with_wall, entered_norm_zone

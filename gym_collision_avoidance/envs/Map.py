@@ -14,11 +14,12 @@ class Map():
         if map_filename is None:
             self.static_map = np.zeros(dims, dtype=bool)
         else:
-            self.static_map = np.invert(imageio.imread(map_filename).astype(bool))
+            self.static_map = imageio.imread(map_filename)
             if self.static_map.shape != dims:
                 print("Resizing map from: {} to {}".format(self.static_map.shape, dims))
                 self.static_map = scipy.misc.imresize(self.static_map, dims, interp='nearest')
-        
+            self.static_map = np.invert(self.static_map).astype(bool)
+
         self.origin_coords = np.array([(self.x_width/2.)/self.grid_cell_size, (self.y_width/2.)/self.grid_cell_size])
         self.map = None # This will store the current static+dynamic map at each timestep
 
@@ -34,4 +35,12 @@ class Map():
         for agent in agents:
             [gx, gy], in_map = self.world_coordinates_to_map_indices(agent.pos_global_frame)
             if in_map:
-                self.map[gx, gy] = 255
+                mask = self.get_agent_map_indices([gx,gy], agent.radius)
+                self.map[mask] = 255
+                # self.map[gx, gy] = 255
+
+    def get_agent_map_indices(self, pos, radius):
+        x = np.arange(0, self.map.shape[1])
+        y = np.arange(0, self.map.shape[0])
+        mask = (x[np.newaxis,:]-pos[1])**2 + (y[:,np.newaxis]-pos[0])**2 < (radius/self.grid_cell_size)**2
+        return mask
