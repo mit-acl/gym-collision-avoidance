@@ -208,8 +208,8 @@ class CollisionAvoidanceEnv(gym.Env):
                     elif collision_with_wall[i]:
                         rewards[i] = self.reward_collision_with_wall
                         agent.in_collision = True
-                        # print("Agent %i: Collision with wall!"
-                              # % agent.id)
+                        print("Agent %i: Collision with wall!"
+                              % agent.id)
                     #  elif entered_norm_zone[i]:
                     #      rewards[i] = self.reward_entered_norm_zone
                     elif abs(agent.past_actions[0, 1]) > 0.4:
@@ -242,7 +242,8 @@ class CollisionAvoidanceEnv(gym.Env):
                 collision_with_agent[j] = True
         for i in agent_inds:
             agent = self.agents[i]
-            if min(agent.latest_laserscan.ranges) - agent.radius < 0.1:
+            [pi, pj], in_map = self.map.world_coordinates_to_map_indices(agent.pos_global_frame)
+            if in_map and self.map.static_map[pi, pj] == 1:
                 # Collision with wall!
                 collision_with_wall[i] = True
         return collision_with_agent, collision_with_wall, entered_norm_zone

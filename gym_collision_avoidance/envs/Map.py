@@ -26,16 +26,12 @@ class Map():
         gx = int(np.floor(self.origin_coords[0]-pos[1]/self.grid_cell_size))
         gy = int(np.floor(self.origin_coords[1]+pos[0]/self.grid_cell_size))
         grid_coords = np.array([gx, gy])
-        # print("pos:", pos)
-        # print("gx,gy:", grid_coords)
-        return grid_coords
+        in_map = gx >= 0 and gy >= 0 and gx < self.map.shape[0] and gy < self.map.shape[1]
+        return grid_coords, in_map
 
     def add_agents_to_map(self, agents):
-        # print('-----')
         self.map = self.static_map.copy()
         for agent in agents:
-            gx, gy = self.world_coordinates_to_map_indices(agent.pos_global_frame)
-            # print(agent.id, agent.pos_global_frame, gx, gy)
-            if gx < 0 or gy < 0 or gx > self.map.shape[0] or gy > self.map.shape[1]:
-                continue # agent outside bounds of map, so don't plot it
-            self.map[gx, gy] = 255
+            [gx, gy], in_map = self.world_coordinates_to_map_indices(agent.pos_global_frame)
+            if in_map:
+                self.map[gx, gy] = 255

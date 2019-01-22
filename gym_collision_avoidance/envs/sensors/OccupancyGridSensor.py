@@ -14,8 +14,8 @@ class OccupancyGridSensor(Sensor):
 
         # Grab (i,j) coordinates of the upper right and lower left corner of the desired OG map, within the entire map
         host_agent = agents[agent_index]
-        map_i_high, map_j_low = top_down_map.world_coordinates_to_map_indices(host_agent.pos_global_frame-np.array([self.x_width/2., self.y_width/2.]))
-        map_i_low, map_j_high = top_down_map.world_coordinates_to_map_indices(host_agent.pos_global_frame+np.array([self.x_width/2., self.y_width/2.]))
+        [map_i_high, map_j_low], _ = top_down_map.world_coordinates_to_map_indices(host_agent.pos_global_frame-np.array([self.x_width/2., self.y_width/2.]))
+        [map_i_low, map_j_high], _ = top_down_map.world_coordinates_to_map_indices(host_agent.pos_global_frame+np.array([self.x_width/2., self.y_width/2.]))
 
         # Assume areas outside static_map should be filled with zeros
         og_map = np.zeros((int(self.y_width/top_down_map.grid_cell_size), int(self.x_width/top_down_map.grid_cell_size)), dtype=bool)
