@@ -22,16 +22,6 @@ from gym_collision_avoidance.envs.visualize import plot_episode
 from gym_collision_avoidance.envs.agent import Agent
 from gym_collision_avoidance.envs.Map import Map
 
-if Config.USE_STAGE_ROS:
-    from geometry_msgs.msg import Pose, Vector3
-    import rospy
-    import subprocess
-    import rosgraph
-    from stage_ros.srv import CmdPosesRecScans, \
-        CmdPosesRecScansRequest, \
-        NewEpisode, NewEpisodeRequest
-    #  from sensor_msgs.msg import LaserScan
-
 class CollisionAvoidanceEnv(gym.Env):
     metadata = {
         'render.modes': ['human', 'rgb_array'],
@@ -42,8 +32,6 @@ class CollisionAvoidanceEnv(gym.Env):
 
         self.id = 0
         self.episode_step_number = 0
-        if Config.USE_STAGE_ROS:
-            self._setup_stage_ros()
 
         # Initialize Rewards
         self._initialize_rewards()
@@ -157,25 +145,14 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def close(self):
         print("--- Closing CollisionAvoidanceEnv! ---")
-        if Config.USE_STAGE_ROS:
-            subprocess.Popen(["rosnode", "kill",
-                              self.stage_ros_env_ns+"/stage_ros"])
         return
 
     def _take_action(self, actions, dt):
         ###############################
         # This function sends an action to each Agent object's take_action method.
         ###############################
-
         for i, agent in enumerate(self.agents):
             agent.take_action(actions[i,:], dt)
-
-        self.update_top_down_map()
-        for i, agent in enumerate(self.agents):
-            agent.sense(self.agents, i, self.map)
-
-        if Config.USE_STAGE_ROS:
-            update_agents_in_stage_ros()
 
     def update_top_down_map(self):
         self.map.add_agents_to_map(self.agents)
@@ -299,6 +276,10 @@ class CollisionAvoidanceEnv(gym.Env):
         #   - next_observations: array with each agent's observation vector, stacked
         ###############################
 
+        self.update_top_down_map()
+        for i, agent in enumerate(self.agents):
+            agent.sense(self.agents, i, self.map)
+
         if Config.TRAIN_ON_MULTIPLE_AGENTS:
             next_observations = np.empty([len(self.agents),
                                           Config.FULL_LABELED_STATE_LENGTH])
@@ -326,85 +307,8 @@ class CollisionAvoidanceEnv(gym.Env):
         self.max_possible_reward = np.max(self.possible_reward_values)
 
     def _init_env(self, test_case=None, alg='PPO'):
-        # mostly a useless method, except in stage_ros mode
-        if Config.USE_STAGE_ROS:
-            self._init_stage_env()
-
-    # def _update_static_world_id(self, id=None):
-    #     # only used in stage_ros mode
-    #     if id is None:
-    #         # self.static_world_id = 2
-    #         self.static_world_id = np.random.randint(0,3)
-    #     else:
-    #         self.static_world_id = 0
-    #     self.world_name = "cadrl_{id}".format(id=self.static_world_id)
-    #     self.world_bitmap_filename = "/home/mfe/code/Stage/worlds/bitmaps/{world_name}.png".format(world_name=self.world_name)
-
-
-    # def _setup_stage_ros(self):
-    #     try:
-    #         rosgraph.Master('/rostopic').getPid()
-    #     except:
-    #         raise Exception("No ROS Master exists! Please start \
-    #             one externally and re-start this script.")
-    #     rospy.init_node('collision_avoidance_env_%i' % self.id)
-
-    #     self._update_static_world_id(id=0)
-    #     self.world_filename = "/home/mfe/code/Stage/worlds/{world_name}.world".format(world_name=self.world_name)
-    #     self.stage_ros_env_ns = "/stage_env_%i" % self.id
-    #     subprocess.Popen(["rosnode", "kill",
-    #                       self.stage_ros_env_ns+"/stage_ros"])
-    #     self.stage_ros_process = \
-    #         subprocess.Popen(["roslaunch", "stage_ros",
-    #                           "stage_ros_node.launch",
-    #                           "ns:=%s" % self.stage_ros_env_ns,
-    #                           "world_filename:=%s"
-    #                           % self.world_filename])
-    #     # Connect to service
-    #     srv_name = '{}/command_poses_receive_scans'.format(self.stage_ros_env_ns)
-    #     rospy.wait_for_service(srv_name, timeout=5.0)
-    #     self.srv_cmd_poses_rec_scans = rospy.ServiceProxy(srv_name,
-    #                                                       CmdPosesRecScans)
-    #     rospy.loginfo("[{}] Srv: {} available.\n".format(rospy.get_name(),
-    #                                                  srv_name))
-    #     # Connect to service
-    #     srv_name = '{}/new_episode'.format(self.stage_ros_env_ns)
-    #     rospy.wait_for_service(srv_name, timeout=5.0)
-    #     self.srv_new_episode = rospy.ServiceProxy(srv_name, NewEpisode)
-    #     rospy.loginfo("[{}] Srv: {} available.\n".format(rospy.get_name(),
-    #                                                  srv_name))
-    # def _update_agents_in_stage_ros(self):
-    #     # Update each agent's position in Stage simulator
-    #     req = CmdPosesRecScansRequest()
-    #     for agent in self.agents:
-    #         pose_msg = Pose()
-    #         pose_msg.position.x = agent.pos_global_frame[0]
-    #         pose_msg.position.y = agent.pos_global_frame[1]
-    #         pose_msg.orientation.w = agent.heading_global_frame
-    #         req.poses.append(pose_msg)
-    #     resp = self.srv_cmd_poses_rec_scans(req)
-    #     # Then update each agent's laserscan
-    #     for i, agent in enumerate(self.agents):
-    #         agent.latest_laserscan = resp.laserscans[i]
-
-    # def _init_stage_env(self):
-    #     req = NewEpisodeRequest()
-    #     for agent in self.agents:
-    #         # Update each agent's radius in Stage simulator
-    #         req.sizes.append(Vector3(x=agent.radius, y=agent.radius,
-    #                                  z=0.1))
-    #         # Update each agent's position in Stage simulator
-    #         pose_msg = Pose()
-    #         pose_msg.position.x = agent.pos_global_frame[0]
-    #         pose_msg.position.y = agent.pos_global_frame[1]
-    #         pose_msg.orientation.w = agent.heading_global_frame
-    #         req.poses.append(pose_msg)
-    #     self._update_static_world_id()
-    #     req.bitmap_path = self.world_bitmap_filename
-    #     resp = self.srv_new_episode(req)
-    #     # Then update each agent's laserscan
-    #     for i, agent in enumerate(self.agents):
-    #         agent.latest_laserscan = resp.laserscans[i]
+        # currently a useless method
+        return
             
 
 if __name__ == '__main__':
