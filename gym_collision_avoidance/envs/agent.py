@@ -163,7 +163,7 @@ class Agent():
             sensor_data = sensor.sense(agents, agent_index, top_down_map)
             self.sensor_data.append(sensor_data)
             plt.imshow(sensor_data)
-            plt.pause(1.0)
+            plt.pause(0.01)
 
     def _update_state_history(self):
         global_state, ego_state = self.to_vector()
