@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from gym_collision_avoidance.envs import collision_avoidance_env
 from gym_collision_avoidance.envs import test_cases as tc
@@ -10,6 +11,10 @@ env = collision_avoidance_env.CollisionAvoidanceEnv()
 # Set agent configuration (start/goal pos, radius, size, policy)
 agents = tc.get_testcase_hololens_and_cadrl()
 env.init_agents(agents)
+
+# Set static map of the environment (e.g. if there are static obstacles)
+static_map_filename = os.path.dirname(collision_avoidance_env.__file__)+"/world_maps/002.png"
+env.init_static_map(static_map_filename)
 
 # Set up empty np array for agents' actions
 num_actions_per_agent = 2 # speed, delta heading angle

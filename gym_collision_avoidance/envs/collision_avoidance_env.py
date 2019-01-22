@@ -99,11 +99,7 @@ class CollisionAvoidanceEnv(gym.Env):
         #     self.observation_space.spaces["agent_"+str(i)] = observation_space
 
         self.agents = None
-
-        x_width = 10
-        y_width = 10
-        grid_cell_size = 0.1 # meters/grid cell
-        self.map = Map(x_width, y_width, grid_cell_size)
+        self.map = None
 
     def step(self, actions, dt=None):
         ###############################
@@ -183,12 +179,18 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def update_top_down_map(self):
         self.map.add_agents_to_map(self.agents)
-        # plt.imshow(self.map.map)
-        # plt.pause(0.1)
+        plt.imshow(self.map.map)
+        plt.pause(0.1)
 
     def init_agents(self, agents):
         self.agents = agents
         # self.agents = copy.deepcopy(agents) # this causes issues with tensorflow ==> tries to copy policy
+
+    def init_static_map(self, map_filename):
+        x_width = 10
+        y_width = 10
+        grid_cell_size = 0.1 # meters/grid cell
+        self.map = Map(x_width, y_width, grid_cell_size, map_filename)
 
     def _compute_rewards(self):
         ###############################
