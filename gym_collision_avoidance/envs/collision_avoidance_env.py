@@ -156,8 +156,8 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def update_top_down_map(self):
         self.map.add_agents_to_map(self.agents)
-        plt.imshow(self.map.map)
-        plt.pause(0.1)
+        # plt.imshow(self.map.map)
+        # plt.pause(0.1)
 
     def init_agents(self, agents):
         self.agents = agents
