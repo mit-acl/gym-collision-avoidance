@@ -12,11 +12,16 @@ from gym_collision_avoidance.envs.dynamics.ExternalDynamics import ExternalDynam
 from gym_collision_avoidance.envs.config import Config
 
 def get_testcase_hololens_and_cadrl():
-    goal_x = 3
-    goal_y = 3
-    agents = [Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, CADRLPolicy, UnicycleDynamics, 0),
-              Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, CADRLPolicy, UnicycleDynamics, 0),
-              Agent(-goal_x, goal_y, goal_x, -goal_y, 0.5, 1.0, 0.5, ExternalPolicy, ExternalDynamics, 1)]
+    goal_x1 = 3
+    goal_y1 = 3
+    goal_x2 = 2
+    goal_y2 = 5
+    agents = [Agent(-goal_x1, -goal_y1, goal_x1, goal_y1, 0.5, 1.0, 0.5, CADRLPolicy, UnicycleDynamics, 0),
+              Agent(goal_x1, goal_y1, -goal_x1, -goal_y1, 0.5, 1.0, 0.5, CADRLPolicy, UnicycleDynamics, 1),
+              Agent(-goal_x2, -goal_y2, goal_x2, goal_y2, 0.5, 1.0, 0.5, CADRLPolicy, UnicycleDynamics, 2),
+              Agent(goal_x2, goal_y2, -goal_x2, -goal_y2, 0.5, 1.0, 0.5, CADRLPolicy, UnicycleDynamics, 3),
+              Agent(-goal_x2, goal_y2, goal_x2, -goal_y2, 0.5, 1.0, 0.5, CADRLPolicy, UnicycleDynamics, 4),
+              Agent(-goal_x1, goal_y1, goal_x1, -goal_y1, 0.5, 1.0, 0.5, ExternalPolicy, ExternalDynamics, 5)]
     return agents
 
 def get_testcase_old_and_crappy(num_agents, index):
