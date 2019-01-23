@@ -558,7 +558,7 @@ class NN_navigation_value:
 
         # getting unique rows
         # print 'before', actions
-        actions = np.asarray(np.vstack({tuple(row) for row in actions}))
+        actions = np.asarray(np.vstack([tuple(row) for row in actions]))
         # raw_input()
         # print 'after', actions
         # raw_input()

@@ -98,13 +98,13 @@ def plot_episode(agents, in_evaluate_mode, test_case_index=0):
     ax.xaxis.set_ticks_position('bottom')
 
     plt.draw()
-    if in_evaluate_mode:
-        fig_dir = '/home/mfe/code/'\
-                'openai_baselines/baselines/ppo2/logs/test_cases/'
-        fig_name = str(agents[0].policy) + '_' + \
-            str(len(agents)) + 'agents_' + \
-            str(test_case_index) + '.png'
-        plt.savefig(fig_dir+fig_name)
+    # if in_evaluate_mode:
+    #     fig_dir = '/home/mfe/code/'\
+    #             'openai_baselines/baselines/ppo2/logs/test_cases/'
+    #     fig_name = str(agents[0].policy) + '_' + \
+    #         str(len(agents)) + 'agents_' + \
+    #         str(test_case_index) + '.png'
+    #     plt.savefig(fig_dir+fig_name)
     plt.pause(0.0001)
     # plt.pause(1.0)
 
