@@ -9,12 +9,12 @@ from gym_collision_avoidance.envs import test_cases as tc
 env = collision_avoidance_env.CollisionAvoidanceEnv()
 
 # Set agent configuration (start/goal pos, radius, size, policy)
-agents = tc.get_testcase_hololens_and_cadrl()
+agents = tc.get_testcase_hololens_and_ga3c_cadrl()
 env.init_agents(agents)
 
 # Set static map of the environment (e.g. if there are static obstacles)
-static_map_filename = os.path.dirname(collision_avoidance_env.__file__)+"/world_maps/002.png"
-env.init_static_map(static_map_filename)
+# static_map_filename = os.path.dirname(collision_avoidance_env.__file__)+"/world_maps/002.png"
+env.init_static_map(map_filename=None)
 
 # Set up empty np array for agents' actions
 num_actions_per_agent = 2 # speed, delta heading angle
@@ -32,7 +32,7 @@ for i in range(num_steps):
         actions[agent_index,:] = agent.policy.find_next_action(obs, env.agents, agent_index)
     
     # Update position of real agents based on real sensor data (if necessary)
-    state_of_real_agents = [[2, i+np.random.normal(0, 0.1), 2+i+np.random.normal(0, 0.1)]]
+    state_of_real_agents = [[-1, 0.1*i, 2+np.random.normal(0, 0.1)]]
     for state in state_of_real_agents:
         agent = env.agents[state[0]]
         agent.set_state(px=state[1], py=state[2])

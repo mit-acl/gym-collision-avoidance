@@ -163,7 +163,7 @@ class CollisionAvoidanceEnv(gym.Env):
         self.agents = agents
         # self.agents = copy.deepcopy(agents) # this causes issues with tensorflow ==> tries to copy policy
 
-    def init_static_map(self, map_filename):
+    def init_static_map(self, map_filename=None):
         x_width = 10
         y_width = 10
         grid_cell_size = 0.1 # meters/grid cell
