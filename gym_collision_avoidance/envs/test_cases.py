@@ -20,8 +20,8 @@ def get_testcase_hololens_and_ga3c_cadrl():
     goal_y1 = 3
     goal_x2 = 2
     goal_y2 = 5
-    agents = [Agent(-goal_x1, -goal_y1, goal_x1, goal_y1, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamicsMaxTurnRate, [], 0),
-              Agent(goal_x1, goal_y1, -goal_x1, -goal_y1, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamicsMaxTurnRate, [], 1),
+    agents = [Agent(-goal_x1, -goal_y1, goal_x1, goal_y1, 0.5, 0.5, 0.5, GA3CCADRLPolicy, UnicycleDynamicsMaxTurnRate, [], 0),
+              Agent(goal_x1, goal_y1, -goal_x1, -goal_y1, 0.5, 2.0, 0.5, GA3CCADRLPolicy, UnicycleDynamicsMaxTurnRate, [], 1),
               Agent(-goal_x2, -goal_y2, goal_x2, goal_y2, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamicsMaxTurnRate, [], 2),
               Agent(goal_x2, goal_y2, -goal_x2, -goal_y2, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamicsMaxTurnRate, [], 3),
               Agent(-goal_x2, goal_y2, goal_x2, -goal_y2, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamicsMaxTurnRate, [], 4),
