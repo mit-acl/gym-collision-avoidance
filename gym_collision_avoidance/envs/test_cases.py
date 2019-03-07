@@ -36,6 +36,13 @@ def get_testcase_hololens_and_cadrl():
               Agent(-goal_x, goal_y, goal_x, -goal_y, 0.5, 1.0, 0.5, ExternalPolicy, ExternalDynamics, [], 2)]
     return agents
 
+def get_testcase_two_agents():
+    goal_x = 3
+    goal_y = 3
+    agents = [Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, PPOPolicy, UnicycleDynamics, [], 0),
+              Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, PPOPolicy, UnicycleDynamics, [], 1)]
+    return agents
+
 def get_testcase_old_and_crappy(num_agents, index):
     cadrl_test_case = preset_testCases(num_agents)[index]
     agents = cadrl_test_case_to_agents(cadrl_test_case)
