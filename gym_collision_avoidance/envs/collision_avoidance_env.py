@@ -90,6 +90,8 @@ class CollisionAvoidanceEnv(gym.Env):
         #     self.observation_space.spaces["agent_"+str(i)] = observation_space
 
         self.agents = None
+
+        self.static_map_filename = None
         self.map = None
 
     def step(self, actions, dt=None):
@@ -124,8 +126,9 @@ class CollisionAvoidanceEnv(gym.Env):
         # Take observation
         next_observations = self._get_obs()
 
-        # if self.episode_step_number % 5:
-        #     plot_episode(self.agents, self.evaluate, self.test_case_index)
+        if self.episode_step_number % 5:
+            # plot_episode(self.agents, self.evaluate, self.static_map_filename, self.test_case_index)
+            plot_episode(self.agents, self.evaluate, self.map, self.test_case_index)
 
         # Check which agents' games are finished (at goal/collided/out of time)
         which_agents_done, game_over = self._check_which_agents_done()
@@ -139,7 +142,8 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def reset(self):
         if self.agents is not None and Config.PLOT_EPISODES:
-            plot_episode(self.agents, self.evaluate, self.test_case_index)
+            # plot_episode(self.agents, self.evaluate, self.static_map_filename, self.test_case_index)
+            plot_episode(self.agents, self.evaluate, self.map, self.test_case_index)
         self.begin_episode = True
         self.episode_step_number = 0
         self._init_env()
@@ -167,8 +171,9 @@ class CollisionAvoidanceEnv(gym.Env):
         # self.agents = copy.deepcopy(agents) # this causes issues with tensorflow ==> tries to copy policy
 
     def init_static_map(self, map_filename=None):
-        x_width = 10
-        y_width = 10
+        self.static_map_filename = map_filename
+        x_width = 10 # meters
+        y_width = 10 # meters
         grid_cell_size = 0.1 # meters/grid cell
         self.map = Map(x_width, y_width, grid_cell_size, map_filename)
 
