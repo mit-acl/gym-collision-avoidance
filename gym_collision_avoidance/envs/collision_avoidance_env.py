@@ -69,16 +69,19 @@ class CollisionAvoidanceEnv(gym.Env):
         self.min_speed = 0.0
         self.max_speed = 1.0
 
-        self.action_space_type = Config.ACTION_SPACE_TYPE
-        if self.action_space_type == Config.discrete:
-            self.action_space = gym.spaces.Discrete(self.actions.num_actions, dtype=np.float32)
-        elif self.action_space_type == Config.continuous:
-            self.low_action = np.array([self.min_speed,
-                                        self.min_heading_change])
-            self.high_action = np.array([self.max_speed,
-                                         self.max_heading_change])
-            self.action_space = gym.spaces.Box(self.low_action, self.high_action, dtype=np.float32)
-        self.observation_space = gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
+        ### The gym.spaces library doesn't support Python2.7 (syntax of Super().__init__())
+        # self.action_space_type = Config.ACTION_SPACE_TYPE
+        # if self.action_space_type == Config.discrete:
+        #     self.action_space = gym.spaces.Discrete(self.actions.num_actions, dtype=np.float32)
+        # elif self.action_space_type == Config.continuous:
+        #     self.low_action = np.array([self.min_speed,
+        #                                 self.min_heading_change])
+        #     self.high_action = np.array([self.max_speed,
+        #                                  self.max_heading_change])
+        #     self.action_space = gym.spaces.Box(self.low_action, self.high_action, dtype=np.float32)
+        # self.observation_space = gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
+
+
         # self.observation_space = np.array([gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
         #                                    for _ in range(self.num_agents)])
         # observation_space = gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
@@ -87,6 +90,8 @@ class CollisionAvoidanceEnv(gym.Env):
         #     self.observation_space.spaces["agent_"+str(i)] = observation_space
 
         self.agents = None
+
+        self.static_map_filename = None
         self.map = None
 
     def step(self, actions, dt=None):
@@ -121,8 +126,9 @@ class CollisionAvoidanceEnv(gym.Env):
         # Take observation
         next_observations = self._get_obs()
 
-        # if self.episode_step_number % 5:
-        #     plot_episode(self.agents, self.evaluate, self.test_case_index)
+        if self.episode_step_number % 5:
+            # plot_episode(self.agents, self.evaluate, self.static_map_filename, self.test_case_index)
+            plot_episode(self.agents, self.evaluate, self.map, self.test_case_index)
 
         # Check which agents' games are finished (at goal/collided/out of time)
         which_agents_done, game_over = self._check_which_agents_done()
@@ -136,7 +142,8 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def reset(self):
         if self.agents is not None and Config.PLOT_EPISODES:
-            plot_episode(self.agents, self.evaluate, self.test_case_index)
+            # plot_episode(self.agents, self.evaluate, self.static_map_filename, self.test_case_index)
+            plot_episode(self.agents, self.evaluate, self.map, self.test_case_index)
         self.begin_episode = True
         self.episode_step_number = 0
         self._init_env()
@@ -164,8 +171,9 @@ class CollisionAvoidanceEnv(gym.Env):
         # self.agents = copy.deepcopy(agents) # this causes issues with tensorflow ==> tries to copy policy
 
     def init_static_map(self, map_filename=None):
-        x_width = 10
-        y_width = 10
+        self.static_map_filename = map_filename
+        x_width = 10 # meters
+        y_width = 10 # meters
         grid_cell_size = 0.1 # meters/grid cell
         self.map = Map(x_width, y_width, grid_cell_size, map_filename)
 
