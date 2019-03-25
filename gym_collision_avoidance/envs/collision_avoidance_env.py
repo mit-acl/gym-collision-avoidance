@@ -152,7 +152,6 @@ class CollisionAvoidanceEnv(gym.Env):
         self._init_static_map()
         self._init_env()
         return self._get_obs()
-        # TODO: for stage branch, confirm agent is getting correct scan on reset
 
     def close(self):
         print("--- Closing CollisionAvoidanceEnv! ---")
@@ -175,7 +174,7 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def _init_agents(self):
         if self.default_agents is None:
-            self.agents = tc.get_testcase_two_agents()
+            self.agents = tc.get_testcase_random()
         else:
             self.agents = self.default_agents
         for agent in self.agents:
