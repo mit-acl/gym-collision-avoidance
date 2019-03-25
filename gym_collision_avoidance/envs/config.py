@@ -6,20 +6,18 @@ class Config:
     COLLISION_AVOIDANCE = True
     continuous, discrete = range(2) # Initialize game types as enum
     ACTION_SPACE_TYPE   = continuous
-    ACTION_SPACE_LENGTH = 2
     NET_ARCH            = 'NetworkVP_cnn' # Neural net architecture
     ALL_ARCHS           = ['NetworkVP_cnn','NetworkVP_cnn_2'] # Can add more model types here
     TRAIN_MODELS        = True # Enable to train
-    LOAD_CHECKPOINT     = True # Load old models. Throws if the model doesn't exist
+    LOAD_CHECKPOINT     = False # Load old models. Throws if the model doesn't exist
     NORMALIZE_INPUT     = True
     USE_DROPOUT         = False
-    WEIGHT_SHARING      = True
-    USE_REGULARIZATION  = True
+    WEIGHT_SHARING      = False
+    USE_REGULARIZATION  = False
     LOAD_FROM_BACKUP_DIR= False
     LOAD_EPISODE        = 0 # If 0, the latest checkpoint is loaded
 
     ANIMATE_EPISODES    = False
-    PLOT_EPISODES       = False
     TRAIN_MODE           = False # Enable to see the trained agent in action (for testing)
     PLAY_MODE           = False # Enable to see the trained agent in action (for testing)
     EVALUATE_MODE       = True # Enable to see the trained agent in action (for testing)
@@ -28,12 +26,11 @@ class Config:
 
     #########################################################################
     # COLLISION AVOIDANCE PARAMETER
-    USE_STAGE_ROS = False
     # USE_LASERSCAN_IN_OBSERVATION = True
     USE_LASERSCAN_IN_OBSERVATION = False
     MAX_NUM_AGENTS_IN_ENVIRONMENT = 2
     NUM_TEST_CASES = 8
-    PLOT_EPISODES = True # with matplotlib, plot after each episode
+    PLOT_EPISODES = False # with matplotlib, plot after each episode
     PLOT_EVERY_N_EPISODES = 100 # for tensorboard visualization
     DT             = 0.2 # seconds between simulation time steps
     REWARD_AT_GOAL = 1.0 # reward given when agent reaches goal position
@@ -42,18 +39,10 @@ class Config:
     REWARD_GETTING_CLOSE   = -0.1 # reward when agent gets close to another agent (unused?)
     REWARD_ENTERED_NORM_ZONE   = -0.05 # reward when agent enters another agent's social zone
     REWARD_TIME_STEP   = 0.0 # default reward given if none of the others apply (encourage speed)
-    # REWARD_TIME_STEP   = -0.01 # default reward given if none of the others apply (encourage speed)
-    # NUM_AGENT_STATES = 4 # Number of states (pos_x,pos_y,...)
-    # OTHER_OBS_LENGTH = 7 # number of states about another agent in observation vector
     NUM_STEPS_IN_OBS_HISTORY = 1 # number of time steps to store in observation vector
     NUM_PAST_ACTIONS_IN_STATE = 0
     COLLISION_DIST = 0.0 # meters between agents' boundaries for collision
     GETTING_CLOSE_RANGE = 0.2 # meters between agents' boundaries for collision
-    # STACKED_FRAMES = 1 # Num of inputs to DQN
-    # REWARD_MIN     = -100 # Reward Clipping
-    # REWARD_MAX     = 100 # Reward Clipping
-    # MAX_ITER       = 40 # Max iteration (time limit)
-    # TIMER_DURATION = 0.01 # In second visualization time for each step
     # TRAIN_WITH_REGRESSION = False # Start training with regression phase before RL
     # LOAD_REGRESSION = False # Initialize training with regression network
     MULTI_AGENT_ARCHS = ['RNN','WEIGHT_SHARING','VANILLA']

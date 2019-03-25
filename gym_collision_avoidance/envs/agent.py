@@ -118,8 +118,8 @@ class Agent():
             return
 
         # Store past actions
-        # self.past_actions = np.roll(self.past_actions, 1, axis=0)
-        # self.past_actions[0, :] = action
+        self.past_actions = np.roll(self.past_actions, 1, axis=0)
+        self.past_actions[0, :] = action
 
         # if self.action_time_lag > 0:
         #     # This is a future feature... action_time_lag = 0 for now.

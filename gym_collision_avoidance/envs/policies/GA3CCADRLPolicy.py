@@ -7,7 +7,7 @@ from gym_collision_avoidance.envs.policies.GA3C_CADRL import network
 
 class GA3CCADRLPolicy(Policy):
     def __init__(self):
-        Policy.__init__(self)
+        Policy.__init__(self, str="GA3C_CADRL")
 
         self.possible_actions = network.Actions()
         num_actions = self.possible_actions.num_actions

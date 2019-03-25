@@ -6,7 +6,7 @@ from gym_collision_avoidance.envs import util
 
 class CADRLPolicy(Policy):
     def __init__(self):
-        Policy.__init__(self)
+        Policy.__init__(self, str="CADRL")
 
         num_agents = 4
         file_dir = os.path.dirname(os.path.realpath(__file__)) + '/CADRL/scripts/multi'
