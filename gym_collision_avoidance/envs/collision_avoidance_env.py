@@ -72,23 +72,25 @@ class CollisionAvoidanceEnv(gym.Env):
 
         ### The gym.spaces library doesn't support Python2.7 (syntax of Super().__init__())
         self.action_space_type = Config.ACTION_SPACE_TYPE
-        if self.action_space_type == Config.discrete:
-            self.action_space = gym.spaces.Discrete(self.actions.num_actions, dtype=np.float32)
-        elif self.action_space_type == Config.continuous:
-            self.low_action = np.array([self.min_speed,
-                                        self.min_heading_change])
-            self.high_action = np.array([self.max_speed,
-                                         self.max_heading_change])
-            self.action_space = gym.spaces.Box(self.low_action, self.high_action, dtype=np.float32)
-        self.observation_space = gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
-
-
-        # self.observation_space = np.array([gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
-                                           # for _ in range(self.num_agents)])
-        # observation_space = gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
-        # self.observation_space = gym.spaces.Dict({})
-        # for i in range(self.num_agents):
-        #     self.observation_space.spaces["agent_"+str(i)] = observation_space
+        try:
+            if self.action_space_type == Config.discrete:
+                self.action_space = gym.spaces.Discrete(self.actions.num_actions, dtype=np.float32)
+            elif self.action_space_type == Config.continuous:
+                self.low_action = np.array([self.min_speed,
+                                            self.min_heading_change])
+                self.high_action = np.array([self.max_speed,
+                                             self.max_heading_change])
+                self.action_space = gym.spaces.Box(self.low_action, self.high_action, dtype=np.float32)
+            self.observation_space = gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
+            # self.observation_space = np.array([gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
+                                               # for _ in range(self.num_agents)])
+            # observation_space = gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
+            # self.observation_space = gym.spaces.Dict({})
+            # for i in range(self.num_agents):
+            #     self.observation_space.spaces["agent_"+str(i)] = observation_space
+        except:
+            print("[gym_collision_avoidance] Can't load gym spaces - probably because you're using \
+                    Python2, and Gym supports Python3 only.")
 
         self.agents = None
         self.default_agents = None
