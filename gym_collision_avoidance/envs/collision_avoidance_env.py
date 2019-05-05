@@ -81,13 +81,28 @@ class CollisionAvoidanceEnv(gym.Env):
                 self.high_action = np.array([self.max_speed,
                                              self.max_heading_change])
                 self.action_space = gym.spaces.Box(self.low_action, self.high_action, dtype=np.float32)
-            self.observation_space = gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
+            
+
+            # original observation space
+            # self.observation_space = gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
+            
+            # not used...
             # self.observation_space = np.array([gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
                                                # for _ in range(self.num_agents)])
             # observation_space = gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
-            # self.observation_space = gym.spaces.Dict({})
-            # for i in range(self.num_agents):
-            #     self.observation_space.spaces["agent_"+str(i)] = observation_space
+            
+            # single agent dict obs
+            self.observation = {}
+            for agent in range(Config.MAX_NUM_AGENTS_IN_ENVIRONMENT):
+                self.observation[agent] = {}
+
+            self.observation_space = gym.spaces.Dict({})
+            for state in Config.STATES_IN_OBS:
+                self.observation_space.spaces[state] = gym.spaces.Box(Config.STATE_INFO_DICT[state]['bounds'][0]*np.ones((Config.STATE_INFO_DICT[state]['size'])),
+                                                                        Config.STATE_INFO_DICT[state]['bounds'][1]*np.ones((Config.STATE_INFO_DICT[state]['size'])),
+                                                                        dtype=Config.STATE_INFO_DICT[state]['dtype'])
+                for agent in range(Config.MAX_NUM_AGENTS_IN_ENVIRONMENT):
+                    self.observation[agent][state] = np.empty((Config.STATE_INFO_DICT[state]['size']), dtype=Config.STATE_INFO_DICT[state]['dtype'])
         except:
             print("[gym_collision_avoidance] Can't load gym spaces - probably because you're using \
                     Python2, and Gym supports Python3 only.")
@@ -132,8 +147,8 @@ class CollisionAvoidanceEnv(gym.Env):
         # Take observation
         next_observations = self._get_obs()
 
-        # if self.episode_step_number % 5:
-        #     plot_episode(self.agents, self.evaluate, self.map, self.test_case_index)
+        if Config.ANIMATE_EPISODES and self.episode_step_number % 5:
+            plot_episode(self.agents, False, self.map, self.test_case_index)
 
         # Check which agents' games are finished (at goal/collided/out of time)
         which_agents_done, game_over = self._check_which_agents_done()
@@ -141,6 +156,15 @@ class CollisionAvoidanceEnv(gym.Env):
         which_agents_done_dict = {}
         for i, agent in enumerate(self.agents):
             which_agents_done_dict[agent.id] = which_agents_done[i]
+
+        if game_over:
+            for agent in self.agents:
+                reason = 'timed out'
+                if agent.in_collision:
+                    reason = "collided with another agent/wall"
+                elif agent.is_at_goal:
+                    reason = "arrived at the goal!"
+                print("Agent {} {}".format(agent.id, reason))
 
         return next_observations, rewards, game_over, \
             {'which_agents_done': which_agents_done_dict}
@@ -176,6 +200,7 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def _init_agents(self):
         if self.default_agents is None:
+            # self.agents = tc.get_testcase_easy()
             self.agents = tc.get_testcase_random()
         else:
             self.agents = self.default_agents
@@ -290,6 +315,7 @@ class CollisionAvoidanceEnv(gym.Env):
             game_over = np.all(which_agents_done)
             # game_over = which_agents_done[0]
         else:
+            # game_over = np.all(which_agents_done)
             game_over = which_agents_done[0]
         return which_agents_done, game_over
 
@@ -306,16 +332,17 @@ class CollisionAvoidanceEnv(gym.Env):
         for i, agent in enumerate(self.agents):
             agent.sense(self.agents, i, self.map)
 
-        if Config.TRAIN_ON_MULTIPLE_AGENTS:
-            next_observations = np.empty([len(self.agents),
-                                          Config.FULL_LABELED_STATE_LENGTH])
-        else:
-            next_observations = np.empty([len(self.agents),
-                                          Config.FULL_STATE_LENGTH])
+        # if Config.TRAIN_ON_MULTIPLE_AGENTS:
+        #     next_observations = np.empty([len(self.agents),
+        #                                   Config.FULL_LABELED_STATE_LENGTH])
+        # else:
+        #     next_observations = np.empty([len(self.agents),
+        #                                   Config.FULL_STATE_LENGTH])
         for i, agent in enumerate(self.agents):
-            agent_obs = agent.observe(self.agents)
-            next_observations[i] = agent_obs
-        return next_observations
+            agent.observe_simple(self.agents)
+            for state in Config.STATES_IN_OBS:
+                self.observation[i][state][:] = np.array(getattr(agent, Config.STATE_INFO_DICT[state]['attr']))
+        return self.observation
 
     def _initialize_rewards(self):
         self.reward_at_goal = Config.REWARD_AT_GOAL

@@ -69,6 +69,9 @@ class Agent():
         self.ego_state_dim = 3
         self.ego_state_history = np.empty((self.num_states_in_history, self.ego_state_dim))
 
+        # self.other_agents_states = np.zeros((Config.MAX_NUM_OTHER_AGENTS_OBSERVED, 7))
+        self.other_agent_states = np.zeros((7,))
+
         self.dynamics_model.update_ego_frame()
         # self._update_state_history()
         # self._check_if_at_goal()
@@ -196,6 +199,60 @@ class Agent():
                                  self.heading_global_frame])
         ego_state = np.array([self.t, self.dist_to_goal, self.heading_ego_frame])
         return global_state, ego_state
+
+    def observe_simple(self, agents):
+        other_agent_dists = {}
+        for i, other_agent in enumerate(agents):
+            if other_agent.id == self.id:
+                continue
+            # project other elements onto the new reference frame
+            rel_pos_to_other_global_frame = other_agent.pos_global_frame - \
+                self.pos_global_frame
+            dist_between_agent_centers = np.linalg.norm(
+                    rel_pos_to_other_global_frame)
+            dist_2_other = dist_between_agent_centers - self.radius - \
+                other_agent.radius
+            if dist_between_agent_centers > Config.SENSING_HORIZON:
+                # print "Agent too far away"
+                continue
+            other_agent_dists[i] = dist_2_other
+        sorted_pairs = sorted(other_agent_dists.items(),
+                              key=operator.itemgetter(1))
+        sorted_inds = [ind for (ind, pair) in sorted_pairs]
+        sorted_inds.reverse()
+        clipped_sorted_inds = \
+            sorted_inds[-Config.MAX_NUM_OTHER_AGENTS_OBSERVED:]
+        clipped_sorted_agents = [agents[i] for i in clipped_sorted_inds]
+
+        i = 0
+        for other_agent in clipped_sorted_agents:
+            if other_agent.id == self.id:
+                continue
+            # project other elements onto the new reference frame
+            rel_pos_to_other_global_frame = other_agent.pos_global_frame - \
+                self.pos_global_frame
+            p_parallel_ego_frame = np.dot(rel_pos_to_other_global_frame,
+                                          self.ref_prll)
+            p_orthog_ego_frame = np.dot(rel_pos_to_other_global_frame,
+                                        self.ref_orth)
+            v_parallel_ego_frame = np.dot(other_agent.vel_global_frame,
+                                          self.ref_prll)
+            v_orthog_ego_frame = np.dot(other_agent.vel_global_frame,
+                                        self.ref_orth)
+            dist_2_other = np.linalg.norm(rel_pos_to_other_global_frame) - \
+                self.radius - other_agent.radius
+            combined_radius = self.radius + other_agent.radius
+
+            other_obs = np.array([p_parallel_ego_frame,
+                                  p_orthog_ego_frame,
+                                  v_parallel_ego_frame,
+                                  v_orthog_ego_frame,
+                                  other_agent.radius,
+                                  combined_radius,
+                                  dist_2_other])
+            self.other_agent_states[:] = other_obs
+            break # don't allow multiple agent states
+
 
     def observe(self, agents):
         #

@@ -24,11 +24,23 @@ class Config:
     TRAIN_ON_MULTIPLE_AGENTS = True
     # TRAIN_ON_MULTIPLE_AGENTS = False
 
+    MAX_NUM_AGENTS_IN_ENVIRONMENT = 2
+    STATES_IN_OBS = ['dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agent_states']
+    STATES_NOT_USED_IN_POLICY = ['use_ppo']
+    STATE_INFO_DICT = {'dist_to_goal': {'dtype': np.float32, 'size': 1, 'bounds': [-np.inf, np.inf], 'attr': 'dist_to_goal', 'std': 5., 'mean': 0.},
+                        'radius': {'dtype': np.float32, 'size': 1, 'bounds': [0, np.inf], 'attr': 'radius', 'std': 1.0, 'mean':0.5},
+                        'heading_ego_frame': {'dtype': np.float32, 'size': 1, 'bounds': [-np.pi, np.pi], 'attr': 'heading_ego_frame', 'std': 3.14, 'mean':0.},
+                        'pref_speed': {'dtype': np.float32, 'size': 1, 'bounds': [0, np.inf], 'attr': 'pref_speed', 'std': 1.0, 'mean':1.0},
+                        'other_agent_states': {'dtype': np.float32, 'size': 7, 'bounds': [-np.inf, np.inf], 'attr': 'other_agent_states', 'std': np.array([]), 'mean': np.array([])},
+                        'other_agents_states': {'dtype': np.float32, 'size': (MAX_NUM_AGENTS_IN_ENVIRONMENT-1,7), 'bounds': [-np.inf, np.inf], 'attr': 'other_agents_states'},
+                        'laserscan': {'dtype': np.float32, 'size': 20, 'bounds': [0., 10.], 'attr': 'latest_laserscan.ranges'},
+                        'use_ppo': {'dtype': np.float32, 'size': 1, 'bounds': [0., 1.], 'attr': 'policy==policies.PPOPolicy'}
+                        }
+
     #########################################################################
     # COLLISION AVOIDANCE PARAMETER
     # USE_LASERSCAN_IN_OBSERVATION = True
     USE_LASERSCAN_IN_OBSERVATION = False
-    MAX_NUM_AGENTS_IN_ENVIRONMENT = 2
     NUM_TEST_CASES = 8
     PLOT_EPISODES = False # with matplotlib, plot after each episode
     PLOT_EVERY_N_EPISODES = 100 # for tensorboard visualization

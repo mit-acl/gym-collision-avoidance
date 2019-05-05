@@ -65,6 +65,18 @@ def get_testcase_random():
     agents = cadrl_test_case_to_agents(test_case)
     return agents
 
+def get_testcase_easy():
+
+    num_agents = 2
+    side_length = 2
+    speed_bnds = [0.5, 1.5]
+    radius_bnds = [0.2, 0.8]
+
+    test_case = tc.generate_rand_test_case_multi(num_agents, side_length, speed_bnds, radius_bnds)
+
+    agents = cadrl_test_case_to_agents(test_case)
+    return agents
+
 def get_testcase_old_and_crappy(num_agents, index):
     cadrl_test_case = preset_testCases(num_agents)[index]
     agents = cadrl_test_case_to_agents(cadrl_test_case)

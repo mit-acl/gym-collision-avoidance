@@ -11,3 +11,4 @@ from gym_collision_avoidance.envs.collision_avoidance_env import CollisionAvoida
 # from gym_collision_avoidance.envs.cadrl_agent import CADRLAgent
 
 
+from gym_collision_avoidance.envs.wrappers import FlattenDictWrapper, MultiagentFlattenDictWrapper
