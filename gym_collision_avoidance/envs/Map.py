@@ -16,7 +16,7 @@ class Map():
         else:
             self.static_map = imageio.imread(map_filename)
             if self.static_map.shape != dims:
-                print("Resizing map from: {} to {}".format(self.static_map.shape, dims))
+                # print("Resizing map from: {} to {}".format(self.static_map.shape, dims))
                 self.static_map = scipy.misc.imresize(self.static_map, dims, interp='nearest')
             self.static_map = np.invert(self.static_map).astype(bool)
 

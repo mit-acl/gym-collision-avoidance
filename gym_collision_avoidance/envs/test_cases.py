@@ -51,11 +51,20 @@ def get_testcase_two_agents():
               Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, PPOPolicy, UnicycleDynamics, [], 1)]
     return agents
 
+def get_testcase_two_agents_laserscanners():
+    goal_x = 3
+    goal_y = 3
+    agents = [Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, PPOPolicy, UnicycleDynamics, [LaserScanSensor], 0),
+              Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, PPOPolicy, UnicycleDynamics, [LaserScanSensor], 1)]
+    return agents
+
 def get_testcase_random():
 
-    # num_agents = 2
+    # num_agents = 3
     side_length = 4
     num_agents = np.random.randint(2, Config.MAX_NUM_AGENTS_IN_ENVIRONMENT+1)
+    # num_agents = np.random.randint(2, 5)
+    # num_agents = np.random.randint(2, 4)
     # side_length = np.random.uniform(4, 8)
     speed_bnds = [0.5, 1.5]
     radius_bnds = [0.2, 0.8]
@@ -77,6 +86,36 @@ def get_testcase_easy():
     agents = cadrl_test_case_to_agents(test_case)
     return agents
 
+def get_testcase_fixed_initial_conditions(agents):
+    new_agents = []
+    for agent in agents:
+        goal_x, goal_y = get_new_goal(agent.pos_global_frame)
+        new_agent = Agent(agent.pos_global_frame[0], agent.pos_global_frame[1], goal_x, goal_y, agent.radius, agent.pref_speed, agent.heading_global_frame, agent.policy.__class__, agent.dynamics_model.__class__, [], agent.id)
+        new_agents.append(new_agent)
+    return new_agents
+
+def get_testcase_fixed_initial_conditions_for_non_ppo(agents):
+    new_agents = []
+    for agent in agents:
+        if agent.policy.str == "PPO":
+            start_x, start_y = get_new_start_pos()
+        else:
+            start_x, start_y = agent.pos_global_frame
+        goal_x, goal_y = get_new_goal(agent.pos_global_frame)
+        new_agent = Agent(start_x, start_y, goal_x, goal_y, agent.radius, agent.pref_speed, agent.heading_global_frame, agent.policy.__class__, agent.dynamics_model.__class__, [], agent.id)
+        new_agents.append(new_agent)
+    return new_agents
+
+def get_new_goal(pos):
+    bounds = np.array([[-5, 5], [-5, 5]])
+    dist_from_pos_threshold = 4.
+    far_from_pos = False
+    while not far_from_pos:
+        gx, gy = np.random.uniform(bounds[:,0], bounds[:,1])
+        far_from_pos = np.linalg.norm(pos - np.array([gx, gy])) >= dist_from_pos_threshold
+    return gx, gy
+
+
 def get_testcase_old_and_crappy(num_agents, index):
     cadrl_test_case = preset_testCases(num_agents)[index]
     agents = cadrl_test_case_to_agents(cadrl_test_case)
@@ -90,25 +129,35 @@ def cadrl_test_case_to_agents(test_case, alg='PPO'):
     ###############################
 
     agents = []
-    agent_policy_list = [PPOPolicy for _ in range(np.shape(test_case)[0])]
+    # agent_policy_list = [PPOPolicy, NonCooperativePolicy]
+    # agent_policy_list = [NonCooperativePolicy, PPOPolicy]
+    policies = [NonCooperativePolicy, PPOPolicy, StaticPolicy]
+    # agent_policy_list = np.random.choice(policies, np.shape(test_case)[0])
+    # agent_policy_list = [PPOPolicy for _ in range(np.shape(test_case)[0])]
     agent_dynamics_list = [UnicycleDynamics for _ in range(np.shape(test_case)[0])]
-    # if Config.EVALUATE_MODE:
-    #     agent_policy_list = [PPOPolicy for _ in range(np.shape(test_case)[0])]
-    #     agent_dynamics_list = [UnicycleDynamics for _ in range(np.shape(test_case)[0])]
-    #     # agent_dynamics_list = [UnicycleDynamics for _ in range(np.shape(test_case)[0])]
-    #     # agent_policy_list = [CADRLPolicy for _ in range(np.shape(test_case)[0])]
-    #     # agent_policy_list = [NonCooperativePolicy for _ in range(np.shape(test_case)[0])]
-    #     # agent_policy_list = [StaticPolicy for _ in range(np.shape(test_case)[0])]
-    # else:
-    #     # Random mix of agents following various policies
-    #     agent_policy_list = np.random.choice(policies,
-    #                                          np.shape(test_case)[0],
-    #                                          p=[0.5, 0.5])
-    #     # if 0 not in agent_policy_list:
-    #     #     # Make sure at least one agent is following PPO
-    #     #     #  (otherwise waste of time...)
-    #     #     random_agent_id = np.random.randint(len(agent_policy_list))
-    #     #     agent_policy_list[random_agent_id] = 0
+    if Config.EVALUATE_MODE or Config.PLAY_MODE:
+        agent_policy_list = [PPOPolicy for _ in range(np.shape(test_case)[0])]
+        agent_dynamics_list = [UnicycleDynamics for _ in range(np.shape(test_case)[0])]
+        # agent_dynamics_list = [UnicycleDynamics for _ in range(np.shape(test_case)[0])]
+        # agent_policy_list = [CADRLPolicy for _ in range(np.shape(test_case)[0])]
+        # agent_policy_list = [NonCooperativePolicy for _ in range(np.shape(test_case)[0])]
+        # agent_policy_list = [StaticPolicy for _ in range(np.shape(test_case)[0])]
+    else:
+        # Random mix of agents following various policies
+
+        agent_policy_list = np.random.choice(policies,
+                                             np.shape(test_case)[0],
+                                             p=[0.05, 0.9, 0.05])
+        # agent_policy_list = np.random.choice(policies,
+        #                                      np.shape(test_case)[0],
+        #                                      p=[0.0, 1.0, 0.0])
+
+        # Make sure at least one agent is following PPO
+        #  (otherwise waste of time...)
+        if PPOPolicy not in agent_policy_list:
+            random_agent_id = np.random.randint(len(agent_policy_list))
+            agent_policy_list[random_agent_id] = PPOPolicy
+
     for i, agent in enumerate(test_case):
         px = agent[0]
         py = agent[1]
@@ -124,6 +173,7 @@ def cadrl_test_case_to_agents(test_case, alg='PPO'):
             heading = np.random.uniform(-np.pi, np.pi)
 
         agents.append(Agent(px, py, gx, gy, radius, pref_speed, heading, agent_policy_list[i], agent_dynamics_list[i], [], i))
+        # agents.append(Agent(px, py, gx, gy, radius, pref_speed, heading, agent_policy_list[i], agent_dynamics_list[i], [LaserScanSensor], i))
     return agents
 
 

@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 class LaserScanSensor(Sensor):
     def __init__(self):
         Sensor.__init__(self)
+        self.name = 'laserscan'
         self.num_beams = 20
         self.range_resolution = 0.1
         self.max_range = 10 # meters
@@ -27,7 +28,7 @@ class LaserScanSensor(Sensor):
         		pos = host_agent.pos_global_frame+np.array([r*np.cos(angle), r*np.sin(angle)])
         		[i, j], in_map = top_down_map.world_coordinates_to_map_indices(pos)
         		# if in_map:
-	        		# lidar_map[i,j]=1
+	        	# 	lidar_map[i,j]=1
         		if r <= host_agent.radius or not in_map:
         			continue
         		if top_down_map.map[i, j]:
