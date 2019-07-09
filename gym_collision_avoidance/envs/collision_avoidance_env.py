@@ -31,8 +31,7 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def __init__(self):
 
-        self.id = 0
-        self.episode_step_number = 0
+        self.id = int(np.random.uniform(1, 1e5))
 
         # Initialize Rewards
         self._initialize_rewards()
@@ -102,18 +101,20 @@ class CollisionAvoidanceEnv(gym.Env):
                                                                         Config.STATE_INFO_DICT[state]['bounds'][1]*np.ones((Config.STATE_INFO_DICT[state]['size'])),
                                                                         dtype=Config.STATE_INFO_DICT[state]['dtype'])
                 for agent in range(Config.MAX_NUM_AGENTS_IN_ENVIRONMENT):
-                    self.observation[agent][state] = np.empty((Config.STATE_INFO_DICT[state]['size']), dtype=Config.STATE_INFO_DICT[state]['dtype'])
+                    self.observation[agent][state] = np.zeros((Config.STATE_INFO_DICT[state]['size']), dtype=Config.STATE_INFO_DICT[state]['dtype'])
         except:
             print("[gym_collision_avoidance] Can't load gym spaces - probably because you're using \
                     Python2, and Gym supports Python3 only.")
 
         self.agents = None
         self.default_agents = None
+        self.prev_episode_agents = None
 
         self.static_map_filename = None
         self.map = None
 
         self.episode_step_number = None
+        self.episode_number = 0
 
     def step(self, actions, dt=None):
         ###############################
@@ -139,7 +140,9 @@ class CollisionAvoidanceEnv(gym.Env):
         self.episode_step_number += 1
 
         # Take action
-        self._take_action(actions, dt)
+        self._take_action2(actions, dt)
+        # self._take_action(actions, dt)
+        # print([agent.pos_global_frame for agent in self.agents])
 
         # Collect rewards
         rewards = self._compute_rewards()
@@ -147,7 +150,7 @@ class CollisionAvoidanceEnv(gym.Env):
         # Take observation
         next_observations = self._get_obs()
 
-        if Config.ANIMATE_EPISODES and self.episode_step_number % 5:
+        if Config.ANIMATE_EPISODES and self.episode_step_number % 5 == 0:
             plot_episode(self.agents, False, self.map, self.test_case_index)
 
         # Check which agents' games are finished (at goal/collided/out of time)
@@ -157,26 +160,31 @@ class CollisionAvoidanceEnv(gym.Env):
         for i, agent in enumerate(self.agents):
             which_agents_done_dict[agent.id] = which_agents_done[i]
 
-        if game_over:
-            for agent in self.agents:
-                reason = 'timed out'
-                if agent.in_collision:
-                    reason = "collided with another agent/wall"
-                elif agent.is_at_goal:
-                    reason = "arrived at the goal!"
-                print("Agent {} {}".format(agent.id, reason))
+
+        # if game_over:
+        #     for agent in self.agents:
+        #         reason = 'timed out'
+        #         if agent.in_collision:
+        #             reason = "collided with another agent/wall"
+        #         elif agent.is_at_goal:
+        #             reason = "arrived at the goal!"
+        #         print("Agent {} {}".format(agent.id, reason))
 
         return next_observations, rewards, game_over, \
             {'which_agents_done': which_agents_done_dict}
 
     def reset(self):
-        if self.episode_step_number is not None and Config.PLOT_EPISODES:
-            plot_episode(self.agents, self.evaluate, self.map, self.test_case_index)
+        if self.episode_step_number is not None and self.episode_step_number > 0 and Config.PLOT_EPISODES and self.test_case_index >= 0:
+            plot_episode(self.agents, self.evaluate, self.map, self.test_case_index, self.id)
+            self.episode_number += 1
         self.begin_episode = True
         self.episode_step_number = 0
         self._init_agents()
         self._init_static_map()
         self._init_env()
+        for state in Config.STATES_IN_OBS:
+            for agent in range(Config.MAX_NUM_AGENTS_IN_ENVIRONMENT):
+                self.observation[agent][state] = np.zeros((Config.STATE_INFO_DICT[state]['size']), dtype=Config.STATE_INFO_DICT[state]['dtype'])
         return self._get_obs()
 
     def close(self):
@@ -190,6 +198,29 @@ class CollisionAvoidanceEnv(gym.Env):
         for i, agent in enumerate(self.agents):
             agent.take_action(actions[i,:], dt)
 
+    def _take_action2(self, actions, dt):
+        ###############################
+        # This function sends an action to each Agent object's take_action method.
+        ###############################
+        num_actions_per_agent = 2  # speed, delta heading angle
+        all_actions = np.zeros((len(self.agents), num_actions_per_agent), dtype=np.float32)
+        for agent_index, agent in enumerate(self.agents):
+            if agent.is_done:
+                continue
+            if agent.policy.is_still_learning:
+                # print('still learning')
+                all_actions[agent_index, :] = agent.policy.network_output_to_action(agent, actions[agent_index])
+                # print(all_actions[agent_index, :])
+            else:
+                # print('not still learning')
+                dict_obs = None
+                all_actions[agent_index, :] = agent.policy.find_next_action(dict_obs, self.agents, agent_index)
+                # print(all_actions[agent_index, :])
+
+        for i, agent in enumerate(self.agents):
+            agent.take_action(all_actions[i,:], dt)
+            # print(agent.pos_global_frame)
+
     def update_top_down_map(self):
         self.map.add_agents_to_map(self.agents)
         # plt.imshow(self.map.map)
@@ -199,9 +230,18 @@ class CollisionAvoidanceEnv(gym.Env):
         self.default_agents = agents
 
     def _init_agents(self):
+        if self.evaluate:
+            if self.agents is not None:
+                self.prev_episode_agents = copy.deepcopy(self.agents)
         if self.default_agents is None:
             # self.agents = tc.get_testcase_easy()
             self.agents = tc.get_testcase_random()
+            # self.agents = tc.get_testcase_two_agents_laserscanners()
+            # if self.episode_number == 0:
+            #     self.agents = tc.get_testcase_random()
+            # else:
+            #     # self.agents = tc.get_testcase_fixed_initial_conditions(self.agents)
+            #     self.agents = tc.get_testcase_fixed_initial_conditions_for_non_ppo(self.agents)
         else:
             self.agents = self.default_agents
         for agent in self.agents:
@@ -210,12 +250,17 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def set_static_map(self, map_filename):
         self.static_map_filename = map_filename
-        
+
     def _init_static_map(self):
+        if isinstance(self.static_map_filename, list):
+            static_map_filename = np.random.choice(self.static_map_filename)
+        else:
+            static_map_filename = self.static_map_filename
+
         x_width = 10 # meters
         y_width = 10 # meters
         grid_cell_size = 0.1 # meters/grid cell
-        self.map = Map(x_width, y_width, grid_cell_size, self.static_map_filename)
+        self.map = Map(x_width, y_width, grid_cell_size, static_map_filename)
 
     def _compute_rewards(self):
         ###############################
@@ -234,7 +279,7 @@ class CollisionAvoidanceEnv(gym.Env):
 
         # if nothing noteworthy happened in that timestep, reward = -0.01
         rewards = self.reward_time_step*np.ones(len(agents))
-        collision_with_agent, collision_with_wall, entered_norm_zone = \
+        collision_with_agent, collision_with_wall, entered_norm_zone, dist_btwn_nearest_agent = \
             self._check_for_collisions()
 
         for i, agent in enumerate(agents):
@@ -256,13 +301,19 @@ class CollisionAvoidanceEnv(gym.Env):
                     elif collision_with_wall[i]:
                         rewards[i] = self.reward_collision_with_wall
                         agent.in_collision = True
-                        print("Agent %i: Collision with wall!"
-                              % agent.id)
-                    #  elif entered_norm_zone[i]:
-                    #      rewards[i] = self.reward_entered_norm_zone
-                    elif abs(agent.past_actions[0, 1]) > 0.4:
-                        # Slightly penalize wiggly behavior
-                        rewards[i] += -0.003
+                        # print("Agent %i: Collision with wall!"
+                              # % agent.id)
+                    else:
+                        # There was no collision
+                        if dist_btwn_nearest_agent[i] <= 0.2:
+                            rewards[i] = -0.1 - dist_btwn_nearest_agent[i]/2.
+                            # print("Agent %i: Got close to another agent!"
+                            #       % agent.id)
+                        if abs(agent.past_actions[0, 1]) > 0.4:
+                            # Slightly penalize wiggly behavior
+                            rewards[i] += -0.005
+                        # elif entered_norm_zone[i]:
+                        #     rewards[i] = self.reward_entered_norm_zone
         rewards = np.clip(rewards, self.min_possible_reward,
                           self.max_possible_reward)
         if not Config.TRAIN_ON_MULTIPLE_AGENTS:
@@ -274,6 +325,7 @@ class CollisionAvoidanceEnv(gym.Env):
         collision_with_agent = [False for _ in self.agents]
         collision_with_wall = [False for _ in self.agents]
         entered_norm_zone = [False for _ in self.agents]
+        dist_btwn_nearest_agent = [np.inf for _ in self.agents]
         agent_shapes = []
         agent_front_zones = []
         agent_inds = list(range(len(self.agents)))
@@ -284,6 +336,7 @@ class CollisionAvoidanceEnv(gym.Env):
             dist_btwn = np.linalg.norm(
                 agent.pos_global_frame - other_agent.pos_global_frame)
             combined_radius = agent.radius + other_agent.radius
+            dist_btwn_nearest_agent[i] = min(dist_btwn_nearest_agent[i], dist_btwn - combined_radius)
             if dist_btwn <= combined_radius:
                 # Collision with another agent!
                 collision_with_agent[i] = True
@@ -292,11 +345,13 @@ class CollisionAvoidanceEnv(gym.Env):
             agent = self.agents[i]
             [pi, pj], in_map = self.map.world_coordinates_to_map_indices(agent.pos_global_frame)
             mask = self.map.get_agent_map_indices([pi, pj], agent.radius)
+            # plt.figure('static map')
+            # plt.imshow(self.map.static_map + mask)
+            # plt.pause(0.1)
             if in_map and np.any(self.map.static_map[mask]):
-            # if in_map and self.map.static_map[pi, pj] == 1:
                 # Collision with wall!
                 collision_with_wall[i] = True
-        return collision_with_agent, collision_with_wall, entered_norm_zone
+        return collision_with_agent, collision_with_wall, entered_norm_zone, dist_btwn_nearest_agent
 
     def _check_which_agents_done(self):
         at_goal_condition = np.array(
@@ -305,14 +360,14 @@ class CollisionAvoidanceEnv(gym.Env):
                 [a.ran_out_of_time for a in self.agents])
         in_collision_condition = np.array(
                 [a.in_collision for a in self.agents])
-        which_agents_done = \
-            np.logical_or(
-                np.logical_or(at_goal_condition, ran_out_of_time_condition),
-                in_collision_condition)
+        which_agents_done = np.logical_or.reduce((at_goal_condition, ran_out_of_time_condition, in_collision_condition))
+        for agent_index, agent in enumerate(self.agents):
+            agent.is_done = which_agents_done[agent_index]
         if Config.EVALUATE_MODE:
             game_over = np.all(which_agents_done)
         elif Config.TRAIN_ON_MULTIPLE_AGENTS:
-            game_over = np.all(which_agents_done)
+            learning_agent_inds = [i for i in range(len(self.agents)) if self.agents[i].policy.is_still_learning]
+            game_over = np.all(which_agents_done[learning_agent_inds])
             # game_over = which_agents_done[0]
         else:
             # game_over = np.all(which_agents_done)
@@ -341,7 +396,7 @@ class CollisionAvoidanceEnv(gym.Env):
         for i, agent in enumerate(self.agents):
             agent.observe_simple(self.agents)
             for state in Config.STATES_IN_OBS:
-                self.observation[i][state][:] = np.array(getattr(agent, Config.STATE_INFO_DICT[state]['attr']))
+                self.observation[i][state][:] = np.array(eval("agent." + Config.STATE_INFO_DICT[state]['attr']))
         return self.observation
 
     def _initialize_rewards(self):

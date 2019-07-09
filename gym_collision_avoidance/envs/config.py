@@ -24,18 +24,60 @@ class Config:
     TRAIN_ON_MULTIPLE_AGENTS = True
     # TRAIN_ON_MULTIPLE_AGENTS = False
 
-    MAX_NUM_AGENTS_IN_ENVIRONMENT = 2
-    STATES_IN_OBS = ['dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agent_states']
-    STATES_NOT_USED_IN_POLICY = ['use_ppo']
-    STATE_INFO_DICT = {'dist_to_goal': {'dtype': np.float32, 'size': 1, 'bounds': [-np.inf, np.inf], 'attr': 'dist_to_goal', 'std': 5., 'mean': 0.},
-                        'radius': {'dtype': np.float32, 'size': 1, 'bounds': [0, np.inf], 'attr': 'radius', 'std': 1.0, 'mean':0.5},
-                        'heading_ego_frame': {'dtype': np.float32, 'size': 1, 'bounds': [-np.pi, np.pi], 'attr': 'heading_ego_frame', 'std': 3.14, 'mean':0.},
-                        'pref_speed': {'dtype': np.float32, 'size': 1, 'bounds': [0, np.inf], 'attr': 'pref_speed', 'std': 1.0, 'mean':1.0},
-                        'other_agent_states': {'dtype': np.float32, 'size': 7, 'bounds': [-np.inf, np.inf], 'attr': 'other_agent_states', 'std': np.array([]), 'mean': np.array([])},
-                        'other_agents_states': {'dtype': np.float32, 'size': (MAX_NUM_AGENTS_IN_ENVIRONMENT-1,7), 'bounds': [-np.inf, np.inf], 'attr': 'other_agents_states'},
-                        'laserscan': {'dtype': np.float32, 'size': 20, 'bounds': [0., 10.], 'attr': 'latest_laserscan.ranges'},
-                        'use_ppo': {'dtype': np.float32, 'size': 1, 'bounds': [0., 1.], 'attr': 'policy==policies.PPOPolicy'}
+    MAX_NUM_AGENTS_IN_ENVIRONMENT = 10
+    MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT = MAX_NUM_AGENTS_IN_ENVIRONMENT - 1
+    # STATES_IN_OBS = ['dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agent_states', 'use_ppo'] # 2-agent net
+    STATES_IN_OBS = ['dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agents_states', 'use_ppo', 'num_other_agents'] # LSTM
+    STATES_NOT_USED_IN_POLICY = ['use_ppo', 'num_other_agents', 'other_agents_states']
+    STATE_INFO_DICT = {'dist_to_goal': {'dtype': np.float32, 'size': 1, 'bounds': [-np.inf, np.inf], 'attr': 'get_agent_data("dist_to_goal")', 'std': np.array([5.], dtype=np.float32), 'mean': np.array([0.], dtype=np.float32)},
+                        'radius': {'dtype': np.float32, 'size': 1, 'bounds': [0, np.inf], 'attr': 'get_agent_data("radius")', 'std': np.array([1.0], dtype=np.float32), 'mean': np.array([0.5], dtype=np.float32)},
+                        'heading_ego_frame': {'dtype': np.float32, 'size': 1, 'bounds': [-np.pi, np.pi], 'attr': 'get_agent_data("heading_ego_frame")', 'std': np.array([3.14], dtype=np.float32), 'mean': np.array([0.], dtype=np.float32)},
+                        'pref_speed': {
+                            'dtype': np.float32,
+                            'size': 1,
+                            'bounds': [0, np.inf],
+                            'attr': 'get_agent_data("pref_speed")',
+                            'std': np.array([1.0], dtype=np.float32),
+                            'mean': np.array([1.0], dtype=np.float32)
+                            },
+                        'num_other_agents': {
+                            'dtype': np.float32,
+                            'size': 1,
+                            'bounds': [0, np.inf],
+                            'attr': 'get_agent_data("num_other_agents_observed")',
+                            'std': np.array([1.0], dtype=np.float32),
+                            'mean': np.array([1.0], dtype=np.float32)
+                            },
+                        'other_agent_states': {
+                            'dtype': np.float32,
+                            'size': 7,
+                            'bounds': [-np.inf, np.inf],
+                            'attr': 'get_agent_data("other_agent_states")',
+                            'std': np.array([5.0, 5.0, 1.0, 1.0, 1.0, 5.0, 1.0], dtype=np.float32),
+                            'mean': np.array([0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 1.0], dtype=np.float32)
+                            },
+                        'other_agents_states': {
+                            'dtype': np.float32,
+                            'size': (MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT,7),
+                            'bounds': [-np.inf, np.inf],
+                            'attr': 'get_agent_data("other_agents_states")',
+                            'std': np.tile(np.array([5.0, 5.0, 1.0, 1.0, 1.0, 5.0, 1.0], dtype=np.float32), (MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT, 1)),
+                            'mean': np.tile(np.array([0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 1.0], dtype=np.float32), (MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT, 1)),
+                            },
+                        'laserscan': {'dtype': np.float32, 'size': 20, 'bounds': [0., 10.], 'attr': 'get_sensor_data("laserscan")', 'std': 5.*np.ones((20), dtype=np.float32), 'mean': 5.*np.ones((20), dtype=np.float32)},
+                        'use_ppo': {
+                            'dtype': np.float32,
+                            'size': 1,
+                            'bounds': [0., 1.],
+                            'attr': 'get_agent_data_equiv("policy.str", "PPO")'
+                            }
                         }
+    MEAN_OBS = {}; STD_OBS = {}
+    for state in STATES_IN_OBS:
+        if 'mean' in STATE_INFO_DICT[state]:
+            MEAN_OBS[state] = STATE_INFO_DICT[state]['mean']
+        if 'std' in STATE_INFO_DICT[state]:
+            STD_OBS[state] = STATE_INFO_DICT[state]['std']
 
     #########################################################################
     # COLLISION AVOIDANCE PARAMETER
@@ -58,9 +100,9 @@ class Config:
     # TRAIN_WITH_REGRESSION = False # Start training with regression phase before RL
     # LOAD_REGRESSION = False # Initialize training with regression network
     MULTI_AGENT_ARCHS = ['RNN','WEIGHT_SHARING','VANILLA']
-    MULTI_AGENT_ARCH = 'VANILLA'
+    # MULTI_AGENT_ARCH = 'VANILLA'
     # MULTI_AGENT_ARCH = 'WEIGHT_SHARING'
-    #  MULTI_AGENT_ARCH = 'RNN'
+    MULTI_AGENT_ARCH = 'RNN'
 
     SENSING_HORIZON  = np.inf
     # SENSING_HORIZON  = 3.0
@@ -81,26 +123,26 @@ class Config:
     IS_ON_AVG_VECTOR = np.array([0.0])
     IS_ON_STD_VECTOR = np.array([1.0])
 
-    if MAX_NUM_AGENTS_IN_ENVIRONMENT == 2:
-        # NN input:
-        # [dist to goal, heading to goal, pref speed, radius, other px, other py, other vx, other vy, other radius, combined radius, distance between]
-        MAX_NUM_OTHER_AGENTS_OBSERVED = 1
-        OTHER_AGENT_FULL_OBSERVATION_LENGTH = OTHER_AGENT_OBSERVATION_LENGTH
-        HOST_AGENT_STATE_SIZE = HOST_AGENT_OBSERVATION_LENGTH
-        FULL_STATE_LENGTH = HOST_AGENT_OBSERVATION_LENGTH + MAX_NUM_OTHER_AGENTS_OBSERVED * OTHER_AGENT_FULL_OBSERVATION_LENGTH
-        FIRST_STATE_INDEX = 0
-        MULTI_AGENT_ARCH = 'NONE'
+    # if MAX_NUM_AGENTS_IN_ENVIRONMENT == 2:
+    #     # NN input:
+    #     # [dist to goal, heading to goal, pref speed, radius, other px, other py, other vx, other vy, other radius, combined radius, distance between]
+    #     MAX_NUM_OTHER_AGENTS_OBSERVED = 1
+    #     OTHER_AGENT_FULL_OBSERVATION_LENGTH = OTHER_AGENT_OBSERVATION_LENGTH
+    #     HOST_AGENT_STATE_SIZE = HOST_AGENT_OBSERVATION_LENGTH
+    #     FULL_STATE_LENGTH = HOST_AGENT_OBSERVATION_LENGTH + MAX_NUM_OTHER_AGENTS_OBSERVED * OTHER_AGENT_FULL_OBSERVATION_LENGTH
+    #     FIRST_STATE_INDEX = 0
+    #     MULTI_AGENT_ARCH = 'NONE'
 
-        NN_INPUT_AVG_VECTOR = np.hstack([HOST_AGENT_AVG_VECTOR, OTHER_AGENT_AVG_VECTOR])
-        NN_INPUT_STD_VECTOR = np.hstack([HOST_AGENT_STD_VECTOR, OTHER_AGENT_STD_VECTOR])
+    #     NN_INPUT_AVG_VECTOR = np.hstack([HOST_AGENT_AVG_VECTOR, OTHER_AGENT_AVG_VECTOR])
+    #     NN_INPUT_STD_VECTOR = np.hstack([HOST_AGENT_STD_VECTOR, OTHER_AGENT_STD_VECTOR])
 
-        if USE_LASERSCAN_IN_OBSERVATION:
-            FULL_STATE_LENGTH += LASERSCAN_LENGTH
-            NN_INPUT_AVG_VECTOR = np.hstack([NN_INPUT_AVG_VECTOR, 4*np.ones(LASERSCAN_LENGTH)])
-            NN_INPUT_STD_VECTOR = np.hstack([NN_INPUT_STD_VECTOR, 2*np.ones(LASERSCAN_LENGTH)])
+    #     if USE_LASERSCAN_IN_OBSERVATION:
+    #         FULL_STATE_LENGTH += LASERSCAN_LENGTH
+    #         NN_INPUT_AVG_VECTOR = np.hstack([NN_INPUT_AVG_VECTOR, 4*np.ones(LASERSCAN_LENGTH)])
+    #         NN_INPUT_STD_VECTOR = np.hstack([NN_INPUT_STD_VECTOR, 2*np.ones(LASERSCAN_LENGTH)])
 
     # if MAX_NUM_AGENTS in [3,4]:
-    if MAX_NUM_AGENTS_IN_ENVIRONMENT > 2:
+    if MAX_NUM_AGENTS_IN_ENVIRONMENT >= 2:
         if MULTI_AGENT_ARCH == 'RNN':
             # NN input:
             # [num other agents, dist to goal, heading to goal, pref speed, radius, 

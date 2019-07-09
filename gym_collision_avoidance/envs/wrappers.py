@@ -52,6 +52,22 @@ class MultiagentFlattenDictWrapper(gym.ObservationWrapper):
                 obs[agent][key] = observation_array[self.observation_indices[agent][key][0]: self.observation_indices[agent][key][1]]
         return obs
 
+    def multiEnvObservationArrayToDict(self, observation_array):
+        assert isinstance(observation_array, np.ndarray)
+        # assert observation_array.shape == self.observation_space.shape
+        num_envs = observation_array.shape[0]
+        dict_obs = np.empty((num_envs, self.max_num_agents), dtype=dict)
+        for env in range(num_envs):
+            for agent in range(self.max_num_agents):
+                key = 'use_ppo'
+                ppo = observation_array[env][self.observation_indices[agent][key][0]: self.observation_indices[agent][key][1]]
+                if ppo == False:
+                    continue
+                dict_obs[env][agent] = {}
+                for key in self.dict_keys:
+                    dict_obs[env][agent][key] = observation_array[env][self.observation_indices[agent][key][0]: self.observation_indices[agent][key][1]].reshape(self.env.observation_space.spaces[key].shape)
+        return dict_obs
+
     def singleAgentObservationArrayToDict(self, observation_array, agent):
         assert isinstance(observation_array, np.ndarray)
         # assert observation_array.shape == self.single_agent_observation_space.shape
@@ -60,7 +76,7 @@ class MultiagentFlattenDictWrapper(gym.ObservationWrapper):
         for env in range(observation_array.shape[0]):
             obs.append({})
             for key in self.dict_keys:
-                obs[env][key] = observation_array[env, self.observation_indices[agent][key][0]: self.observation_indices[agent][key][1]]
+                obs[env][key] = observation_array[env, self.observation_indices[agent][key][0]: self.observation_indices[agent][key][1]].reshape(self.env.observation_space.spaces[key].shape)
         return obs
 
     def keyToArrayInds(self, key):

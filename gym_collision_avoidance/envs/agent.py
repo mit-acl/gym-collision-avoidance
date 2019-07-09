@@ -69,7 +69,6 @@ class Agent():
         self.ego_state_dim = 3
         self.ego_state_history = np.empty((self.num_states_in_history, self.ego_state_dim))
 
-        # self.other_agents_states = np.zeros((Config.MAX_NUM_OTHER_AGENTS_OBSERVED, 7))
         self.other_agent_states = np.zeros((7,))
 
         self.dynamics_model.update_ego_frame()
@@ -83,6 +82,8 @@ class Agent():
 
         self.latest_laserscan = LaserScan()
         self.latest_laserscan.ranges = 10*np.ones(Config.LASERSCAN_LENGTH)
+
+        self.is_done = False
 
     def _check_if_at_goal(self):
         near_goal_threshold = 0.2
@@ -161,10 +162,10 @@ class Agent():
         return
 
     def sense(self, agents, agent_index, top_down_map):
-        self.sensor_data = []
+        self.sensor_data = {}
         for sensor in self.sensors:
             sensor_data = sensor.sense(agents, agent_index, top_down_map)
-            self.sensor_data.append(sensor_data)
+            self.sensor_data[sensor.name] = sensor_data
             # plt.imshow(sensor_data)
             # plt.pause(0.01)
 
@@ -224,7 +225,9 @@ class Agent():
             sorted_inds[-Config.MAX_NUM_OTHER_AGENTS_OBSERVED:]
         clipped_sorted_agents = [agents[i] for i in clipped_sorted_inds]
 
+        self.other_agents_states = np.zeros((Config.MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT, 7))
         i = 0
+        other_agent_count = 0
         for other_agent in clipped_sorted_agents:
             if other_agent.id == self.id:
                 continue
@@ -250,9 +253,22 @@ class Agent():
                                   other_agent.radius,
                                   combined_radius,
                                   dist_2_other])
-            self.other_agent_states[:] = other_obs
-            break # don't allow multiple agent states
+            
+            if other_agent_count == 0:
+                self.other_agent_states[:] = other_obs
 
+            self.other_agents_states[other_agent_count,:] = other_obs
+            other_agent_count += 1
+        self.num_other_agents_observed = other_agent_count
+
+    def get_sensor_data(self, sensor_name):
+        return self.sensor_data[sensor_name]
+
+    def get_agent_data(self, attribute):
+        return getattr(self, attribute)
+
+    def get_agent_data_equiv(self, attribute, value):
+        return eval("self."+attribute) == value
 
     def observe(self, agents):
         #
