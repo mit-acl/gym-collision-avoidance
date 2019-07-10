@@ -6,19 +6,19 @@ import rvo2
 
 class RVOPolicy(Policy):
     def __init__(self):
-        Policy.__init__(self)
+        Policy.__init__(self, str="RVO")
 
         self.dt = Config.DT
         neighbor_dist = Config.SENSING_HORIZON
         max_neighbors = Config.MAX_NUM_AGENTS_IN_ENVIRONMENT
 
-        max_speed = 1.0 # TODO share this with the environment! pref_speed
-        radius = 0.5 # TODO share this with the environment! pref_speed
+        max_speed = 0.0 # dummy values
+        radius = 0.0 # dummy values
         self.has_fixed_speed = False
         self.heading_noise = False
         
         # TODO share this parameter with environment
-        time_horizon = 1.0#self.dt * 5
+        time_horizon = 5.0
         # Initialize RVO simulator
         self.sim = rvo2.PyRVOSimulator(timeStep=self.dt, neighborDist=neighbor_dist, 
             maxNeighbors=max_neighbors, timeHorizon=time_horizon, 
@@ -59,6 +59,7 @@ class RVOPolicy(Policy):
 
             # Copy current agent positions, goal and preferred speeds into np arrays
             self.pos_agents[a,:] = agents[a].pos_global_frame[:]
+            self.vel_agents[a,:] = agents[a].vel_global_frame[:]
             self.goal_agents[a,:] = agents[a].goal_global_frame[:]
             self.pref_speed_agents[a] = agents[a].pref_speed
 
@@ -70,7 +71,10 @@ class RVOPolicy(Policy):
             # TODO CALCULATE OTHER AGENTS PREF VELOCITY, BASED ON THEIR CURRENT VELOCITY?
 
             # Set agent positions and velocities in RVO simulator
+            self.sim.setAgentMaxSpeed(self.rvo_agents[a], agents[a].pref_speed)
+            self.sim.setAgentRadius(self.rvo_agents[a], agents[a].radius)
             self.sim.setAgentPosition(self.rvo_agents[a], tuple(self.pos_agents[a,:]))
+            self.sim.setAgentVelocity(self.rvo_agents[a], tuple(self.vel_agents[a,:]))
             self.sim.setAgentPrefVelocity(self.rvo_agents[a], tuple(self.pref_vel_agents[a,:]))
 
         #print('pos', self.id, self.pos_agents[self.id,:])
