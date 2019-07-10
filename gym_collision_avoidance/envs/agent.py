@@ -45,10 +45,14 @@ class Agent(object):
         self.pref_speed = pref_speed
         self.id = id
         self.dist_to_goal = 0.0
+        self.near_goal_threshold = 0.2
 
-        self.time_remaining_to_reach_goal = \
-            5*np.linalg.norm(self.pos_global_frame -
-                             self.goal_global_frame)/self.pref_speed
+
+        self.straight_line_time_to_reach_goal = (np.linalg.norm(self.pos_global_frame - self.goal_global_frame) - self.near_goal_threshold)/self.pref_speed
+        if Config.EVALUATE_MODE or Config.PLAY_MODE:
+            self.time_remaining_to_reach_goal = 4*self.straight_line_time_to_reach_goal
+        else:
+            self.time_remaining_to_reach_goal = 2*self.straight_line_time_to_reach_goal
         self.t = 0.0
         self.t_offset = None
         self.step_num = 0
@@ -103,8 +107,7 @@ class Agent(object):
         return obj
 
     def _check_if_at_goal(self):
-        near_goal_threshold = 0.2
-        is_near_goal = (self.pos_global_frame[0] - self.goal_global_frame[0])**2 + (self.pos_global_frame[1] - self.goal_global_frame[1])**2 <= near_goal_threshold**2
+        is_near_goal = (self.pos_global_frame[0] - self.goal_global_frame[0])**2 + (self.pos_global_frame[1] - self.goal_global_frame[1])**2 <= self.near_goal_threshold**2
         self.is_at_goal = is_near_goal
 
     def set_state(self, px, py, vx=None, vy=None, heading=None):

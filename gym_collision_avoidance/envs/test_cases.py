@@ -16,6 +16,9 @@ from gym_collision_avoidance.envs.sensors.OccupancyGridSensor import OccupancyGr
 from gym_collision_avoidance.envs.sensors.LaserScanSensor import LaserScanSensor
 from gym_collision_avoidance.envs.config import Config
 
+import os
+import pickle
+
 from gym_collision_avoidance.envs.policies.CADRL.scripts.multi import gen_rand_testcases as tc
 
 GETTING_CLOSE_RANGE = 0.2
@@ -117,12 +120,17 @@ def get_new_goal(pos):
     return gx, gy
 
 
-def get_testcase_old_and_crappy(num_agents, index):
-    cadrl_test_case = preset_testCases(num_agents)[index]
-    agents = cadrl_test_case_to_agents(cadrl_test_case)
+def small_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics):
+    cadrl_test_case = preset_testCases(num_agents)[test_case_index]
+    agents = cadrl_test_case_to_agents(cadrl_test_case, agents_policy=agents_policy)
     return agents
 
-def cadrl_test_case_to_agents(test_case, alg='PPO'):
+def full_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics):
+    cadrl_test_case = preset_testCases(num_agents, full_test_suite=True)[test_case_index]
+    agents = cadrl_test_case_to_agents(cadrl_test_case, agents_policy=agents_policy)
+    return agents
+
+def cadrl_test_case_to_agents(test_case, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics):
     ###############################
     # This function accepts a test_case in legacy cadrl format and converts it
     # into our new list of Agent objects. The legacy cadrl format is a list of
@@ -130,24 +138,13 @@ def cadrl_test_case_to_agents(test_case, alg='PPO'):
     ###############################
 
     agents = []
-    # agent_policy_list = [PPOPolicy, NonCooperativePolicy]
-    # agent_policy_list = [NonCooperativePolicy, PPOPolicy]
     policies = [NonCooperativePolicy, LearningPolicy, StaticPolicy]
-    # agent_policy_list = np.random.choice(policies, np.shape(test_case)[0])
-    # agent_policy_list = [PPOPolicy for _ in range(np.shape(test_case)[0])]
     agent_dynamics_list = [UnicycleDynamics for _ in range(np.shape(test_case)[0])]
     if Config.EVALUATE_MODE or Config.PLAY_MODE:
-        agent_policy_list = [RVOPolicy for _ in range(np.shape(test_case)[0])]
-        # agent_policy_list = [CADRLPolicy for _ in range(np.shape(test_case)[0])]
-        # agent_policy_list = [GA3CCADRLPolicy for _ in range(np.shape(test_case)[0])]
-        # agent_policy_list = [PPOCADRLPolicy for _ in range(np.shape(test_case)[0])]
-        agent_dynamics_list = [UnicycleDynamics for _ in range(np.shape(test_case)[0])]
-        # agent_dynamics_list = [UnicycleDynamics for _ in range(np.shape(test_case)[0])]
-        # agent_policy_list = [NonCooperativePolicy for _ in range(np.shape(test_case)[0])]
-        # agent_policy_list = [StaticPolicy for _ in range(np.shape(test_case)[0])]
+        agent_policy_list = [agents_policy for _ in range(np.shape(test_case)[0])]
+        agent_dynamics_list = [agents_dynamics for _ in range(np.shape(test_case)[0])]
     else:
         # Random mix of agents following various policies
-
         agent_policy_list = np.random.choice(policies,
                                              np.shape(test_case)[0],
                                              p=[0.05, 0.9, 0.05])
@@ -157,9 +154,9 @@ def cadrl_test_case_to_agents(test_case, alg='PPO'):
 
         # Make sure at least one agent is following PPO
         #  (otherwise waste of time...)
-        if PPOPolicy not in agent_policy_list:
+        if LearningPolicy not in agent_policy_list:
             random_agent_id = np.random.randint(len(agent_policy_list))
-            agent_policy_list[random_agent_id] = PPOPolicy
+            agent_policy_list[random_agent_id] = LearningPolicy
 
     for i, agent in enumerate(test_case):
         px = agent[0]
@@ -184,9 +181,10 @@ def preset_testCases(test_case_num_agents, full_test_suite=False):
     if full_test_suite:
         num_test_cases = 500
         test_cases = pickle.load(open(
-            "/home/mfe/ford_ws/src/2017-avrl/src/environment/\
-            Collision-Avoidance/test_cases/%s_agents_%i_cases_short.p"
-            % (test_case_num_agents, num_test_cases), "rb"))
+            os.path.join(os.path.dirname(__file__),
+                'test_cases/%s_agents_%i_cases.p'
+                %(test_case_num_agents, num_test_cases)), "rb"),
+                encoding='latin1')
     else:
         if test_case_num_agents == 1:
             test_cases = []
@@ -343,7 +341,7 @@ def preset_testCases(test_case_num_agents, full_test_suite=False):
         elif test_case_num_agents == 10:
             test_cases = []
 
-            radius = 7
+            radius = 5
             tc = gen_circle_test_case(test_case_num_agents, radius)
             test_cases.append(tc)
 
@@ -373,59 +371,3 @@ def gen_circle_test_case(num_agents, radius):
         tc[i, 2] = radius*np.cos(theta_end)
         tc[i, 3] = radius*np.sin(theta_end)
     return tc
-
-
-'''
-###############################
-        # This function initializes the self.agents list.
-        #
-        # Outputs
-        # - self.agents: list of Agent objects that have been initialized
-        # - self.which_agents_running_ppo: list of T/F values for each agent in self.agents
-        ###############################
-
-        # Agents
-        # easy_test_cases = True
-        easy_test_cases = False
-        random_test_cases = True
-        if easy_test_cases:
-            goal_x = 3
-            goal_y = 3
-            self.agents = np.array([
-                Agent(goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, 0),
-                Agent(-goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, 1)])
-        else:
-            if self.evaluate:
-                print("self.test_case_index:", self.test_case_index)
-                self.test_case_index = 1
-                # self.test_case_index += 1
-                self.test_case_num_agents = 2
-                # self.full_test_suite = True
-                self.full_test_suite = False
-                test_cases = \
-                    preset_testCases(self.test_case_num_agents,
-                                     full_test_suite=self.full_test_suite)
-                test_case = test_cases[self.test_case_index]
-
-            elif random_test_cases:
-                num_agents = 2
-                # num_agents = np.random.randint(2, Config.MAX_NUM_AGENTS_IN_ENVIRONMENT)
-                side_length = 4
-                #  side_length = np.random.uniform(4, 8)
-                speed_bnds = [0.5, 1.5]
-                radius_bnds = [0.2, 0.8]
-
-                test_case = \
-                    tc.generate_rand_test_case_multi(num_agents,
-                                                     side_length,
-                                                     speed_bnds,
-                                                     radius_bnds,
-                                                     is_end_near_bnd=False,
-                                                     is_static=False)
-
-            self.agents = self._cadrl_test_case_to_agents(test_case, alg=alg)
-        self.which_agents_running_ppo = \
-            [agent.id for agent in self.agents if isinstance(agent.policy, type(PPOPolicy))]
-        self.num_agents_running_ppo = len(self.which_agents_running_ppo)
-
-'''
