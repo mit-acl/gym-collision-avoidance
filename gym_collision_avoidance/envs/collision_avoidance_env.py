@@ -213,7 +213,7 @@ class CollisionAvoidanceEnv(gym.Env):
                 # print(all_actions[agent_index, :])
             else:
                 # print('not still learning')
-                dict_obs = None
+                dict_obs = self.observation[agent_index]
                 all_actions[agent_index, :] = agent.policy.find_next_action(dict_obs, self.agents, agent_index)
                 # print(all_actions[agent_index, :])
 

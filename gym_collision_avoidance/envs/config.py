@@ -110,7 +110,7 @@ class Config:
     HOST_AGENT_OBSERVATION_LENGTH = 4 # dist to goal, heading to goal, pref speed, radius
     OTHER_AGENT_OBSERVATION_LENGTH = 7 # other px, other py, other vx, other vy, other radius, combined radius, distance between
     RNN_HELPER_LENGTH = 1 # num other agents
-    AGENT_ID_LENGTH = 2 # id, 0/1 binary flag of which policy it's using
+    AGENT_ID_LENGTH = 1 # id, 0/1 binary flag of which policy it's using
     IS_ON_LENGTH = 1 # 0/1 binary flag
     LASERSCAN_LENGTH = 20 # num range readings in one scan
 
@@ -149,7 +149,7 @@ class Config:
             #   other px, other py, other vx, other vy, other radius, dist btwn, combined radius,
             #   other px, other py, other vx, other vy, other radius, dist btwn, combined radius,
             #   other px, other py, other vx, other vy, other radius, dist btwn, combined radius]
-            MAX_NUM_OTHER_AGENTS_OBSERVED = 3
+            MAX_NUM_OTHER_AGENTS_OBSERVED = 10
             OTHER_AGENT_FULL_OBSERVATION_LENGTH = OTHER_AGENT_OBSERVATION_LENGTH
             HOST_AGENT_STATE_SIZE = HOST_AGENT_OBSERVATION_LENGTH
             FULL_STATE_LENGTH = RNN_HELPER_LENGTH + HOST_AGENT_OBSERVATION_LENGTH + MAX_NUM_OTHER_AGENTS_OBSERVED * OTHER_AGENT_FULL_OBSERVATION_LENGTH
