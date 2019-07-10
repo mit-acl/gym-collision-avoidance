@@ -4,6 +4,18 @@ import numpy as np
 # Utils
 ################
 
+# speed filter
+# input: past velocity in (x,y) at time_past 
+# output: filtered velocity in (speed, theta)
+def filter_vel(dt_vec, agent_past_vel_xy):
+    average_x = np.sum(dt_vec * agent_past_vel_xy[:,0]) / np.sum(dt_vec)
+    average_y = np.sum(dt_vec * agent_past_vel_xy[:,1]) / np.sum(dt_vec)
+    speeds = np.linalg.norm(agent_past_vel_xy, axis=1)
+    speed = np.linalg.norm(np.array([average_x, average_y]))
+    angle = np.arctan2(average_y, average_x)
+
+    return np.array([speed, angle])
+
 # angle_1 - angle_2
 # contains direction in range [-3.14, 3.14]
 def find_angle_diff(angle_1, angle_2):

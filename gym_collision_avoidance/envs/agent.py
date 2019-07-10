@@ -2,15 +2,16 @@ import numpy as np
 from gym_collision_avoidance.envs.config import Config
 from gym_collision_avoidance.envs.util import wrap, find_nearest
 from gym_collision_avoidance.envs.policies.ExternalPolicy import ExternalPolicy
-from gym_collision_avoidance.envs.policies.PPOPolicy import PPOPolicy
+from gym_collision_avoidance.envs.policies.LearningPolicy import LearningPolicy
+from gym_collision_avoidance.envs.policies.PPOCADRLPolicy import PPOCADRLPolicy
 import operator
 import math
 
 import matplotlib.pyplot as plt
 
-from sensor_msgs.msg import LaserScan
+# from sensor_msgs.msg import LaserScan
 
-class Agent():
+class Agent(object):
     def __init__(self, start_x, start_y, goal_x, goal_y, radius,
                  pref_speed, initial_heading, policy, dynamics_model, sensors, id):
         self.policy = policy()
@@ -69,6 +70,11 @@ class Agent():
         self.ego_state_dim = 3
         self.ego_state_history = np.empty((self.num_states_in_history, self.ego_state_dim))
 
+        self.num_actions_to_store = 2
+        # self.past_actions = np.zeros((self.num_actions_to_store,2))
+        self.past_global_velocities = np.zeros((self.num_actions_to_store,2))
+        self.past_global_velocities = self.vel_global_frame * np.ones((self.num_actions_to_store,2))
+
         self.other_agent_states = np.zeros((7,))
 
         self.dynamics_model.update_ego_frame()
@@ -80,10 +86,21 @@ class Agent():
 
         self.min_dist_to_other_agents = np.inf
 
-        self.latest_laserscan = LaserScan()
-        self.latest_laserscan.ranges = 10*np.ones(Config.LASERSCAN_LENGTH)
+        self.turning_dir = 0.0
+
+        # self.latest_laserscan = LaserScan()
+        # self.latest_laserscan.ranges = 10*np.ones(Config.LASERSCAN_LENGTH)
 
         self.is_done = False
+
+    def __deepcopy__(self, memo):
+        # Copy every attribute about the agent except its policy
+        cls = self.__class__
+        obj = cls.__new__(cls)
+        for k, v in self.__dict__.items():
+            if k != 'policy':
+                setattr(obj, k, v)
+        return obj
 
     def _check_if_at_goal(self):
         near_goal_threshold = 0.2
@@ -119,6 +136,7 @@ class Agent():
             if self.in_collision:
                 self.was_in_collision_already = True
             self.vel_global_frame = np.array([0.0, 0.0])
+            self._store_past_velocities()
             return
 
         # Store past actions
@@ -151,6 +169,8 @@ class Agent():
         self._update_state_history()
 
         self._check_if_at_goal()
+
+        self._store_past_velocities()
         
         # Update time left so agent does not run around forever
         self.time_remaining_to_reach_goal -= dt
@@ -287,7 +307,7 @@ class Agent():
         obs[0] = self.id
         # obs[1] should be 1 if using PPO, 0 otherwise,
         #  so that RL trainer can make policy updates on PPO agents only
-        obs[1] = isinstance(self.policy, PPOPolicy)
+        obs[1] = isinstance(self.policy, PPOCADRLPolicy) or isinstance(self.policy, LearningPolicy)
         if Config.MULTI_AGENT_ARCH == 'RNN':
             obs[Config.AGENT_ID_LENGTH] = 0
         obs[Config.AGENT_ID_LENGTH + Config.FIRST_STATE_INDEX:
@@ -407,6 +427,11 @@ class Agent():
             ref_prll = goal_direction
         ref_orth = np.array([-ref_prll[1], ref_prll[0]])  # rotate by 90 deg
         return ref_prll, ref_orth
+
+    def _store_past_velocities(self):
+        self.past_global_velocities = np.roll(self.past_global_velocities,1,axis=0)
+        self.past_global_velocities[0,:] = self.vel_global_frame
+
 
 if __name__ == '__main__':
     start_x = 5

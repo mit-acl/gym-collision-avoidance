@@ -21,3 +21,11 @@ class UnicycleDynamics(Dynamics):
         self.agent.delta_heading_global_frame = wrap(selected_heading -
                                                self.agent.heading_global_frame)
         self.agent.heading_global_frame = selected_heading
+
+        # turning dir: needed for cadrl value fn
+        if abs(self.agent.turning_dir) < 1e-5:
+            self.agent.turning_dir = 0.11 * np.sign(selected_heading)
+        elif self.agent.turning_dir * selected_heading < 0:
+            self.agent.turning_dir = max(-np.pi, min(np.pi, -self.agent.turning_dir + selected_heading))
+        else:
+            self.agent.turning_dir = np.sign(self.agent.turning_dir) * max(0.0, abs(self.agent.turning_dir)-0.1)
