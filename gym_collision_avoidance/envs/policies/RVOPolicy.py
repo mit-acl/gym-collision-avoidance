@@ -1,14 +1,22 @@
 import numpy as np
 from gym_collision_avoidance.envs.policies.Policy import Policy
+from gym_collision_avoidance.envs.config import Config
+from gym_collision_avoidance.envs.util import *
+import rvo2
 
 class RVOPolicy(Policy):
     def __init__(self):
         Policy.__init__(self)
+
         self.dt = Config.DT
         neighbor_dist = Config.SENSING_HORIZON
         max_neighbors = Config.MAX_NUM_AGENTS_IN_ENVIRONMENT
-        max_speed = pref_speed
+
+        max_speed = 1.0 # TODO share this with the environment! pref_speed
+        radius = 0.5 # TODO share this with the environment! pref_speed
         self.has_fixed_speed = False
+        self.heading_noise = False
+        
         # TODO share this parameter with environment
         time_horizon = 1.0#self.dt * 5
         # Initialize RVO simulator
@@ -34,20 +42,20 @@ class RVOPolicy(Policy):
             self.rvo_agents[a] = self.sim.addAgent((0,0))
         
         # Set RVO agent's collaborativity
-        self.sim.setAgentCollabCoeff(self.rvo_agents[1], 0.5)
+        # self.sim.setAgentCollabCoeff(self.rvo_agents[1], 0.5)
         #sim.setAgentCollabCoeff(a1, 0.)
 
         self.is_init = True
 
     def find_next_action(self, obs, agents, agent_index):
-        raise NotImplementedError
         # Initialize vectors on first call to infer number of agents
         if not self.is_init:
             self.n_agents = len(agents)
             self.init()
 
         # Share all agent positions and preferred velocities from environment with RVO simulator
-        for i, agent in enumerate(self.agents):
+        for a in range(self.n_agents):
+            #for i, agent in enumerate(self.agents):
 
             # Copy current agent positions, goal and preferred speeds into np arrays
             self.pos_agents[a,:] = agents[a].pos_global_frame[:]
@@ -75,16 +83,25 @@ class RVOPolicy(Policy):
         self.sim.doStep()
 
         # Calculate desired change of heading
-        deltaPos = self.sim.getAgentPosition(self.rvo_agents[self.id])[:] - self.pos_agents[self.id,:]
+        deltaPos = self.sim.getAgentPosition(self.rvo_agents[agent_index])[:] - self.pos_agents[agent_index,:]
         p1 = deltaPos
         p2 = np.array([1,0]) # Angle zero is parallel to x-axis
         ang1 = np.arctan2(*p1[::-1])
         ang2 = np.arctan2(*p2[::-1])
         new_heading_global_frame = (ang1 - ang2) % (2 * np.pi)
-        delta_heading = wrap(new_heading_global_frame - self.heading_global_frame)
+        #delta_heading = wrap(new_heading_global_frame - self.heading_global_frame)
+        delta_heading = wrap(new_heading_global_frame - agents[agent_index].heading_global_frame)
             
         # Calculate desired speed
         pref_speed = 1/self.dt * np.linalg.norm(deltaPos)
+
+        # Ignore speed
+        if self.has_fixed_speed:
+            pref_speed = self.max_speed
+
+        # Add noise
+        if self.heading_noise:
+            delta_heading = delta_heading + np.random.normal(0,0.5)
 
         action = np.array([pref_speed, delta_heading])
         return action

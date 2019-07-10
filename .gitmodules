@@ -1,0 +1,3 @@
+[submodule "gym_collision_avoidance/envs/policies/Python-RVO2"]
+	path = gym_collision_avoidance/envs/policies/Python-RVO2
+	url = https://github.com/sybrenstuvel/Python-RVO2.git
