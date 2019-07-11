@@ -12,18 +12,27 @@ from baselines import bench, logger
 from gym_collision_avoidance.envs.policies.PPOCADRLPolicy import PPOCADRLPolicy
 from gym_collision_avoidance.envs.policies.RVOPolicy import RVOPolicy
 from gym_collision_avoidance.envs.policies.CADRLPolicy import CADRLPolicy
+from gym_collision_avoidance.envs.policies.GA3CCADRLPolicy import GA3CCADRLPolicy
 
 Config.EVALUATE_MODE = True
 Config.PLOT_EPISODES = True
 Config.ANIMATE_EPISODES = False
 Config.DT = 0.1
 
+# record_pickle_files = True
+record_pickle_files = False
+
 
 # test_case_fn = tc.small_test_suite
 test_case_fn = tc.full_test_suite
 test_case_args = {}
-policies = [PPOCADRLPolicy, RVOPolicy, CADRLPolicy]
-num_agents_to_test = [2,3,4]
+policies = [CADRLPolicy]
+# policies = [GA3CCADRLPolicy]
+# policies = [PPOCADRLPolicy]
+# policies = [PPOCADRLPolicy, RVOPolicy, CADRLPolicy]
+num_agents_to_test = [2]
+# num_agents_to_test = [2,3,4]
+# num_test_cases = 8
 num_test_cases = Config.NUM_TEST_CASES
 
 def run_episode(env, one_env):
@@ -113,13 +122,14 @@ for num_agents in num_agents_to_test:
             print("Agents Extra Times to goal:", extra_times_to_goal)
             print("Total time to goal (all agents):", np.sum(times_to_goal))
     one_env.reset()
-    for policy in policies:
-        file_dir = os.path.dirname(os.path.realpath(__file__)) + '/../logs/test_case_stats/'
-        file_dir += '{num_agents}_agents/'.format(num_agents=test_case_args['num_agents'])
-        os.makedirs(file_dir, exist_ok=True)
-        fname = file_dir+policy.__name__+'.p'
-        pickle.dump(stats[policy], open(fname,'wb'))
-        print('dumped {}'.format(fname))
+    if record_pickle_files:
+        for policy in policies:
+            file_dir = os.path.dirname(os.path.realpath(__file__)) + '/../logs/test_case_stats/'
+            file_dir += '{num_agents}_agents/'.format(num_agents=test_case_args['num_agents'])
+            os.makedirs(file_dir, exist_ok=True)
+            fname = file_dir+policy.__name__+'.p'
+            pickle.dump(stats[policy], open(fname,'wb'))
+            print('dumped {}'.format(fname))
 # print('---------------------')
 # print("Total time_to_goal: {0:.2f}".format(total_time_to_goal))
 # print('---------------------')

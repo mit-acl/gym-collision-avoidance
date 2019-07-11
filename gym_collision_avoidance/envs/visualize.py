@@ -1,11 +1,14 @@
 import numpy as np
 from gym_collision_avoidance.envs.util import find_nearest, rgba2rgb
 import matplotlib.pyplot as plt
-
+import matplotlib
 import os
+
+matplotlib.rcParams.update({'font.size': 24})
 
 fig_dir = os.path.dirname(os.path.realpath(__file__)) + '/../logs/test_cases/'
 os.makedirs(fig_dir, exist_ok=True)
+
 
 plt_colors = []
 plt_colors.append([0.8500, 0.3250, 0.0980])  # red
@@ -25,8 +28,8 @@ def plot_episode(agents, in_evaluate_mode, env_map=None, test_case_index=0, env_
 
     ax = fig.add_subplot(1, 1, 1)
 
-    if env_map is not None:
-        ax.imshow(env_map.static_map, extent=[-env_map.x_width/2., env_map.x_width/2., -env_map.y_width/2., env_map.y_width/2.], cmap=plt.cm.binary)
+    # if env_map is not None:
+    #     ax.imshow(env_map.static_map, extent=[-env_map.x_width/2., env_map.x_width/2., -env_map.y_width/2., env_map.y_width/2.], cmap=plt.cm.binary)
 
     max_time = max([agent.global_state_history[agent.step_num-1, 0] for agent in agents] + [1e-4])
     max_time_alpha_scalar = 1.2
@@ -94,7 +97,7 @@ def plot_episode(agents, in_evaluate_mode, env_map=None, test_case_index=0, env_
     # plt.title(title_string)
     plt.xlabel('x (m)')
     plt.ylabel('y (m)')
-    plt.axis('equal')
+    ax.axis('equal')
 
     # plotting style (only show axis on bottom and left)
     ax.spines['top'].set_visible(False)

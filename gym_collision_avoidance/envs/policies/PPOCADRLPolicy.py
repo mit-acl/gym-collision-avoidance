@@ -14,7 +14,8 @@ class PPOCADRLPolicy(Policy):
     def initialize_network(self):
         network = "mfe_network"
         file_dir = os.path.dirname(os.path.realpath(__file__)) + '/PPO_CADRL/checkpoints/'
-        load_path = file_dir + '2019-07-09-15-10-38-798399-00610'
+        # load_path = file_dir + '2019-07-09-15-10-38-798399-00610'
+        load_path = file_dir + '2019-07-09-02-21-39-039832-00610'
 
         network_kwargs = {
             'states_in_obs': Config.STATES_IN_OBS,

@@ -2,10 +2,11 @@ import numpy as np
 import pickle
 from functools import reduce
 import os
+from gym_collision_avoidance.envs.config import Config
 
-policies = ['PPOCADRLPolicy', 'RVOPolicy', 'CADRLPolicy']
+policies = ['PPOCADRLPolicy', 'RVOPolicy', 'CADRLPolicy', 'GA3CCADRLPolicy']
 num_agents_to_test = [2,3,4]
-test_cases = 8
+num_test_cases = Config.NUM_TEST_CASES
 
 print('\n\n#######################')
 print('#######################')
@@ -22,10 +23,10 @@ for num_agents in num_agents_to_test:
     for policy in policies:
         print('---')
         print("Policy: {}".format(policy))
-        num_collisions = test_cases-len(stats[policy]['non_collision_inds'])
+        num_collisions = num_test_cases-len(stats[policy]['non_collision_inds'])
         num_stuck = len(stats[policy]['stuck_inds'])
-        print("Total # test cases with collision: %i of %i (%.2f%%)" %(num_collisions,test_cases,(100.0*num_collisions/(test_cases))))
-        print("Total # test cases where agent got stuck: %i of %i (%.2f%%)" %(num_stuck,test_cases,(100.0*num_stuck/(test_cases))))
+        print("Total # test cases with collision: %i of %i (%.2f%%)" %(num_collisions,num_test_cases,(100.0*num_collisions/(num_test_cases))))
+        print("Total # test cases where agent got stuck: %i of %i (%.2f%%)" %(num_stuck,num_test_cases,(100.0*num_stuck/(num_test_cases))))
         # time_to_goal_sum = 0.0
         mean_extra_time_to_goal_list = []
         for ind in no_funny_business_inds:

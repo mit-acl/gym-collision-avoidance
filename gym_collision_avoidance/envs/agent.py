@@ -35,7 +35,6 @@ class Agent(object):
         self.chosen_action_dict = {}
         self.action_time_lag = 0.0
 
-        self.num_actions_to_store = 3
         self.action_dim = 2
         self.past_actions = np.zeros((self.num_actions_to_store,
                                       self.action_dim))

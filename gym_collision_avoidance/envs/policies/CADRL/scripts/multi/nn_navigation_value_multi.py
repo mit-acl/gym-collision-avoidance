@@ -1674,7 +1674,7 @@ class NN_navigation_value:
             # if agent is not stationary, assume it's travelling along its initially heading
             if np.linalg.norm(agent_state[0:2] - agent_state[6:8]) > EPS:
                 heading_dir = np.array([np.cos(agent_state[4]), np.sin(agent_state[4])])
-                agent_state[2:4] = agent_state[5] * heading_dir
+                # agent_state[2:4] = agent_state[5] * heading_dir
 
             try:
                 assert(agent_state[5] > 0.05)
