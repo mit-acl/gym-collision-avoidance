@@ -11,11 +11,21 @@ Episodes end when all agents reach their goals, collide with one another, or tim
 
 Reward is given to agents when arriving at the goal.
 
-# Installation
+### To replicate experiments in submitted IJRR paper:
 
-First, install openai's gym. Then install this custom environment.
+Start docker and move to correct dir
+```
+docker_run_cadrl_openai
+cd ~/code/gyms/gym-collision-avoidance/gym_collision_avoidance/experiments
+```
 
-```bash
-cd gym-collision-avoidance
-pip install -e .
+Formations (spelling out CADRL):
+```
+python3 run_cadrl_formations.py
+```
+
+500 test cases per number of agents, for each algorithm:
+```
+python3 run_full_test_suite.py
+python3 process_full_test_suite_pickles.py
 ```

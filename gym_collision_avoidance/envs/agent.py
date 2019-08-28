@@ -35,6 +35,7 @@ class Agent(object):
         self.chosen_action_dict = {}
         self.action_time_lag = 0.0
 
+        self.num_actions_to_store = 2
         self.action_dim = 2
         self.past_actions = np.zeros((self.num_actions_to_store,
                                       self.action_dim))
@@ -51,7 +52,7 @@ class Agent(object):
         if Config.EVALUATE_MODE or Config.PLAY_MODE:
             self.time_remaining_to_reach_goal = 4*self.straight_line_time_to_reach_goal
         else:
-            self.time_remaining_to_reach_goal = 2*self.straight_line_time_to_reach_goal
+            self.time_remaining_to_reach_goal = 5*self.straight_line_time_to_reach_goal
         self.t = 0.0
         self.t_offset = None
         self.step_num = 0
@@ -73,7 +74,6 @@ class Agent(object):
         self.ego_state_dim = 3
         self.ego_state_history = np.empty((self.num_states_in_history, self.ego_state_dim))
 
-        self.num_actions_to_store = 2
         # self.past_actions = np.zeros((self.num_actions_to_store,2))
         self.past_global_velocities = np.zeros((self.num_actions_to_store,2))
         self.past_global_velocities = self.vel_global_frame * np.ones((self.num_actions_to_store,2))

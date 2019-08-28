@@ -19,46 +19,33 @@ np.random.seed(0)
 Config.EVALUATE_MODE = True
 Config.PLOT_EPISODES = True
 Config.ANIMATE_EPISODES = False
-start_from_last_configuration = False
+start_from_last_configuration = True
 Config.DT = 0.1
 
-record_pickle_files = True
-# record_pickle_files = False
+# record_pickle_files = True
+record_pickle_files = False
 
-# wandb_dir = "/home/mfe/ijrr_cadrl_results/multiple_seeds/iros_order_ec2-107-20-77-83.compute-1.amazonaws.com/wandb/RL/wandb/run-20190727_192048-qedrf08y/"
-wandb_dir = "/home/mfe/code/"
-
-test_case_fn = tc.small_test_suite
-# test_case_fn = tc.full_test_suite
-policies = {
-            'GA3C-CADRL-10': {
-                'policy': GA3CCADRLPolicy,
-                'checkpt_name': 'network_01900000'
-                },
-            'GA3C-CADRL-10-AWS': {
-                'policy': GA3CCADRLPolicy,
-                'checkpt_dir': wandb_dir,
-                'checkpt_name': 'network_01900000'
-                },
-            'GA3C-CADRL-4-AWS': {
-                'policy': GA3CCADRLPolicy,
-                'checkpt_dir': wandb_dir+"run-20190727_015942-jzuhlntn/",
-                'checkpt_name': 'network_01490000'
-                },
-            'CADRL': {
-                'policy': CADRLPolicy,
-                },
-            'RVO': {
-                'policy': RVOPolicy,
-                },
-            }
-
-num_agents_to_test = [20]
-num_test_cases = 8
+if start_from_last_configuration:
+    record_pickle_files = False
+    test_case_fn = tc.formation
+    # policies = [RVOPolicy]
+    policies = [GA3CCADRLPolicy]
+    # policies = [PPOCADRLPolicy]
+    num_agents_to_test = [6]
+else:
+    # test_case_fn = tc.small_test_suite
+    test_case_fn = tc.full_test_suite
+    # policies = [CADRLPolicy]
+    # policies = [GA3CCADRLPolicy]
+    # policies = [PPOCADRLPolicy, GA3CCADRLPolicy]
+    # policies = [PPOCADRLPolicy, RVOPolicy, CADRLPolicy, GA3CCADRLPolicy]
+    # num_agents_to_test = [2,3,4]
+    # num_agents_to_test = [5, 6, 8, 10]
 test_case_args = {}
-Config.PLOT_CIRCLES_ALONG_TRAJ = True
+num_test_cases = Config.NUM_TEST_CASES
 
-Config.NUM_TEST_CASES = num_test_cases
+letters = ['C', 'A', 'D', 'R', 'L']
+# letters = ['A', 'C', 'L']
 
 def run_episode(env, one_env):
     score = 0
@@ -110,13 +97,9 @@ def store_stats(stats, policy, test_case, times_to_goal, extra_times_to_goal, co
 import tensorflow as tf
 tf.Session().__enter__()
 env, one_env = create_env()
+one_env.plot_save_dir = os.path.dirname(os.path.realpath(__file__)) + '/results/cadrl_formations/'
 
 for num_agents in num_agents_to_test:
-
-    plot_save_dir = os.path.dirname(os.path.realpath(__file__)) + '/results/small_test_suites/{num_agents}_agents/figs/'.format(num_agents=num_agents)
-    os.makedirs(plot_save_dir, exist_ok=True)
-    one_env.plot_save_dir = plot_save_dir
-
     test_case_args['num_agents'] = num_agents
     stats = {}
     for policy in policies:
@@ -134,14 +117,12 @@ for num_agents in num_agents_to_test:
             test_case_args['test_case_index'] = test_case
         for policy in policies:
             print('-------')
-            one_env.plot_policy_name = policy
-            policy_class = policies[policy]['policy']
-            test_case_args['agents_policy'] = policy_class
+            test_case_args['agents_policy'] = policy
             agents = test_case_fn(**test_case_args)
             for agent in agents:
-                if 'checkpt_name' in policies[policy]:
+                if isinstance(agent.policy, PPOCADRLPolicy):
                     agent.policy.env = env
-                    agent.policy.initialize_network(**policies[policy])
+                    agent.policy.initialize_network()
             one_env.set_agents(agents)
             one_env.test_case_index = test_case
             init_obs = env.reset()
@@ -162,10 +143,10 @@ for num_agents in num_agents_to_test:
     one_env.reset()
     if record_pickle_files:
         for policy in policies:
-            file_dir = os.path.dirname(os.path.realpath(__file__)) + '/results/full_test_suites/'
-            file_dir += '{num_agents}_agents/stats/'.format(num_agents=num_agents)
+            file_dir = os.path.dirname(os.path.realpath(__file__)) + '/../logs/test_case_stats/'
+            file_dir += '{num_agents}_agents/'.format(num_agents=test_case_args['num_agents'])
             os.makedirs(file_dir, exist_ok=True)
-            fname = file_dir+policy+'.p'
+            fname = file_dir+policy.__name__+'.p'
             pickle.dump(stats[policy], open(fname,'wb'))
             print('dumped {}'.format(fname))
 # print('---------------------')

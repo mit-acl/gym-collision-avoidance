@@ -24,7 +24,7 @@ class Config:
     TRAIN_ON_MULTIPLE_AGENTS = True
     # TRAIN_ON_MULTIPLE_AGENTS = False
 
-    MAX_NUM_AGENTS_IN_ENVIRONMENT = 10
+    MAX_NUM_AGENTS_IN_ENVIRONMENT = 20
     MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT = MAX_NUM_AGENTS_IN_ENVIRONMENT - 1
     # STATES_IN_OBS = ['dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agent_states', 'use_ppo'] # 2-agent net
     STATES_IN_OBS = ['dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agents_states', 'use_ppo', 'num_other_agents'] # LSTM
@@ -69,7 +69,7 @@ class Config:
                             'dtype': np.float32,
                             'size': 1,
                             'bounds': [0., 1.],
-                            'attr': 'get_agent_data_equiv("policy.str", "PPO")'
+                            'attr': 'get_agent_data_equiv("policy.str", "learning")'
                             }
                         }
     MEAN_OBS = {}; STD_OBS = {}
@@ -78,6 +78,15 @@ class Config:
             MEAN_OBS[state] = STATE_INFO_DICT[state]['mean']
         if 'std' in STATE_INFO_DICT[state]:
             STD_OBS[state] = STATE_INFO_DICT[state]['std']
+
+    LSTM_HIDDEN_SIZE = 16
+    NUM_LAYERS = 2
+    NUM_HIDDEN_UNITS = 64
+    NETWORK = "mfe_network"
+    GAMMA = 0.99
+    LEARNING_RATE = 1e-3
+
+    PLOT_CIRCLES_ALONG_TRAJ = False
 
     #########################################################################
     # COLLISION AVOIDANCE PARAMETER

@@ -1,6 +1,7 @@
 import os
 import re
 import numpy as np
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 import tensorflow as tf
 import time
 
@@ -49,7 +50,7 @@ class NetworkVPCore(object):
         self.logits_p = tf.layers.dense(inputs = self.fc1, units = self.num_actions, name = 'logits_p', activation = None)
         self.softmax_p = (tf.nn.softmax(self.logits_p) + Config.MIN_POLICY) / (1.0 + Config.MIN_POLICY * self.num_actions)
 
-    def predict_p(self, x, audio):
+    def predict_p(self, x):
         return self.sess.run(self.softmax_p, feed_dict={self.x: x})
 
     def simple_load(self, filename=None):
@@ -106,7 +107,7 @@ class Config:
     ROBOT_MODE          = True
     EVALUATE_MODE       = True
 
-    SENSING_HORIZON     = 8.0
+    SENSING_HORIZON     = np.inf
 
     MIN_POLICY = 1e-4
 
@@ -168,7 +169,7 @@ if __name__ == '__main__':
         obs[0,2] = np.random.uniform(-np.pi, np.pi) # heading to goal
         obs[0,3] = np.random.uniform(0.2, 2.0) # pref speed
         obs[0,4] = np.random.uniform(0.2, 1.5) # radius
-        predictions = nn.predict_p(obs, None)[0]
+        predictions = nn.predict_p(obs)[0]
     t_end = time.time()
     print("avg query time:", (t_end - t_start)/num_queries)
     print("total time:", t_end - t_start)

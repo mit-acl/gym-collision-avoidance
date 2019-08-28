@@ -130,6 +130,61 @@ def full_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, a
     agents = cadrl_test_case_to_agents(cadrl_test_case, agents_policy=agents_policy)
     return agents
 
+def formation(agents, letter, num_agents=6, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics):
+    formations = {
+        'A': 2*np.array([
+              [-1.5, 0.0], # A
+              [1.5, 0.0], 
+              [0.75, 1.5],
+              [-0.75, 1.5],
+              [0.0, 1.5], 
+              [0.0, 3.0]
+            ]),
+        'C': 2*np.array([
+              [0.0, 0.0], # C
+              [-0.5, 1.0], 
+              [-0.5, 2.0],
+              [0.0, 3.0],
+              [1.5, 0.0], 
+              [1.5, 3.0]
+              ]),
+        'L': 2*np.array([
+            [0.0, 0.0], # L
+            [0.0, 1.0], 
+            [0.0, 2.0],
+            [0.0, 3.0],
+            [0.75, 0.0], 
+            [1.5, 0.0]
+            ]),
+        'D': 2*np.array([
+            [0.0, 0.0],
+            [0.0, 1.5], 
+            [0.0, 3.0],
+            [1.5, 1.5], 
+            [1.2, 2.5],
+            [1.2, 0.5],
+            ]),
+        'R': 2*np.array([
+            [0.0, 0.0],
+            [0.0, 1.5], 
+            [0.0, 3.0],
+            [1.3, 2.8], 
+            [1.2, 1.7],
+            [1.7, 0.0],
+            ]),
+    }
+
+    agent_inds = np.arange(num_agents)
+    np.random.shuffle(agent_inds)
+
+    new_agents = []
+    for agent in agents:
+        start_x, start_y = agent.pos_global_frame
+        goal_x, goal_y = formations[letter][agent_inds[agent.id]]
+        new_agent = Agent(start_x, start_y, goal_x, goal_y, agent.radius, agent.pref_speed, agent.heading_global_frame, agents_policy, agents_dynamics, [], agent.id)
+        new_agents.append(new_agent)
+    return new_agents
+
 def cadrl_test_case_to_agents(test_case, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics):
     ###############################
     # This function accepts a test_case in legacy cadrl format and converts it
@@ -145,12 +200,12 @@ def cadrl_test_case_to_agents(test_case, agents_policy=LearningPolicy, agents_dy
         agent_dynamics_list = [agents_dynamics for _ in range(np.shape(test_case)[0])]
     else:
         # Random mix of agents following various policies
-        agent_policy_list = np.random.choice(policies,
-                                             np.shape(test_case)[0],
-                                             p=[0.05, 0.9, 0.05])
         # agent_policy_list = np.random.choice(policies,
         #                                      np.shape(test_case)[0],
-        #                                      p=[0.0, 1.0, 0.0])
+        #                                      p=[0.05, 0.9, 0.05])
+        agent_policy_list = np.random.choice(policies,
+                                             np.shape(test_case)[0],
+                                             p=[0.0, 1.0, 0.0])
 
         # Make sure at least one agent is following PPO
         #  (otherwise waste of time...)

@@ -28,8 +28,8 @@ record_pickle_files = True
 # wandb_dir = "/home/mfe/ijrr_cadrl_results/multiple_seeds/iros_order_ec2-107-20-77-83.compute-1.amazonaws.com/wandb/RL/wandb/run-20190727_192048-qedrf08y/"
 wandb_dir = "/home/mfe/code/"
 
-test_case_fn = tc.small_test_suite
-# test_case_fn = tc.full_test_suite
+# test_case_fn = tc.small_test_suite
+test_case_fn = tc.full_test_suite
 policies = {
             'GA3C-CADRL-10': {
                 'policy': GA3CCADRLPolicy,
@@ -53,8 +53,8 @@ policies = {
                 },
             }
 
-num_agents_to_test = [20]
-num_test_cases = 8
+num_agents_to_test = [2]
+num_test_cases = 500
 test_case_args = {}
 Config.PLOT_CIRCLES_ALONG_TRAJ = True
 
@@ -113,7 +113,7 @@ env, one_env = create_env()
 
 for num_agents in num_agents_to_test:
 
-    plot_save_dir = os.path.dirname(os.path.realpath(__file__)) + '/results/small_test_suites/{num_agents}_agents/figs/'.format(num_agents=num_agents)
+    plot_save_dir = os.path.dirname(os.path.realpath(__file__)) + '/results/full_test_suites/{num_agents}_agents/figs/'.format(num_agents=num_agents)
     os.makedirs(plot_save_dir, exist_ok=True)
     one_env.plot_save_dir = plot_save_dir
 

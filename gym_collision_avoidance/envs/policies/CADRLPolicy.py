@@ -54,8 +54,8 @@ class CADRLPolicy(Policy):
     def convert_other_agents_to_cadrl_state(self, host_agent, other_agents):
         # Convert this repo's state representation format into the legacy cadrl format
         # for the other agents in the environment
-        if len(other_agents) > 3:
-            print("CADRL ISN'T DESIGNED TO HANDLE > 4 AGENTS")
+        # if len(other_agents) > 3:
+        #     print("CADRL ISN'T DESIGNED TO HANDLE > 4 AGENTS")
 
         # This is a hack that CADRL was not trained to handle (only trained on 4 agents)
         other_agent_dists = []

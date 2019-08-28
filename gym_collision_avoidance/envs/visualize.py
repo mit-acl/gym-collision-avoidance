@@ -6,10 +6,6 @@ import os
 
 matplotlib.rcParams.update({'font.size': 24})
 
-fig_dir = os.path.dirname(os.path.realpath(__file__)) + '/../logs/test_cases/'
-os.makedirs(fig_dir, exist_ok=True)
-
-
 plt_colors = []
 plt_colors.append([0.8500, 0.3250, 0.0980])  # red
 plt_colors.append([0.0, 0.4470, 0.7410])  # blue
@@ -19,9 +15,15 @@ plt_colors.append([0.9290, 0.6940, 0.1250])  # orange
 plt_colors.append([0.3010, 0.7450, 0.9330])  # cyan
 plt_colors.append([0.6350, 0.0780, 0.1840])  # chocolate
 
-def plot_episode(agents, in_evaluate_mode, env_map=None, test_case_index=0, env_id=0):
+def plot_episode(agents, in_evaluate_mode, env_map=None, test_case_index=0, env_id=0, circles_along_traj=True, plot_save_dir=None, plot_policy_name=None):
     if max([agent.step_num for agent in agents]) == 0:
         return
+    
+    if plot_save_dir is None:
+        plot_save_dir = os.path.dirname(os.path.realpath(__file__)) + '/../logs/test_cases/'
+        os.makedirs(plot_save_dir, exist_ok=True)
+    if plot_policy_name is None:
+        plot_policy_name = agents[0].policy.str
 
     fig = plt.figure(env_id, figsize=(10, 8))
     plt.clf()
@@ -38,60 +40,82 @@ def plot_episode(agents, in_evaluate_mode, env_map=None, test_case_index=0, env_
         # Plot line through agent trajectory
         color_ind = i % len(plt_colors)
         plt_color = plt_colors[color_ind]
-        plt.plot(agent.global_state_history[:agent.step_num, 1],
-                 agent.global_state_history[:agent.step_num, 2],
-                 color=plt_color, ls='-', linewidth=2)
-        plt.plot(agent.global_state_history[0, 3],
-                 agent.global_state_history[0, 4],
-                 color=plt_color, marker='*', markersize=20)
 
-        # Display circle at agent pos every circle_spacing (nom 1.5 sec)
-        circle_spacing = 0.4
-        circle_times = np.arange(0.0, agent.global_state_history[agent.step_num-1, 0],
-                                 circle_spacing)
-        _, circle_inds = find_nearest(agent.global_state_history[:agent.step_num, 0],
-                                      circle_times)
-        for ind in circle_inds:
-            alpha = 1 - \
-                    agent.global_state_history[ind, 0] / \
+        if circles_along_traj:
+            plt.plot(agent.global_state_history[:agent.step_num, 1],
+                     agent.global_state_history[:agent.step_num, 2],
+                     color=plt_color, ls='-', linewidth=2)
+            plt.plot(agent.global_state_history[0, 3],
+                     agent.global_state_history[0, 4],
+                     color=plt_color, marker='*', markersize=20)
+            
+            # Display circle at agent pos every circle_spacing (nom 1.5 sec)
+            circle_spacing = 0.4
+            circle_times = np.arange(0.0, agent.global_state_history[agent.step_num-1, 0],
+                                     circle_spacing)
+            _, circle_inds = find_nearest(agent.global_state_history[:agent.step_num, 0],
+                                          circle_times)
+            for ind in circle_inds:
+                alpha = 1 - \
+                        agent.global_state_history[ind, 0] / \
+                        (max_time_alpha_scalar*max_time)
+                c = rgba2rgb(plt_color+[float(alpha)])
+                ax.add_patch(plt.Circle(agent.global_state_history[ind, 1:3],
+                             radius=agent.radius, fc=c, ec=plt_color,
+                             fill=True))
+
+            # Display text of current timestamp every text_spacing (nom 1.5 sec)
+            text_spacing = 1.5
+            text_times = np.arange(0.0, agent.global_state_history[agent.step_num-1, 0],
+                                   text_spacing)
+            _, text_inds = find_nearest(agent.global_state_history[:agent.step_num, 0],
+                                        text_times)
+            for ind in text_inds:
+                y_text_offset = 0.1
+                alpha = agent.global_state_history[ind, 0] / \
                     (max_time_alpha_scalar*max_time)
+                if alpha < 0.5:
+                    alpha = 0.3
+                else:
+                    alpha = 0.9
+                c = rgba2rgb(plt_color+[float(alpha)])
+                ax.text(agent.global_state_history[ind, 1]-0.15,
+                        agent.global_state_history[ind, 2]+y_text_offset,
+                        '%.1f' % agent.global_state_history[ind, 0], color=c)
+            # Also display circle at agent position at end of trajectory
+            ind = agent.step_num - 1
+            alpha = 1 - \
+                agent.global_state_history[ind, 0] / \
+                (max_time_alpha_scalar*max_time)
             c = rgba2rgb(plt_color+[float(alpha)])
             ax.add_patch(plt.Circle(agent.global_state_history[ind, 1:3],
-                         radius=agent.radius, fc=c, ec=plt_color,
-                         fill=True))
-
-        # Display text of current timestamp every text_spacing (nom 1.5 sec)
-        text_spacing = 1.5
-        text_times = np.arange(0.0, agent.global_state_history[agent.step_num-1, 0],
-                               text_spacing)
-        _, text_inds = find_nearest(agent.global_state_history[:agent.step_num, 0],
-                                    text_times)
-        for ind in text_inds:
+                         radius=agent.radius, fc=c, ec=plt_color))
             y_text_offset = 0.1
-            alpha = agent.global_state_history[ind, 0] / \
-                (max_time_alpha_scalar*max_time)
-            if alpha < 0.5:
-                alpha = 0.3
-            else:
-                alpha = 0.9
+            ax.text(agent.global_state_history[ind, 1] - 0.15,
+                    agent.global_state_history[ind, 2] + y_text_offset,
+                    '%.1f' % agent.global_state_history[ind, 0],
+                    color=plt_color)
+        else:
+            colors = np.zeros((agent.step_num, 4))
+            colors[:,:3] = plt_color
+            colors[:, 3] = np.linspace(0.2, 1., agent.step_num)
+            colors = rgba2rgb(colors)
+
+            plt.scatter(agent.global_state_history[:agent.step_num, 1],
+                     agent.global_state_history[:agent.step_num, 2],
+                     color=colors)
+
+            # Also display circle at agent position at end of trajectory
+            ind = agent.step_num - 1
+            alpha = 0.7
             c = rgba2rgb(plt_color+[float(alpha)])
-            ax.text(agent.global_state_history[ind, 1]-0.15,
-                    agent.global_state_history[ind, 2]+y_text_offset,
-                    '%.1f' % agent.global_state_history[ind, 0], color=c)
-        
-        # Also display circle at agent position at end of trajectory
-        ind = agent.step_num - 1
-        alpha = 1 - \
-            agent.global_state_history[ind, 0] / \
-            (max_time_alpha_scalar*max_time)
-        c = rgba2rgb(plt_color+[float(alpha)])
-        ax.add_patch(plt.Circle(agent.global_state_history[ind, 1:3],
-                     radius=agent.radius, fc=c, ec=plt_color))
-        y_text_offset = 0.1
-        ax.text(agent.global_state_history[ind, 1] - 0.15,
-                agent.global_state_history[ind, 2] + y_text_offset,
-                '%.1f' % agent.global_state_history[ind, 0],
-                color=plt_color)
+            ax.add_patch(plt.Circle(agent.global_state_history[ind, 1:3],
+                         radius=agent.radius, fc=c, ec=plt_color))
+            # y_text_offset = 0.1
+            # ax.text(agent.global_state_history[ind, 1] - 0.15,
+            #         agent.global_state_history[ind, 2] + y_text_offset,
+            #         '%.1f' % agent.global_state_history[ind, 0],
+            #         color=plt_color)
 
     # title_string = "Episode"
     # plt.title(title_string)
@@ -107,11 +131,13 @@ def plot_episode(agents, in_evaluate_mode, env_map=None, test_case_index=0, env_
 
     plt.draw()
     if in_evaluate_mode:
-        
-        fig_name = str(agents[0].policy.str) + '_' + \
-            str(len(agents)) + 'agents_' + \
-            str(test_case_index) + '.png'
-        plt.savefig(fig_dir+fig_name)
+        fig_name = "{test_case}_{policy}_{num_agents}agents.png".format(
+            policy=plot_policy_name,
+            num_agents = len(agents),
+            test_case = str(test_case_index).zfill(3))
+        filename = plot_save_dir+fig_name
+        print(filename)
+        plt.savefig(filename)
     plt.pause(0.0001)
     # plt.pause(1.0)
 

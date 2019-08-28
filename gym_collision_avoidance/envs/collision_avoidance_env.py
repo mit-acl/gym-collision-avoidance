@@ -116,6 +116,9 @@ class CollisionAvoidanceEnv(gym.Env):
         self.episode_step_number = None
         self.episode_number = 0
 
+        self.plot_save_dir = None
+        self.plot_policy_name = None
+
     def step(self, actions, dt=None):
         ###############################
         # This is the main function. An external process will compute an action for every agent
@@ -142,7 +145,6 @@ class CollisionAvoidanceEnv(gym.Env):
         # Take action
         self._take_action2(actions, dt)
         # self._take_action(actions, dt)
-        # print([agent.pos_global_frame for agent in self.agents])
 
         # Collect rewards
         rewards = self._compute_rewards()
@@ -151,7 +153,7 @@ class CollisionAvoidanceEnv(gym.Env):
         next_observations = self._get_obs()
 
         if Config.ANIMATE_EPISODES and self.episode_step_number % 5 == 0:
-            plot_episode(self.agents, False, self.map, self.test_case_index)
+            plot_episode(self.agents, False, self.map, self.test_case_index, circles_along_traj=Config.PLOT_CIRCLES_ALONG_TRAJ, plot_save_dir=self.plot_save_dir, plot_policy_name=self.plot_policy_name)
 
         # Check which agents' games are finished (at goal/collided/out of time)
         which_agents_done, game_over = self._check_which_agents_done()
@@ -175,7 +177,7 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def reset(self):
         if self.episode_step_number is not None and self.episode_step_number > 0 and Config.PLOT_EPISODES and self.test_case_index >= 0:
-            plot_episode(self.agents, self.evaluate, self.map, self.test_case_index, self.id)
+            plot_episode(self.agents, self.evaluate, self.map, self.test_case_index, self.id, circles_along_traj=Config.PLOT_CIRCLES_ALONG_TRAJ, plot_save_dir=self.plot_save_dir, plot_policy_name=self.plot_policy_name)
             self.episode_number += 1
         self.begin_episode = True
         self.episode_step_number = 0
@@ -309,9 +311,9 @@ class CollisionAvoidanceEnv(gym.Env):
                             rewards[i] = -0.1 - dist_btwn_nearest_agent[i]/2.
                             # print("Agent %i: Got close to another agent!"
                             #       % agent.id)
-                        if abs(agent.past_actions[0, 1]) > 0.4:
-                            # Slightly penalize wiggly behavior
-                            rewards[i] += -0.005
+                        # if abs(agent.past_actions[0, 1]) > 0.4:
+                        #     # Slightly penalize wiggly behavior
+                        #     rewards[i] += -0.005
                         # elif entered_norm_zone[i]:
                         #     rewards[i] = self.reward_entered_norm_zone
         rewards = np.clip(rewards, self.min_possible_reward,

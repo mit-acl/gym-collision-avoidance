@@ -14,18 +14,29 @@ class GA3CCADRLPolicy(Policy):
         self.possible_actions = network.Actions()
         num_actions = self.possible_actions.num_actions
         self.nn = network.NetworkVP_rnn(network.Config.DEVICE, 'network', num_actions)
-        file_dir = os.path.dirname(os.path.realpath(__file__)) + '/GA3C_CADRL/checkpoints/'
-        self.nn.simple_load(file_dir + 'network_01900000')
+
+    def initialize_network(self, **kwargs):
+        if 'checkpt_name' in kwargs:
+            checkpt_name = kwargs['checkpt_name']
+        else:
+            checkpt_name = 'network_01900000'
+
+        if 'checkpt_dir' in kwargs:
+            checkpt_dir = kwargs['checkpt_dir']
+        else:
+            checkpt_dir = os.path.dirname(os.path.realpath(__file__)) + '/GA3C_CADRL/checkpoints/'
+
+        self.nn.simple_load(checkpt_dir + checkpt_name)
 
     def find_next_action(self, obs, agents, i):
         host_agent = agents[i]
         other_agents = agents[:i]+agents[i+1:]
         obs = self.agents_to_ga3c_cadrl_state(host_agent, other_agents)
         obs = np.expand_dims(obs[1:], axis=0)
-        predictions = self.nn.predict_p(obs, None)[0]
-        raw_action = self.possible_actions.actions[np.argmax(predictions)]
+        predictions = self.nn.predict_p(obs)[0]
+        action_index = np.argmax(predictions)
+        raw_action = self.possible_actions.actions[action_index]
         action = np.array([host_agent.pref_speed*raw_action[0], raw_action[1]])
-        
         return action
 
     def agents_to_ga3c_cadrl_state(self, host_agent, other_agents):
