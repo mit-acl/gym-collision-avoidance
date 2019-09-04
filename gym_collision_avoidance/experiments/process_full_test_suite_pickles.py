@@ -10,14 +10,22 @@ from gym_collision_avoidance.envs.policies.RVOPolicy import RVOPolicy
 from gym_collision_avoidance.envs.policies.CADRLPolicy import CADRLPolicy
 from gym_collision_avoidance.envs.policies.GA3CCADRLPolicy import GA3CCADRLPolicy
 
+from datetime import datetime
+
 wandb_dir = '/home/mfe/code/'
 
 ##########################
 # Set up logging as print to terminal and file
 # 
-log_filename = '{dir}/results/full_test_suites/log.txt'.format(dir=os.path.dirname(os.path.realpath(__file__))) 
+log_filename = '{dir}/results/full_test_suites/full_test_suite_results_{datetime}.txt'.format(
+                    dir=os.path.dirname(os.path.realpath(__file__)),
+                    datetime=datetime.now().strftime("%Y_%m_%d_%H_%M_%S"),
+                    ) 
 log = open(log_filename, "w")
 terminal = sys.stdout
+
+# verbose = True
+verbose = False
 
 def write(message):
     terminal.write("{}\n".format(message))
@@ -31,28 +39,23 @@ def write(message):
 #
 policies = {
             'GA3C-CADRL-10': {
-                'policy': GA3CCADRLPolicy,
-                'checkpt_name': 'network_01900000'
+                'order': 3
                 },
             'GA3C-CADRL-10-AWS': {
-                'policy': GA3CCADRLPolicy,
-                'checkpt_dir': wandb_dir,
-                'checkpt_name': 'network_01900000'
+                'order': 4
                 },
             'GA3C-CADRL-4-AWS': {
-                'policy': GA3CCADRLPolicy,
-                'checkpt_dir': wandb_dir+"run-20190727_015942-jzuhlntn/",
-                'checkpt_name': 'network_01490000'
+                'order': 2
                 },
             'CADRL': {
-                'policy': CADRLPolicy,
+                'order': 1
                 },
             'RVO': {
-                'policy': RVOPolicy,
+                'order': 0
                 },
             }
-num_agents_to_test = [2]
-# num_agents_to_test = [2,3,4, 5, 6, 8, 10]
+ordered_policies = [key for key,value in sorted(policies.items(), key=lambda item: item[1]['order'])]
+num_agents_to_test = [2,3,4, 5, 6, 8, 10]
 num_test_cases = 500
 # num_test_cases = Config.NUM_TEST_CASES
 # 
@@ -75,19 +78,31 @@ for num_agents in num_agents_to_test:
     non_collision_inds = reduce(np.intersect1d, (stats[policy]['non_collision_inds'] for policy in policies))
     all_at_goal_inds = reduce(np.intersect1d, (stats[policy]['all_at_goal_inds'] for policy in policies))
     no_funny_business_inds = np.intersect1d(non_collision_inds, all_at_goal_inds)
-    for policy in policies:
+    for policy in ordered_policies:
         write('---')
         write("Policy: {}".format(policy))
         num_collisions = num_test_cases-len(stats[policy]['non_collision_inds'])
         num_stuck = len(stats[policy]['stuck_inds'])
-        write("Total # test cases with collision: %i of %i (%.2f%%)" %(num_collisions,num_test_cases,(100.0*num_collisions/(num_test_cases))))
-        write("Total # test cases where agent got stuck: %i of %i (%.2f%%)" %(num_stuck,num_test_cases,(100.0*num_stuck/(num_test_cases))))
+        pct_collisions = 100.0*num_collisions/num_test_cases
+        pct_stuck = 100.0*num_stuck/num_test_cases
         mean_extra_time_to_goal_list = []
         for ind in no_funny_business_inds:
             mean_extra_time_to_goal_list.append(stats[policy][ind]['mean_extra_time_to_goal'])
-        write("Extra time to goal [50th, 75th, 90th] percentile (non-collision/non-stuck cases):")
         pctls = np.percentile(np.array(mean_extra_time_to_goal_list),[50,75,90])
-        write(pctls)
+        pctls = [round(pctl, 2) for pctl in pctls]
+
+        if verbose:
+            write("Total # test cases with collision: %i of %i (%.2f%%)" %(num_collisions,num_test_cases,pct_collisions))
+            write("Total # test cases where agent got stuck: %i of %i (%.2f%%)" %(num_stuck,num_test_cases,pct_stuck))
+            write("Extra time to goal [50th, 75th, 90th] percentile (non-collision/non-stuck cases):")
+            write(pctls)
+        else:        
+            write("{total:.2f} ({pct_collisions:.2f} / {pct_stuck:.2f})".format(
+                total=pct_collisions+pct_stuck,
+                pct_collisions=pct_collisions,
+                pct_stuck=pct_stuck))
+            write(str(pctls).strip('[]').replace(',',' /'))
+
     write('\n----------\n')
 
 write('\n\n#######################')

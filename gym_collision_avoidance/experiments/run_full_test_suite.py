@@ -13,6 +13,7 @@ from gym_collision_avoidance.envs.policies.PPOCADRLPolicy import PPOCADRLPolicy
 from gym_collision_avoidance.envs.policies.RVOPolicy import RVOPolicy
 from gym_collision_avoidance.envs.policies.CADRLPolicy import CADRLPolicy
 from gym_collision_avoidance.envs.policies.GA3CCADRLPolicy import GA3CCADRLPolicy
+from gym_collision_avoidance.envs.policies.DWAPolicy import DWAPolicy
 
 np.random.seed(0)
 
@@ -22,27 +23,25 @@ Config.ANIMATE_EPISODES = False
 start_from_last_configuration = False
 Config.DT = 0.1
 
-record_pickle_files = True
-# record_pickle_files = False
-
-# wandb_dir = "/home/mfe/ijrr_cadrl_results/multiple_seeds/iros_order_ec2-107-20-77-83.compute-1.amazonaws.com/wandb/RL/wandb/run-20190727_192048-qedrf08y/"
-wandb_dir = "/home/mfe/code/"
+# record_pickle_files = True
+record_pickle_files = False
 
 # test_case_fn = tc.small_test_suite
 test_case_fn = tc.full_test_suite
 policies = {
             'GA3C-CADRL-10': {
                 'policy': GA3CCADRLPolicy,
+                'checkpt_dir': 'IROS18',
                 'checkpt_name': 'network_01900000'
                 },
             'GA3C-CADRL-10-AWS': {
                 'policy': GA3CCADRLPolicy,
-                'checkpt_dir': wandb_dir,
+                'checkpt_dir': 'run-20190727_192048-qedrf08y',
                 'checkpt_name': 'network_01900000'
                 },
             'GA3C-CADRL-4-AWS': {
                 'policy': GA3CCADRLPolicy,
-                'checkpt_dir': wandb_dir+"run-20190727_015942-jzuhlntn/",
+                'checkpt_dir': "run-20190727_015942-jzuhlntn",
                 'checkpt_name': 'network_01490000'
                 },
             'CADRL': {
@@ -54,7 +53,8 @@ policies = {
             }
 
 num_agents_to_test = [2]
-num_test_cases = 500
+# num_agents_to_test = [2,3,4,5,6,8,10]
+num_test_cases = 5
 test_case_args = {}
 Config.PLOT_CIRCLES_ALONG_TRAJ = True
 

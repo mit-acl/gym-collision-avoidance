@@ -4,6 +4,8 @@ from gym_collision_avoidance.envs.config import Config
 from gym_collision_avoidance.envs.util import *
 import rvo2
 
+import matplotlib.pyplot as plt
+
 class RVOPolicy(Policy):
     def __init__(self):
         Policy.__init__(self, str="RVO")
@@ -16,6 +18,8 @@ class RVOPolicy(Policy):
         radius = 0.0 # dummy values
         self.has_fixed_speed = False
         self.heading_noise = False
+
+        self.max_delta_heading = np.pi/6
         
         # TODO share this parameter with environment
         time_horizon = 5.0
@@ -55,8 +59,6 @@ class RVOPolicy(Policy):
 
         # Share all agent positions and preferred velocities from environment with RVO simulator
         for a in range(self.n_agents):
-            #for i, agent in enumerate(self.agents):
-
             # Copy current agent positions, goal and preferred speeds into np arrays
             self.pos_agents[a,:] = agents[a].pos_global_frame[:]
             self.vel_agents[a,:] = agents[a].vel_global_frame[:]
@@ -68,36 +70,33 @@ class RVOPolicy(Policy):
             self.pref_vel_agents[a,:] = self.goal_agents[a,:] - self.pos_agents[a,:]
             self.pref_vel_agents[a,:] = self.pref_speed_agents[a] / np.linalg.norm(self.pref_vel_agents[a,:]) * self.pref_vel_agents[a,:]
 
-            # TODO CALCULATE OTHER AGENTS PREF VELOCITY, BASED ON THEIR CURRENT VELOCITY?
-
             # Set agent positions and velocities in RVO simulator
             self.sim.setAgentMaxSpeed(self.rvo_agents[a], agents[a].pref_speed)
-            self.sim.setAgentRadius(self.rvo_agents[a], agents[a].radius)
+            self.sim.setAgentRadius(self.rvo_agents[a], (1+5e-2)*agents[a].radius)
             self.sim.setAgentPosition(self.rvo_agents[a], tuple(self.pos_agents[a,:]))
             self.sim.setAgentVelocity(self.rvo_agents[a], tuple(self.vel_agents[a,:]))
             self.sim.setAgentPrefVelocity(self.rvo_agents[a], tuple(self.pref_vel_agents[a,:]))
 
-        #print('pos', self.id, self.pos_agents[self.id,:])
-        #print('goal', self.id, self.goal_agents[self.id,:])
-        #print('pref speed', self.pref_speed_agents[self.id])
-        #print('pref vel', self.pref_vel_agents[self.id,:])
-        #print('num agents', self.sim.getNumAgents())
-        
         # Execute one step in the RVO simulator
         self.sim.doStep()
 
         # Calculate desired change of heading
-        deltaPos = self.sim.getAgentPosition(self.rvo_agents[agent_index])[:] - self.pos_agents[agent_index,:]
+        self.new_rvo_pos = self.sim.getAgentPosition(self.rvo_agents[agent_index])[:]
+        deltaPos = self.new_rvo_pos - self.pos_agents[agent_index,:]
         p1 = deltaPos
         p2 = np.array([1,0]) # Angle zero is parallel to x-axis
         ang1 = np.arctan2(*p1[::-1])
         ang2 = np.arctan2(*p2[::-1])
         new_heading_global_frame = (ang1 - ang2) % (2 * np.pi)
-        #delta_heading = wrap(new_heading_global_frame - self.heading_global_frame)
         delta_heading = wrap(new_heading_global_frame - agents[agent_index].heading_global_frame)
             
         # Calculate desired speed
         pref_speed = 1/self.dt * np.linalg.norm(deltaPos)
+
+        # Limit the turning rate: stop and turn in place if exceeds
+        if abs(delta_heading) > self.max_delta_heading:
+            delta_heading = np.sign(delta_heading)*self.max_delta_heading
+            pref_speed = 0.
 
         # Ignore speed
         if self.has_fixed_speed:

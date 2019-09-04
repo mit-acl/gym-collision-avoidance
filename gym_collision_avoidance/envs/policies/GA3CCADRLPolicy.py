@@ -22,9 +22,9 @@ class GA3CCADRLPolicy(Policy):
             checkpt_name = 'network_01900000'
 
         if 'checkpt_dir' in kwargs:
-            checkpt_dir = kwargs['checkpt_dir']
+            checkpt_dir = os.path.dirname(os.path.realpath(__file__)) + '/GA3C_CADRL/checkpoints/' + kwargs['checkpt_dir'] +'/'
         else:
-            checkpt_dir = os.path.dirname(os.path.realpath(__file__)) + '/GA3C_CADRL/checkpoints/'
+            checkpt_dir = os.path.dirname(os.path.realpath(__file__)) + '/GA3C_CADRL/checkpoints/IROS18/'
 
         self.nn.simple_load(checkpt_dir + checkpt_name)
 

@@ -3,6 +3,8 @@ from gym_collision_avoidance.envs.util import find_nearest, rgba2rgb
 import matplotlib.pyplot as plt
 import matplotlib
 import os
+import matplotlib.patches as ptch
+
 
 matplotlib.rcParams.update({'font.size': 24})
 
@@ -95,6 +97,13 @@ def plot_episode(agents, in_evaluate_mode, env_map=None, test_case_index=0, env_
                     agent.global_state_history[ind, 2] + y_text_offset,
                     '%.1f' % agent.global_state_history[ind, 0],
                     color=plt_color)
+
+            # if hasattr(agent.policy, 'deltaPos'):
+            #     arrow_start = agent.global_state_history[ind, 1:3]
+            #     arrow_end = agent.global_state_history[ind, 1:3] + (1.0/0.1)*agent.policy.deltaPos
+            #     style="Simple,head_width=10,head_length=20"
+            #     ax.add_patch(ptch.FancyArrowPatch(arrow_start, arrow_end, arrowstyle=style, color='black'))
+
         else:
             colors = np.zeros((agent.step_num, 4))
             colors[:,:3] = plt_color
@@ -136,7 +145,6 @@ def plot_episode(agents, in_evaluate_mode, env_map=None, test_case_index=0, env_
             num_agents = len(agents),
             test_case = str(test_case_index).zfill(3))
         filename = plot_save_dir+fig_name
-        print(filename)
         plt.savefig(filename)
     plt.pause(0.0001)
     # plt.pause(1.0)

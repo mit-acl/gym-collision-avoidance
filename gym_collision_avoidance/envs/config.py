@@ -24,7 +24,7 @@ class Config:
     TRAIN_ON_MULTIPLE_AGENTS = True
     # TRAIN_ON_MULTIPLE_AGENTS = False
 
-    MAX_NUM_AGENTS_IN_ENVIRONMENT = 20
+    MAX_NUM_AGENTS_IN_ENVIRONMENT = 10
     MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT = MAX_NUM_AGENTS_IN_ENVIRONMENT - 1
     # STATES_IN_OBS = ['dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agent_states', 'use_ppo'] # 2-agent net
     STATES_IN_OBS = ['dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agents_states', 'use_ppo', 'num_other_agents'] # LSTM
