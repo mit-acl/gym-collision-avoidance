@@ -14,6 +14,7 @@ from gym_collision_avoidance.envs.policies.RVOPolicy import RVOPolicy
 from gym_collision_avoidance.envs.policies.CADRLPolicy import CADRLPolicy
 from gym_collision_avoidance.envs.policies.GA3CCADRLPolicy import GA3CCADRLPolicy
 from gym_collision_avoidance.envs.policies.DWAPolicy import DWAPolicy
+from gym_collision_avoidance.envs.policies.DRLLongPolicy import DRLLongPolicy
 
 np.random.seed(0)
 
@@ -29,26 +30,30 @@ record_pickle_files = False
 # test_case_fn = tc.small_test_suite
 test_case_fn = tc.full_test_suite
 policies = {
-            'GA3C-CADRL-10': {
-                'policy': GA3CCADRLPolicy,
-                'checkpt_dir': 'IROS18',
-                'checkpt_name': 'network_01900000'
-                },
-            'GA3C-CADRL-10-AWS': {
-                'policy': GA3CCADRLPolicy,
-                'checkpt_dir': 'run-20190727_192048-qedrf08y',
-                'checkpt_name': 'network_01900000'
-                },
-            'GA3C-CADRL-4-AWS': {
-                'policy': GA3CCADRLPolicy,
-                'checkpt_dir': "run-20190727_015942-jzuhlntn",
-                'checkpt_name': 'network_01490000'
-                },
-            'CADRL': {
-                'policy': CADRLPolicy,
-                },
-            'RVO': {
-                'policy': RVOPolicy,
+            # 'GA3C-CADRL-10': {
+            #     'policy': GA3CCADRLPolicy,
+            #     'checkpt_dir': 'IROS18',
+            #     'checkpt_name': 'network_01900000'
+            #     },
+            # 'GA3C-CADRL-10-AWS': {
+            #     'policy': GA3CCADRLPolicy,
+            #     'checkpt_dir': 'run-20190727_192048-qedrf08y',
+            #     'checkpt_name': 'network_01900000'
+            #     },
+            # 'GA3C-CADRL-4-AWS': {
+            #     'policy': GA3CCADRLPolicy,
+            #     'checkpt_dir': "run-20190727_015942-jzuhlntn",
+            #     'checkpt_name': 'network_01490000'
+            #     },
+            # 'CADRL': {
+            #     'policy': CADRLPolicy,
+            #     },
+            # 'RVO': {
+            #     'policy': RVOPolicy,
+            #     },
+            'DRL-Long': {
+                'policy': DRLLongPolicy,
+                'checkpt_name': 'todo'
                 },
             }
 
