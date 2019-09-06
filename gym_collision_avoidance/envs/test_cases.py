@@ -21,7 +21,7 @@ import pickle
 
 from gym_collision_avoidance.envs.policies.CADRL.scripts.multi import gen_rand_testcases as tc
 
-GETTING_CLOSE_RANGE = 0.2
+test_case_filename = "{dir}/test_cases/{pref_speed_string}{num_agents}_agents_{num_test_cases}_cases.p"
 
 def get_testcase_hololens_and_ga3c_cadrl():
     goal_x1 = 3
@@ -127,8 +127,8 @@ def small_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, 
     agents = cadrl_test_case_to_agents(cadrl_test_case, agents_policy=agents_policy, agents_dynamics=agents_dynamics, agents_sensors=agents_sensors)
     return agents
 
-def full_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[]):
-    cadrl_test_case = preset_testCases(num_agents, full_test_suite=True)[test_case_index]
+def full_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[], vpref_constraint=False):
+    cadrl_test_case = preset_testCases(num_agents, full_test_suite=True, vpref_constraint=vpref_constraint)[test_case_index]
     agents = cadrl_test_case_to_agents(cadrl_test_case, agents_policy=agents_policy, agents_dynamics=agents_dynamics, agents_sensors=agents_sensors)
     return agents
 
@@ -234,16 +234,22 @@ def cadrl_test_case_to_agents(test_case, agents_policy=LearningPolicy, agents_dy
     return agents
 
 
-def preset_testCases(test_case_num_agents, full_test_suite=False):
+def preset_testCases(num_agents, full_test_suite=False, vpref_constraint=False):
     if full_test_suite:
-        num_test_cases = 500
-        test_cases = pickle.load(open(
-            os.path.join(os.path.dirname(__file__),
-                'test_cases/%s_agents_%i_cases.p'
-                %(test_case_num_agents, num_test_cases)), "rb"),
-                encoding='latin1')
+        num_test_cases = 20
+
+        if vpref_constraint:
+            pref_speed_string = 'vpref1.0/'
+        else:
+            pref_speed_string = ''
+
+        filename = test_case_filename.format(
+                num_agents=num_agents, num_test_cases=num_test_cases, pref_speed_string=pref_speed_string,
+                dir=os.path.dirname(os.path.realpath(__file__)))
+        test_cases = pickle.load(open(filename, "rb"), encoding='latin1')
+
     else:
-        if test_case_num_agents == 1:
+        if num_agents == 1:
             test_cases = []
             # fixed speed and radius
             test_cases.append(np.array([
@@ -253,7 +259,7 @@ def preset_testCases(test_case_num_agents, full_test_suite=False):
                 [3.0/1.4, -3.0/1.4, -3.0/1.4, 3.0/1.4, 1.0, 0.3]
                 ]))
 
-        elif test_case_num_agents == 2:
+        elif num_agents == 2:
             test_cases = []
             # fixed speed and radius
             test_cases.append(np.array([
@@ -290,7 +296,7 @@ def preset_testCases(test_case_num_agents, full_test_suite=False):
                 [-2.0, 0.0, 2.0, 0.0, 0.5, 0.4]
                 ]))
 
-        elif test_case_num_agents == 3 or test_case_num_agents == 4:
+        elif num_agents == 3 or num_agents == 4:
             test_cases = []
             # hardcoded to be 3 agents for now
             d = 3.0
@@ -348,11 +354,11 @@ def preset_testCases(test_case_num_agents, full_test_suite=False):
                 [-2.0, -4.0, 2.0, -4.0, 0.5, 0.4]
                 ]))
 
-        elif test_case_num_agents == 5:
+        elif num_agents == 5:
             test_cases = []
 
             radius = 4
-            tc = gen_circle_test_case(test_case_num_agents, radius)
+            tc = gen_circle_test_case(num_agents, radius)
             test_cases.append(tc)
 
             test_cases.append(np.array([
@@ -363,11 +369,11 @@ def preset_testCases(test_case_num_agents, full_test_suite=False):
                 [-3.0, -3.0, 3.0, -3.0, 1.0, 0.5]
                 ]))
 
-        elif test_case_num_agents == 6:
+        elif num_agents == 6:
             test_cases = []
 
             radius = 5
-            tc = gen_circle_test_case(test_case_num_agents, radius)
+            tc = gen_circle_test_case(num_agents, radius)
             test_cases.append(tc)
 
             test_cases.append(np.array([
@@ -395,23 +401,23 @@ def preset_testCases(test_case_num_agents, full_test_suite=False):
                 [3.0, -1.0, -3.0, -1.0, 1.0, 0.3]
                 ]))
 
-        elif test_case_num_agents == 10:
+        elif num_agents == 10:
             test_cases = []
 
             radius = 5
-            tc = gen_circle_test_case(test_case_num_agents, radius)
+            tc = gen_circle_test_case(num_agents, radius)
             test_cases.append(tc)
 
-        elif test_case_num_agents == 20:
+        elif num_agents == 20:
             test_cases = []
 
             radius = 10
-            tc = gen_circle_test_case(test_case_num_agents, radius)
+            tc = gen_circle_test_case(num_agents, radius)
             test_cases.append(tc)
 
         else:
             print("[preset_testCases in Collision_Avoidance.py]\
-                    invalid test_case_num_agents")
+                    invalid num_agents")
             assert(0)
     return test_cases
 
@@ -434,17 +440,14 @@ if __name__ == '__main__':
     # speed_bnds = [0.5, 1.5]
     speed_bnds = [1.0, 1.0]
     radius_bnds = [0.2, 0.8]
+    num_agents = 2
+    side_length = 4
 
     num_test_cases = 20
     test_cases = []
 
     for i in range(num_test_cases):
-        num_agents = 2
-        side_length = 4
-        test_case = get_testcase_random(num_agents=num_agents, 
-                                        side_length=side_length, 
-                                        speed_bnds=speed_bnds, 
-                                        radius_bnds=radius_bnds)
+        test_case = tc.generate_rand_test_case_multi(num_agents, side_length, speed_bnds, radius_bnds)
         test_cases.append(test_case)
 
     if speed_bnds == [1., 1.]:
@@ -452,8 +455,10 @@ if __name__ == '__main__':
     else:
         pref_speed_string = ''
 
-    filename = "{dir}/test_cases/{pref_speed_string}{num_agents}_agents_{num_test_cases}_cases.p".format(
+    filename = test_case_filename.format(
                 num_agents=num_agents, num_test_cases=num_test_cases, pref_speed_string=pref_speed_string,
                 dir=os.path.dirname(os.path.realpath(__file__)))
 
     pickle.dump(test_cases, open(filename, "wb"))
+
+
