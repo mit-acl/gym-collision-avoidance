@@ -16,11 +16,13 @@ from gym_collision_avoidance.envs.policies.GA3CCADRLPolicy import GA3CCADRLPolic
 from gym_collision_avoidance.envs.policies.DWAPolicy import DWAPolicy
 from gym_collision_avoidance.envs.policies.DRLLongPolicy import DRLLongPolicy
 
+from gym_collision_avoidance.envs.sensors.LaserScanSensor import LaserScanSensor
+
 np.random.seed(0)
 
 Config.EVALUATE_MODE = True
 Config.PLOT_EPISODES = True
-Config.ANIMATE_EPISODES = False
+Config.ANIMATE_EPISODES = True
 start_from_last_configuration = False
 Config.DT = 0.1
 
@@ -53,13 +55,14 @@ policies = {
             #     },
             'DRL-Long': {
                 'policy': DRLLongPolicy,
-                'checkpt_name': 'todo'
+                'checkpt_name': 'stage2.pth',
+                'sensors': [LaserScanSensor]
                 },
             }
 
 num_agents_to_test = [2]
 # num_agents_to_test = [2,3,4,5,6,8,10]
-num_test_cases = 5
+num_test_cases = 3
 test_case_args = {}
 Config.PLOT_CIRCLES_ALONG_TRAJ = True
 
@@ -142,6 +145,10 @@ for num_agents in num_agents_to_test:
             one_env.plot_policy_name = policy
             policy_class = policies[policy]['policy']
             test_case_args['agents_policy'] = policy_class
+            if 'sensors' in policies[policy]:
+                test_case_args['agents_sensors'] = policies[policy]['sensors']
+            else:
+                test_case_args['agents_sensors'] = []
             agents = test_case_fn(**test_case_args)
             for agent in agents:
                 if 'checkpt_name' in policies[policy]:
@@ -155,7 +162,7 @@ for num_agents in num_agents_to_test:
 
             stats = store_stats(stats, policy, test_case, times_to_goal, extra_times_to_goal, collision, all_at_goal, any_stuck)
             
-            print("Test Case:", test_case)
+            print("Test Case: {} (Policy: {})".format(test_case, policy))
             if collision:
                 print("*******Collision*********")
             if not collision and not all_at_goal:
@@ -163,7 +170,7 @@ for num_agents in num_agents_to_test:
 
             print("Agents Time to goal:", times_to_goal)
             print("Agents Extra Times to goal:", extra_times_to_goal)
-            print("Total time to goal (all agents):", np.sum(times_to_goal))
+            print("Total time to goal (all agents): {:.2f}".format(np.sum(times_to_goal)))
     one_env.reset()
     if record_pickle_files:
         for policy in policies:
