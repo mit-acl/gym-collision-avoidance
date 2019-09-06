@@ -30,6 +30,16 @@ class Map():
         in_map = gx >= 0 and gy >= 0 and gx < self.map.shape[0] and gy < self.map.shape[1]
         return grid_coords, in_map
 
+    def world_coordinates_to_map_indices_vec(self, pos):
+        gxs = np.floor(self.origin_coords[0]-pos[:,:,1]/self.grid_cell_size).astype(int)
+        gys = np.floor(self.origin_coords[1]+pos[:,:,0]/self.grid_cell_size).astype(int)
+        in_map = np.logical_and.reduce((gxs >= 0, gys >= 0, gxs < self.map.shape[0], gys < self.map.shape[1]))
+        
+        not_in_map_inds = np.where(in_map == False)
+        gxs[not_in_map_inds] = -1
+        gys[not_in_map_inds] = -1
+        return gxs, gys, in_map
+
     def add_agents_to_map(self, agents):
         self.map = self.static_map.copy()
         for agent in agents:
