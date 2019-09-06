@@ -1,0 +1,16 @@
+- synthetic_pedestrian_0:
+    id: 0
+    start_x: 0.5
+    start_y: 0.0
+    goal_x: 4.0
+    goal_y: 2.0
+    policy: CADRL
+    dynamics: Unicycle
+- hololens:
+    id: 1
+    start_x: -0.2
+    start_y: -3.1
+    goal_x: -3.0
+    goal_y: 2.0
+    policy: External
+    dynamics: External

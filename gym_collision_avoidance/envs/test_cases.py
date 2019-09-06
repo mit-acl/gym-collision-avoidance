@@ -62,16 +62,18 @@ def get_testcase_two_agents_laserscanners():
               Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, PPOPolicy, UnicycleDynamics, [LaserScanSensor], 1)]
     return agents
 
-def get_testcase_random():
+def get_testcase_random(num_agents=None, side_length=None, speed_bnds=None, radius_bnds=None):
+    if num_agents is None:
+        num_agents = np.random.randint(2, Config.MAX_NUM_AGENTS_IN_ENVIRONMENT+1)
 
-    # num_agents = 3
-    side_length = 4
-    num_agents = np.random.randint(2, Config.MAX_NUM_AGENTS_IN_ENVIRONMENT+1)
-    # num_agents = np.random.randint(2, 5)
-    # num_agents = np.random.randint(2, 4)
-    # side_length = np.random.uniform(4, 8)
-    speed_bnds = [0.5, 1.5]
-    radius_bnds = [0.2, 0.8]
+    if side_length is None:
+        side_length = 4
+
+    if speed_bnds is None:
+        speed_bnds = [0.5, 1.5]
+
+    if radius_bnds is None:
+        radius_bnds = [0.2, 0.8]
 
     test_case = tc.generate_rand_test_case_multi(num_agents, side_length, speed_bnds, radius_bnds)
 
@@ -426,3 +428,32 @@ def gen_circle_test_case(num_agents, radius):
         tc[i, 2] = radius*np.cos(theta_end)
         tc[i, 3] = radius*np.sin(theta_end)
     return tc
+
+if __name__ == '__main__':
+    np.random.seed(0)
+    # speed_bnds = [0.5, 1.5]
+    speed_bnds = [1.0, 1.0]
+    radius_bnds = [0.2, 0.8]
+
+    num_test_cases = 20
+    test_cases = []
+
+    for i in range(num_test_cases):
+        num_agents = 2
+        side_length = 4
+        test_case = get_testcase_random(num_agents=num_agents, 
+                                        side_length=side_length, 
+                                        speed_bnds=speed_bnds, 
+                                        radius_bnds=radius_bnds)
+        test_cases.append(test_case)
+
+    if speed_bnds == [1., 1.]:
+        pref_speed_string = 'vpref1.0/'
+    else:
+        pref_speed_string = ''
+
+    filename = "{dir}/test_cases/{pref_speed_string}{num_agents}_agents_{num_test_cases}_cases.p".format(
+                num_agents=num_agents, num_test_cases=num_test_cases, pref_speed_string=pref_speed_string,
+                dir=os.path.dirname(os.path.realpath(__file__)))
+
+    pickle.dump(test_cases, open(filename, "wb"))
