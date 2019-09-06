@@ -120,14 +120,14 @@ def get_new_goal(pos):
     return gx, gy
 
 
-def small_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics):
+def small_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[]):
     cadrl_test_case = preset_testCases(num_agents)[test_case_index]
-    agents = cadrl_test_case_to_agents(cadrl_test_case, agents_policy=agents_policy)
+    agents = cadrl_test_case_to_agents(cadrl_test_case, agents_policy=agents_policy, agents_dynamics=agents_dynamics, agents_sensors=agents_sensors)
     return agents
 
-def full_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics):
+def full_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[]):
     cadrl_test_case = preset_testCases(num_agents, full_test_suite=True)[test_case_index]
-    agents = cadrl_test_case_to_agents(cadrl_test_case, agents_policy=agents_policy)
+    agents = cadrl_test_case_to_agents(cadrl_test_case, agents_policy=agents_policy, agents_dynamics=agents_dynamics, agents_sensors=agents_sensors)
     return agents
 
 def formation(agents, letter, num_agents=6, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics):
@@ -185,7 +185,7 @@ def formation(agents, letter, num_agents=6, agents_policy=LearningPolicy, agents
         new_agents.append(new_agent)
     return new_agents
 
-def cadrl_test_case_to_agents(test_case, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics):
+def cadrl_test_case_to_agents(test_case, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[]):
     ###############################
     # This function accepts a test_case in legacy cadrl format and converts it
     # into our new list of Agent objects. The legacy cadrl format is a list of
@@ -194,10 +194,8 @@ def cadrl_test_case_to_agents(test_case, agents_policy=LearningPolicy, agents_dy
 
     agents = []
     policies = [NonCooperativePolicy, LearningPolicy, StaticPolicy]
-    agent_dynamics_list = [UnicycleDynamics for _ in range(np.shape(test_case)[0])]
     if Config.EVALUATE_MODE or Config.PLAY_MODE:
         agent_policy_list = [agents_policy for _ in range(np.shape(test_case)[0])]
-        agent_dynamics_list = [agents_dynamics for _ in range(np.shape(test_case)[0])]
     else:
         # Random mix of agents following various policies
         # agent_policy_list = np.random.choice(policies,
@@ -213,6 +211,9 @@ def cadrl_test_case_to_agents(test_case, agents_policy=LearningPolicy, agents_dy
             random_agent_id = np.random.randint(len(agent_policy_list))
             agent_policy_list[random_agent_id] = LearningPolicy
 
+    agent_dynamics_list = [agents_dynamics for _ in range(np.shape(test_case)[0])]
+    agent_sensors_list = [agents_sensors for _ in range(np.shape(test_case)[0])]
+
     for i, agent in enumerate(test_case):
         px = agent[0]
         py = agent[1]
@@ -227,8 +228,7 @@ def cadrl_test_case_to_agents(test_case, agents_policy=LearningPolicy, agents_dy
         else:
             heading = np.random.uniform(-np.pi, np.pi)
 
-        agents.append(Agent(px, py, gx, gy, radius, pref_speed, heading, agent_policy_list[i], agent_dynamics_list[i], [], i))
-        # agents.append(Agent(px, py, gx, gy, radius, pref_speed, heading, agent_policy_list[i], agent_dynamics_list[i], [LaserScanSensor], i))
+        agents.append(Agent(px, py, gx, gy, radius, pref_speed, heading, agent_policy_list[i], agent_dynamics_list[i], agent_sensors_list[i], i))
     return agents
 
 
