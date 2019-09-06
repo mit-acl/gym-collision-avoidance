@@ -24,6 +24,7 @@ class Map():
         self.map = None # This will store the current static+dynamic map at each timestep
 
     def world_coordinates_to_map_indices(self, pos):
+        # for a single [px, py] -> [gx, gy]
         gx = int(np.floor(self.origin_coords[0]-pos[1]/self.grid_cell_size))
         gy = int(np.floor(self.origin_coords[1]+pos[0]/self.grid_cell_size))
         grid_coords = np.array([gx, gy])
@@ -31,10 +32,12 @@ class Map():
         return grid_coords, in_map
 
     def world_coordinates_to_map_indices_vec(self, pos):
+        # for a 3d array of [[[px, py]]] -> gx=[...], gy=[...]
         gxs = np.floor(self.origin_coords[0]-pos[:,:,1]/self.grid_cell_size).astype(int)
         gys = np.floor(self.origin_coords[1]+pos[:,:,0]/self.grid_cell_size).astype(int)
         in_map = np.logical_and.reduce((gxs >= 0, gys >= 0, gxs < self.map.shape[0], gys < self.map.shape[1]))
         
+        # gxs, gys filled to -1 if outside map to ensure you don't query pts outside map
         not_in_map_inds = np.where(in_map == False)
         gxs[not_in_map_inds] = -1
         gys[not_in_map_inds] = -1
