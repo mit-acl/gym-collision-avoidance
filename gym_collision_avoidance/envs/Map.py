@@ -33,14 +33,20 @@ class Map():
     def add_agents_to_map(self, agents):
         self.map = self.static_map.copy()
         for agent in agents:
-            [gx, gy], in_map = self.world_coordinates_to_map_indices(agent.pos_global_frame)
-            if in_map:
-                mask = self.get_agent_map_indices([gx,gy], agent.radius)
-                self.map[mask] = 255
-                # self.map[gx, gy] = 255
+            mask = self.get_agent_mask(agent.pos_global_frame, agent.radius)
+            self.map[mask] = 255
 
     def get_agent_map_indices(self, pos, radius):
         x = np.arange(0, self.map.shape[1])
         y = np.arange(0, self.map.shape[0])
         mask = (x[np.newaxis,:]-pos[1])**2 + (y[:,np.newaxis]-pos[0])**2 < (radius/self.grid_cell_size)**2
         return mask
+
+    def get_agent_mask(self, global_pos, radius):
+        [gx, gy], in_map = self.world_coordinates_to_map_indices(global_pos)
+        if in_map:
+            mask = self.get_agent_map_indices([gx,gy], radius)
+            return mask
+        else:
+            return np.zeros_like(self.map)
+

@@ -259,8 +259,8 @@ class CollisionAvoidanceEnv(gym.Env):
         else:
             static_map_filename = self.static_map_filename
 
-        x_width = 10 # meters
-        y_width = 10 # meters
+        x_width = 16 # meters
+        y_width = 16 # meters
         grid_cell_size = 0.1 # meters/grid cell
         self.map = Map(x_width, y_width, grid_cell_size, static_map_filename)
 
