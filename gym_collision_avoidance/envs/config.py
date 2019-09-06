@@ -24,10 +24,12 @@ class Config:
     TRAIN_ON_MULTIPLE_AGENTS = True
     # TRAIN_ON_MULTIPLE_AGENTS = False
 
+    LASERSCAN_LENGTH = 512 # num range readings in one scan
+
     MAX_NUM_AGENTS_IN_ENVIRONMENT = 10
     MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT = MAX_NUM_AGENTS_IN_ENVIRONMENT - 1
     # STATES_IN_OBS = ['dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agent_states', 'use_ppo'] # 2-agent net
-    STATES_IN_OBS = ['dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agents_states', 'use_ppo', 'num_other_agents'] # LSTM
+    STATES_IN_OBS = ['dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agents_states', 'use_ppo', 'num_other_agents', 'laserscan'] # LSTM
     STATES_NOT_USED_IN_POLICY = ['use_ppo', 'num_other_agents', 'other_agents_states']
     STATE_INFO_DICT = {'dist_to_goal': {'dtype': np.float32, 'size': 1, 'bounds': [-np.inf, np.inf], 'attr': 'get_agent_data("dist_to_goal")', 'std': np.array([5.], dtype=np.float32), 'mean': np.array([0.], dtype=np.float32)},
                         'radius': {'dtype': np.float32, 'size': 1, 'bounds': [0, np.inf], 'attr': 'get_agent_data("radius")', 'std': np.array([1.0], dtype=np.float32), 'mean': np.array([0.5], dtype=np.float32)},
@@ -64,7 +66,7 @@ class Config:
                             'std': np.tile(np.array([5.0, 5.0, 1.0, 1.0, 1.0, 5.0, 1.0], dtype=np.float32), (MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT, 1)),
                             'mean': np.tile(np.array([0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 1.0], dtype=np.float32), (MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT, 1)),
                             },
-                        'laserscan': {'dtype': np.float32, 'size': 20, 'bounds': [0., 10.], 'attr': 'get_sensor_data("laserscan")', 'std': 5.*np.ones((20), dtype=np.float32), 'mean': 5.*np.ones((20), dtype=np.float32)},
+                        'laserscan': {'dtype': np.float32, 'size': LASERSCAN_LENGTH, 'bounds': [0., 6.], 'attr': 'get_sensor_data("laserscan")', 'std': 5.*np.ones((LASERSCAN_LENGTH), dtype=np.float32), 'mean': 5.*np.ones((LASERSCAN_LENGTH), dtype=np.float32)},
                         'use_ppo': {
                             'dtype': np.float32,
                             'size': 1,
@@ -121,7 +123,6 @@ class Config:
     RNN_HELPER_LENGTH = 1 # num other agents
     AGENT_ID_LENGTH = 1 # id, 0/1 binary flag of which policy it's using
     IS_ON_LENGTH = 1 # 0/1 binary flag
-    LASERSCAN_LENGTH = 20 # num range readings in one scan
 
     HOST_AGENT_AVG_VECTOR = np.array([0.0, 0.0, 1.0, 0.5]) # dist to goal, heading to goal, pref speed, radius
     HOST_AGENT_STD_VECTOR = np.array([5.0, 3.14, 1.0, 1.0]) # dist to goal, heading to goal, pref speed, radius
