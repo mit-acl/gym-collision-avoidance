@@ -22,21 +22,24 @@ np.random.seed(0)
 
 Config.EVALUATE_MODE = True
 Config.PLOT_EPISODES = True
-Config.ANIMATE_EPISODES = True
+Config.ANIMATE_EPISODES = False
 start_from_last_configuration = False
 Config.DT = 0.1
+Config.NEAR_GOAL_THRESHOLD = 0.8
 
-# record_pickle_files = True
-record_pickle_files = False
+
+record_pickle_files = True
+# record_pickle_files = False
 
 # test_case_fn = tc.small_test_suite
 test_case_fn = tc.full_test_suite
+
 policies = {
-            # 'GA3C-CADRL-10': {
-            #     'policy': GA3CCADRLPolicy,
-            #     'checkpt_dir': 'IROS18',
-            #     'checkpt_name': 'network_01900000'
-            #     },
+            'GA3C-CADRL-10': {
+                'policy': GA3CCADRLPolicy,
+                'checkpt_dir': 'IROS18',
+                'checkpt_name': 'network_01900000'
+                },
             # 'GA3C-CADRL-10-AWS': {
             #     'policy': GA3CCADRLPolicy,
             #     'checkpt_dir': 'run-20190727_192048-qedrf08y',
@@ -47,12 +50,12 @@ policies = {
             #     'checkpt_dir': "run-20190727_015942-jzuhlntn",
             #     'checkpt_name': 'network_01490000'
             #     },
-            # 'CADRL': {
-            #     'policy': CADRLPolicy,
-            #     },
-            # 'RVO': {
-            #     'policy': RVOPolicy,
-            #     },
+            'CADRL': {
+                'policy': CADRLPolicy,
+                },
+            'RVO': {
+                'policy': RVOPolicy,
+                },
             'DRL-Long': {
                 'policy': DRLLongPolicy,
                 'checkpt_name': 'stage2.pth',
@@ -60,11 +63,20 @@ policies = {
                 },
             }
 
-num_agents_to_test = [2]
+num_agents_to_test = [2,3,4]
 # num_agents_to_test = [2,3,4,5,6,8,10]
-num_test_cases = 3
+num_test_cases = 100
 test_case_args = {}
 Config.PLOT_CIRCLES_ALONG_TRAJ = True
+
+vpref1 = True
+radius_bounds = [0.5, 0.5]
+if vpref1:
+    test_case_args['vpref_constraint'] = True
+    test_case_args['radius_bounds'] = radius_bounds
+    vpref1_str = 'vpref1.0_r{}-{}/'.format(radius_bounds[0], radius_bounds[1])
+else:
+    vpref1_str = ''
 
 Config.NUM_TEST_CASES = num_test_cases
 
@@ -121,7 +133,7 @@ env, one_env = create_env()
 
 for num_agents in num_agents_to_test:
 
-    plot_save_dir = os.path.dirname(os.path.realpath(__file__)) + '/results/full_test_suites/{num_agents}_agents/figs/'.format(num_agents=num_agents)
+    plot_save_dir = os.path.dirname(os.path.realpath(__file__)) + '/results/full_test_suites/{vpref1_str}{num_agents}_agents/figs/'.format(vpref1_str=vpref1_str, num_agents=num_agents)
     os.makedirs(plot_save_dir, exist_ok=True)
     one_env.plot_save_dir = plot_save_dir
 
@@ -174,7 +186,7 @@ for num_agents in num_agents_to_test:
     one_env.reset()
     if record_pickle_files:
         for policy in policies:
-            file_dir = os.path.dirname(os.path.realpath(__file__)) + '/results/full_test_suites/'
+            file_dir = os.path.dirname(os.path.realpath(__file__)) + '/results/full_test_suites/{vpref1_str}'.format(vpref1_str=vpref1_str)
             file_dir += '{num_agents}_agents/stats/'.format(num_agents=num_agents)
             os.makedirs(file_dir, exist_ok=True)
             fname = file_dir+policy+'.p'

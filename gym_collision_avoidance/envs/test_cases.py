@@ -122,17 +122,25 @@ def get_new_goal(pos):
     return gx, gy
 
 
-def small_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[]):
+def small_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[], vpref_constraint=False, radius_bnds=None):
     cadrl_test_case = preset_testCases(num_agents)[test_case_index]
     agents = cadrl_test_case_to_agents(cadrl_test_case, agents_policy=agents_policy, agents_dynamics=agents_dynamics, agents_sensors=agents_sensors)
     return agents
 
-def full_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[], vpref_constraint=False):
-    cadrl_test_case = preset_testCases(num_agents, full_test_suite=True, vpref_constraint=vpref_constraint)[test_case_index]
+def full_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[], vpref_constraint=False, radius_bounds=None):
+    cadrl_test_case = preset_testCases(num_agents, full_test_suite=True, vpref_constraint=vpref_constraint, radius_bounds=radius_bounds)[test_case_index]
     agents = cadrl_test_case_to_agents(cadrl_test_case, agents_policy=agents_policy, agents_dynamics=agents_dynamics, agents_sensors=agents_sensors)
+    ### UNDO THESE
+    # print("init_pose_list = {}".format([[agent.pos_global_frame[0], agent.pos_global_frame[1], agent.heading_global_frame] for agent in agents]))
+    # print("goal_list = {}".format([[agent.goal_global_frame[0], agent.goal_global_frame[1]] for agent in agents]))
+    # for agent in agents:
+    #     print("agent( pose [{} {} {} {}] )".format(agent.pos_global_frame[0], agent.pos_global_frame[1], 0.0, agent.heading_global_frame*180/np.pi))
+    # for agent in agents:
+    #     agent.radius = 0.1
+    ### UNDO THESE
     return agents
 
-def formation(agents, letter, num_agents=6, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics):
+def formation(agents, letter, num_agents=6, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[]):
     formations = {
         'A': 2*np.array([
               [-1.5, 0.0], # A
@@ -183,8 +191,9 @@ def formation(agents, letter, num_agents=6, agents_policy=LearningPolicy, agents
     for agent in agents:
         start_x, start_y = agent.pos_global_frame
         goal_x, goal_y = formations[letter][agent_inds[agent.id]]
-        new_agent = Agent(start_x, start_y, goal_x, goal_y, agent.radius, agent.pref_speed, agent.heading_global_frame, agents_policy, agents_dynamics, [], agent.id)
+        new_agent = Agent(start_x, start_y, goal_x, goal_y, agent.radius, agent.pref_speed, agent.heading_global_frame, agents_policy, agents_dynamics, agents_sensors, agent.id)
         new_agents.append(new_agent)
+        print(agent.radius, agent.pref_speed)
     return new_agents
 
 def cadrl_test_case_to_agents(test_case, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[]):
@@ -234,12 +243,12 @@ def cadrl_test_case_to_agents(test_case, agents_policy=LearningPolicy, agents_dy
     return agents
 
 
-def preset_testCases(num_agents, full_test_suite=False, vpref_constraint=False):
+def preset_testCases(num_agents, full_test_suite=False, vpref_constraint=False, radius_bounds=None):
     if full_test_suite:
-        num_test_cases = 20
+        num_test_cases = 500
 
         if vpref_constraint:
-            pref_speed_string = 'vpref1.0/'
+            pref_speed_string = 'vpref1.0_r{}-{}/'.format(radius_bounds[0], radius_bounds[1])
         else:
             pref_speed_string = ''
 
@@ -439,11 +448,12 @@ if __name__ == '__main__':
     np.random.seed(0)
     # speed_bnds = [0.5, 1.5]
     speed_bnds = [1.0, 1.0]
-    radius_bnds = [0.2, 0.8]
-    num_agents = 2
+    # radius_bnds = [0.2, 0.8]
+    radius_bnds = [0.1, 0.1]
+    num_agents = 4
     side_length = 4
 
-    num_test_cases = 20
+    num_test_cases = 500
     test_cases = []
 
     for i in range(num_test_cases):
@@ -451,13 +461,15 @@ if __name__ == '__main__':
         test_cases.append(test_case)
 
     if speed_bnds == [1., 1.]:
-        pref_speed_string = 'vpref1.0/'
+        pref_speed_string = 'vpref1.0_r{}-{}/'.format(radius_bnds[0], radius_bnds[1])
     else:
         pref_speed_string = ''
 
     filename = test_case_filename.format(
                 num_agents=num_agents, num_test_cases=num_test_cases, pref_speed_string=pref_speed_string,
                 dir=os.path.dirname(os.path.realpath(__file__)))
+
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
 
     pickle.dump(test_cases, open(filename, "wb"))
 

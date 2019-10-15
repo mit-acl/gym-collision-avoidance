@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 
 from gym_collision_avoidance.envs.config import Config
 from gym_collision_avoidance.envs.util import find_nearest, rgba2rgb
-from gym_collision_avoidance.envs.visualize import plot_episode
+from gym_collision_avoidance.envs.visualize import plot_episode, animate_episode
 from gym_collision_avoidance.envs.agent import Agent
 from gym_collision_avoidance.envs.Map import Map
 from gym_collision_avoidance.envs import test_cases as tc
@@ -153,7 +153,11 @@ class CollisionAvoidanceEnv(gym.Env):
         next_observations = self._get_obs()
 
         if Config.ANIMATE_EPISODES and self.episode_step_number % 5 == 0:
-            plot_episode(self.agents, False, self.map, self.test_case_index, circles_along_traj=Config.PLOT_CIRCLES_ALONG_TRAJ, plot_save_dir=self.plot_save_dir, plot_policy_name=self.plot_policy_name)
+            plot_episode(self.agents, False, self.map, self.test_case_index,
+                circles_along_traj=Config.PLOT_CIRCLES_ALONG_TRAJ,
+                plot_save_dir=self.plot_save_dir,
+                plot_policy_name=self.plot_policy_name,
+                save_for_animation=True)
 
         # Check which agents' games are finished (at goal/collided/out of time)
         which_agents_done, game_over = self._check_which_agents_done()
@@ -178,6 +182,8 @@ class CollisionAvoidanceEnv(gym.Env):
     def reset(self):
         if self.episode_step_number is not None and self.episode_step_number > 0 and Config.PLOT_EPISODES and self.test_case_index >= 0:
             plot_episode(self.agents, self.evaluate, self.map, self.test_case_index, self.id, circles_along_traj=Config.PLOT_CIRCLES_ALONG_TRAJ, plot_save_dir=self.plot_save_dir, plot_policy_name=self.plot_policy_name)
+            if Config.ANIMATE_EPISODES:
+                animate_episode(num_agents=len(self.agents), plot_save_dir=self.plot_save_dir, plot_policy_name=self.plot_policy_name, test_case_index=self.test_case_index)
             self.episode_number += 1
         self.begin_episode = True
         self.episode_step_number = 0

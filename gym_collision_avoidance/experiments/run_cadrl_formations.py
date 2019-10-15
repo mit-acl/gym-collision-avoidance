@@ -18,31 +18,28 @@ np.random.seed(0)
 
 Config.EVALUATE_MODE = True
 Config.PLOT_EPISODES = True
-Config.ANIMATE_EPISODES = False
+Config.ANIMATE_EPISODES = True
 start_from_last_configuration = True
 Config.DT = 0.1
+Config.NEAR_GOAL_THRESHOLD = 0.2
 
 # record_pickle_files = True
 record_pickle_files = False
 
-if start_from_last_configuration:
-    record_pickle_files = False
-    test_case_fn = tc.formation
-    # policies = [RVOPolicy]
-    policies = [GA3CCADRLPolicy]
-    # policies = [PPOCADRLPolicy]
-    num_agents_to_test = [6]
-else:
-    # test_case_fn = tc.small_test_suite
-    test_case_fn = tc.full_test_suite
-    # policies = [CADRLPolicy]
-    # policies = [GA3CCADRLPolicy]
-    # policies = [PPOCADRLPolicy, GA3CCADRLPolicy]
-    # policies = [PPOCADRLPolicy, RVOPolicy, CADRLPolicy, GA3CCADRLPolicy]
-    # num_agents_to_test = [2,3,4]
-    # num_agents_to_test = [5, 6, 8, 10]
+num_agents_to_test = [6]
+
+test_case_fn = tc.formation
+
 test_case_args = {}
 num_test_cases = Config.NUM_TEST_CASES
+
+policies = {
+            'GA3C-CADRL-10': {
+                'policy': GA3CCADRLPolicy,
+                'checkpt_dir': 'IROS18',
+                'checkpt_name': 'network_01900000'
+                },
+            }
 
 letters = ['C', 'A', 'D', 'R', 'L']
 # letters = ['A', 'C', 'L']
@@ -117,12 +114,18 @@ for num_agents in num_agents_to_test:
             test_case_args['test_case_index'] = test_case
         for policy in policies:
             print('-------')
-            test_case_args['agents_policy'] = policy
+            one_env.plot_policy_name = policy
+            policy_class = policies[policy]['policy']
+            test_case_args['agents_policy'] = policy_class
+            if 'sensors' in policies[policy]:
+                test_case_args['agents_sensors'] = policies[policy]['sensors']
+            else:
+                test_case_args['agents_sensors'] = []
             agents = test_case_fn(**test_case_args)
             for agent in agents:
-                if isinstance(agent.policy, PPOCADRLPolicy):
+                if 'checkpt_name' in policies[policy]:
                     agent.policy.env = env
-                    agent.policy.initialize_network()
+                    agent.policy.initialize_network(**policies[policy])
             one_env.set_agents(agents)
             one_env.test_case_index = test_case
             init_obs = env.reset()

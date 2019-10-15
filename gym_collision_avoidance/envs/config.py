@@ -23,6 +23,7 @@ class Config:
     EVALUATE_MODE       = True # Enable to see the trained agent in action (for testing)
     TRAIN_ON_MULTIPLE_AGENTS = True
     # TRAIN_ON_MULTIPLE_AGENTS = False
+    NEAR_GOAL_THRESHOLD = 0.2
 
     LASERSCAN_LENGTH = 512 # num range readings in one scan
 

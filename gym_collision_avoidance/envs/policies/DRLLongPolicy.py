@@ -12,21 +12,7 @@ import torch
 import torch.nn as nn
 from collections import deque
 
-MAX_EPISODES = 5000
-LASER_BEAM = 512
 LASER_HIST = 3
-HORIZON = 200
-GAMMA = 0.99
-LAMDA = 0.95
-BATCH_SIZE = 512
-EPOCH = 3
-COEFF_ENTROPY = 5e-4
-CLIP_VALUE = 0.1
-NUM_ENV = 50
-OBS_SIZE = 512
-ACT_SIZE = 2
-LEARNING_RATE = 5e-5
-
 
 class DRLLongPolicy(Policy):
     def __init__(self):
@@ -60,6 +46,8 @@ class DRLLongPolicy(Policy):
         self.nn = policy
         self.action_bound = [[0, -1], [1, 1]]
 
+        # self.count = 0 ### DELETE later
+
     def find_next_action(self, obs, agents, i):
         host_agent = agents[i]
         other_agents = agents[:i]+agents[i+1:]
@@ -83,6 +71,16 @@ class DRLLongPolicy(Policy):
 
         state = [self.obs_stack, goal, speed]
         state_list = [state]
+        # print('---')
+        # print(state[1])
+        # print(obs['laserscan'])
+
+        # self.count += 1
+        # if self.count == 2:
+        #     import pickle
+        #     with open('/home/mfe/code/scan_gym.p', 'wb') as f:
+        #         pickle.dump(self.obs_stack, f, protocol=2)
+        #     assert(0)
 
         mean, scaled_action = generate_action_no_sampling(env=None, state_list=state_list,
                                                policy=self.nn, action_bound=self.action_bound)
@@ -91,7 +89,15 @@ class DRLLongPolicy(Policy):
         delta_heading = vw*Config.DT
         action = np.array([vx, delta_heading])
 
-        # TODO: Account for pref_speed??????
+        # action = self.near_goal_smoother(host_agent.dist_to_goal, host_agent.pref_speed, host_agent.heading_global_frame, action)
 
-        # action = np.array([host_agent.pref_speed*raw_action[0], raw_action[1]])
+        # Note: I think it's impossible to account for pref_speed, as the network
+        # is trained to output 0-1m/s. If we scaled it by pref_speed, it
+        # would be unfair...
+        # consider the example:
+        # - agent is crossing perpindicular to ego agent
+        # - network decides to go full speed to cut in front of agent
+        # - we clip speed to be pref_speed (say 0.3m/s)
+        # - collision
+        # - network would have gone behind at low speed if it knew about clipping
         return action

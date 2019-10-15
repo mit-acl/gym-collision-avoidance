@@ -45,12 +45,12 @@ class Agent(object):
         self.pref_speed = pref_speed
         self.id = id
         self.dist_to_goal = 0.0
-        self.near_goal_threshold = 0.2
+        self.near_goal_threshold = Config.NEAR_GOAL_THRESHOLD
 
 
         self.straight_line_time_to_reach_goal = (np.linalg.norm(self.pos_global_frame - self.goal_global_frame) - self.near_goal_threshold)/self.pref_speed
         if Config.EVALUATE_MODE or Config.PLAY_MODE:
-            self.time_remaining_to_reach_goal = 4*self.straight_line_time_to_reach_goal
+            self.time_remaining_to_reach_goal = 8*self.straight_line_time_to_reach_goal
         else:
             self.time_remaining_to_reach_goal = 5*self.straight_line_time_to_reach_goal
         self.t = 0.0
@@ -284,7 +284,8 @@ class Agent(object):
         self.num_other_agents_observed = other_agent_count
 
     def get_sensor_data(self, sensor_name):
-        return self.sensor_data[sensor_name]
+        if sensor_name in self.sensor_data:
+            return self.sensor_data[sensor_name]
 
     def get_agent_data(self, attribute):
         return getattr(self, attribute)

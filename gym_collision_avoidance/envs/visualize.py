@@ -4,7 +4,10 @@ import matplotlib.pyplot as plt
 import matplotlib
 import os
 import matplotlib.patches as ptch
+import glob
+import imageio
 
+import moviepy.editor as mp
 
 matplotlib.rcParams.update({'font.size': 24})
 
@@ -17,17 +20,80 @@ plt_colors.append([0.9290, 0.6940, 0.1250])  # orange
 plt_colors.append([0.3010, 0.7450, 0.9330])  # cyan
 plt_colors.append([0.6350, 0.0780, 0.1840])  # chocolate
 
-def plot_episode(agents, in_evaluate_mode, env_map=None, test_case_index=0, env_id=0, circles_along_traj=True, plot_save_dir=None, plot_policy_name=None):
-    if max([agent.step_num for agent in agents]) == 0:
-        return
-    
+def get_plot_save_dir(plot_save_dir, plot_policy_name):
     if plot_save_dir is None:
         plot_save_dir = os.path.dirname(os.path.realpath(__file__)) + '/../logs/test_cases/'
         os.makedirs(plot_save_dir, exist_ok=True)
     if plot_policy_name is None:
         plot_policy_name = agents[0].policy.str
 
+    base_fig_name = "{test_case}_{policy}_{num_agents}agents{step}.{extension}"
+    return plot_save_dir, plot_policy_name, base_fig_name
+
+def animate_episode(num_agents, plot_save_dir=None, plot_policy_name=None, test_case_index=0):
+    plot_save_dir, plot_policy_name, base_fig_name = get_plot_save_dir(plot_save_dir, plot_policy_name)
+    
+    # Load all images of the current episode (each animation)
+    fig_name = base_fig_name.format(
+            policy=plot_policy_name,
+            num_agents = num_agents,
+            test_case = str(test_case_index).zfill(3),
+            step="_*",
+            extension='png')
+    last_fig_name = base_fig_name.format(
+            policy=plot_policy_name,
+            num_agents = num_agents,
+            test_case = str(test_case_index).zfill(3),
+            step="",
+            extension='png')
+    all_filenames = plot_save_dir+fig_name
+    last_filename = plot_save_dir+last_fig_name
+    
+    # Dump all those images into a gif (sorted by timestep)
+    filenames = glob.glob(all_filenames)
+    filenames.sort()
+    images = []
+    for filename in filenames:
+        images.append(imageio.imread(filename))
+        os.remove(filename)
+    for i in range(10):
+        images.append(imageio.imread(last_filename))
+
+    # Save the gif in a new animations sub-folder
+    animation_filename = base_fig_name.format(
+            policy=plot_policy_name,
+            num_agents = num_agents,
+            test_case = str(test_case_index).zfill(3),
+            step="",
+            extension='gif')
+    animation_save_dir = plot_save_dir+"animations/"
+    os.makedirs(animation_save_dir, exist_ok=True)
+    animation_filename = animation_save_dir+animation_filename
+    imageio.mimsave(animation_filename, images)
+
+    # convert .gif to .mp4
+    clip = mp.VideoFileClip(animation_filename)
+    clip.write_videofile(animation_filename[:-4]+".mp4")
+
+
+
+def plot_episode(agents, in_evaluate_mode,
+    env_map=None, test_case_index=0, env_id=0,
+    circles_along_traj=True, plot_save_dir=None, plot_policy_name=None,
+    save_for_animation=False):
+    if max([agent.step_num for agent in agents]) == 0:
+        return
+
+    plot_save_dir, plot_policy_name, base_fig_name = get_plot_save_dir(plot_save_dir, plot_policy_name)
+
     fig = plt.figure(env_id, figsize=(10, 8))
+
+    xlim = ylim = 1
+    if xlim is not None and ylim is not None:
+        fig = plt.figure(env_id, figsize=(10, 10))
+    else:
+        fig = plt.figure(env_id, figsize=(10, 8))
+
     plt.clf()
 
     ax = fig.add_subplot(1, 1, 1)
@@ -130,7 +196,7 @@ def plot_episode(agents, in_evaluate_mode, env_map=None, test_case_index=0, env_
     # plt.title(title_string)
     plt.xlabel('x (m)')
     plt.ylabel('y (m)')
-    ax.axis('equal')
+
 
     # plotting style (only show axis on bottom and left)
     ax.spines['top'].set_visible(False)
@@ -139,16 +205,34 @@ def plot_episode(agents, in_evaluate_mode, env_map=None, test_case_index=0, env_
     ax.xaxis.set_ticks_position('bottom')
 
     plt.draw()
+
+    if xlim is not None and ylim is not None:
+        plt.xlim([-5,6])
+        plt.ylim([-2,7])
+    else:
+        ax.axis('equal')
+
     if in_evaluate_mode:
-        fig_name = "{test_case}_{policy}_{num_agents}agents.png".format(
+        fig_name = base_fig_name.format(
             policy=plot_policy_name,
             num_agents = len(agents),
-            test_case = str(test_case_index).zfill(3))
+            test_case = str(test_case_index).zfill(3),
+            step="",
+            extension='png')
         filename = plot_save_dir+fig_name
         plt.savefig(filename)
-    plt.pause(0.0001)
-    # plt.pause(1.0)
 
+    if save_for_animation:
+        fig_name = base_fig_name.format(
+            policy=plot_policy_name,
+            num_agents = len(agents),
+            test_case = str(test_case_index).zfill(3),
+            step="_"+"{:06.1f}".format(max_time),
+            extension='png')
+        filename = plot_save_dir+fig_name
+        plt.savefig(filename)
+
+    plt.pause(0.0001)
 
     # def render(self, mode='human', close=False):
     #     if not Config.ANIMATE_EPISODES:
