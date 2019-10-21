@@ -62,7 +62,7 @@ def get_testcase_two_agents_laserscanners():
               Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, PPOPolicy, UnicycleDynamics, [LaserScanSensor], 1)]
     return agents
 
-def get_testcase_random(num_agents=None, side_length=None, speed_bnds=None, radius_bnds=None):
+def get_testcase_random(num_agents=None, side_length=None, speed_bnds=None, radius_bnds=None, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[]):
     if num_agents is None:
         num_agents = np.random.randint(2, Config.MAX_NUM_AGENTS_IN_ENVIRONMENT+1)
 
@@ -75,9 +75,25 @@ def get_testcase_random(num_agents=None, side_length=None, speed_bnds=None, radi
     if radius_bnds is None:
         radius_bnds = [0.2, 0.8]
 
-    test_case = tc.generate_rand_test_case_multi(num_agents, side_length, speed_bnds, radius_bnds)
+    cadrl_test_case = tc.generate_rand_test_case_multi(num_agents, side_length, speed_bnds, radius_bnds)
 
-    agents = cadrl_test_case_to_agents(test_case)
+    agents = cadrl_test_case_to_agents(cadrl_test_case,
+        agents_policy=agents_policy,
+        agents_dynamics=agents_dynamics,
+        agents_sensors=agents_sensors)
+    return agents
+
+def get_testcase_2agents_swap(test_case_index, num_test_cases=10, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[]):
+    pref_speed = 1.0
+    radius = 0.5
+    goal_x = 3
+    goal_y = 0
+
+    total_delta = 3.
+    offset = (test_case_index - num_test_cases/2.) / (num_test_cases/total_delta)
+
+    agents = [Agent(-goal_x, -goal_y, goal_x, goal_y+offset, radius, pref_speed, None, agents_policy, agents_dynamics, agents_sensors, 0),
+              Agent(goal_x, goal_y, -goal_x, -goal_y, radius, pref_speed, None, agents_policy, agents_dynamics, agents_sensors, 1)]
     return agents
 
 def get_testcase_easy():

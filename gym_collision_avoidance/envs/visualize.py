@@ -88,7 +88,7 @@ def plot_episode(agents, in_evaluate_mode,
 
     fig = plt.figure(env_id, figsize=(10, 8))
 
-    xlim = ylim = 1
+    xlim = ylim = None
     if xlim is not None and ylim is not None:
         fig = plt.figure(env_id, figsize=(10, 10))
     else:

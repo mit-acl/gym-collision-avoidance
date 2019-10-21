@@ -23,7 +23,12 @@ class Agent(object):
         self.goal_global_frame = np.array([goal_x, goal_y], dtype='float64')
         self.vel_global_frame = np.array([0.0, 0.0], dtype='float64')
         self.speed_global_frame = 0.0
-        self.heading_global_frame = initial_heading
+
+        if initial_heading is None:
+            vec_to_goal = self.goal_global_frame - self.pos_global_frame
+            self.heading_global_frame = np.arctan2(vec_to_goal[1], vec_to_goal[0])
+        else:
+            self.heading_global_frame = initial_heading
         self.delta_heading_global_frame = 0.0
 
         # Ego Frame states
