@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-source $DIR/setup_env.sh
+source $DIR/utils.sh
 
 # Train tf 
 print_header "Running Formation Experiment"
