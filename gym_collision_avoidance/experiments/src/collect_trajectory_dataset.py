@@ -4,7 +4,7 @@ import pickle
 
 from gym_collision_avoidance.envs.config import Config
 import gym_collision_avoidance.envs.test_cases as tc
-from gym_collision_avoidance.experiments.env_utils import run_episode, create_env
+from gym_collision_avoidance.experiments.src.env_utils import run_episode, create_env
 
 from gym_collision_avoidance.envs.policies.PPOCADRLPolicy import PPOCADRLPolicy
 from gym_collision_avoidance.envs.policies.RVOPolicy import RVOPolicy

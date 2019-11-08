@@ -10,6 +10,7 @@ class PPOCADRLPolicy(Policy):
     def __init__(self):
         Policy.__init__(self, str="PPO_CADRL")
         self.is_still_learning = False
+        self.ppo_or_learning_policy = True
 
     def initialize_network(self, **kwargs):
         if 'checkpt_name' in kwargs:

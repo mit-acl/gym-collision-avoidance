@@ -5,6 +5,7 @@ class Policy(object):
     def __init__(self, str="NoPolicy"):
         self.str = str
         self.is_still_learning = False
+        self.ppo_or_learning_policy = False
 
     def find_next_action(self, agents):
         raise NotImplementedError

@@ -9,3 +9,5 @@ logs
 .vscode
 
 gym_collision_avoidance/experiments/results
+
+venv

@@ -3,10 +3,8 @@ from gym_collision_avoidance.envs.agent import Agent
 
 from gym_collision_avoidance.envs.policies.StaticPolicy import StaticPolicy
 from gym_collision_avoidance.envs.policies.NonCooperativePolicy import NonCooperativePolicy
-from gym_collision_avoidance.envs.policies.RVOPolicy import RVOPolicy
 from gym_collision_avoidance.envs.policies.CADRLPolicy import CADRLPolicy
 from gym_collision_avoidance.envs.policies.GA3CCADRLPolicy import GA3CCADRLPolicy
-from gym_collision_avoidance.envs.policies.PPOCADRLPolicy import PPOCADRLPolicy
 from gym_collision_avoidance.envs.policies.ExternalPolicy import ExternalPolicy
 from gym_collision_avoidance.envs.policies.LearningPolicy import LearningPolicy
 from gym_collision_avoidance.envs.dynamics.UnicycleDynamics import UnicycleDynamics
@@ -209,7 +207,6 @@ def formation(agents, letter, num_agents=6, agents_policy=LearningPolicy, agents
         goal_x, goal_y = formations[letter][agent_inds[agent.id]]
         new_agent = Agent(start_x, start_y, goal_x, goal_y, agent.radius, agent.pref_speed, agent.heading_global_frame, agents_policy, agents_dynamics, agents_sensors, agent.id)
         new_agents.append(new_agent)
-        print(agent.radius, agent.pref_speed)
     return new_agents
 
 def cadrl_test_case_to_agents(test_case, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[]):

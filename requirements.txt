@@ -1,0 +1,11 @@
+tensorflow==1.14.0
+Pillow
+PyOpenGL
+pyyaml
+matplotlib==2.1.2
+shapely
+pytz
+imageio==2.4.1
+gym
+moviepy
+baselines

@@ -6,6 +6,7 @@ class LearningPolicy(Policy):
     def __init__(self):
         Policy.__init__(self, str="learning")
         self.is_still_learning = True
+        self.ppo_or_learning_policy = True
 
     def network_output_to_action(self, agent, network_output):
         # network_output: [speed scaling btwn 0-1, max heading angle delta btwn 0-1]

@@ -1,8 +1,9 @@
 import gym
 import numpy as np
+from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 
 
-__all__ = ['FlattenDictWrapper', 'MultiagentFlattenDictWrapper']
+__all__ = ['FlattenDictWrapper', 'MultiagentFlattenDictWrapper', 'MultiagentDummyVecEnv']
 
 class MultiagentFlattenDictWrapper(gym.ObservationWrapper):
     """Flattens selected keys of a Dict observation space into
@@ -94,3 +95,10 @@ class MultiagentFlattenDictWrapper(gym.ObservationWrapper):
 class FlattenDictWrapper(MultiagentFlattenDictWrapper):
     def __init__(self, env, dict_keys):
         super(FlattenDictWrapper, self).__init__(env, dict_keys, max_num_agents=1)
+
+class MultiagentDummyVecEnv(DummyVecEnv):
+    def __init__(self, env_fns):
+        DummyVecEnv.__init__(self, env_fns)
+
+        self.buf_dones = np.zeros((self.num_envs,), dtype=np.ndarray)
+        self.buf_rews  = np.zeros((self.num_envs,), dtype=np.ndarray)

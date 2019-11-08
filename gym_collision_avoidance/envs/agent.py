@@ -1,15 +1,8 @@
 import numpy as np
 from gym_collision_avoidance.envs.config import Config
 from gym_collision_avoidance.envs.util import wrap, find_nearest
-from gym_collision_avoidance.envs.policies.ExternalPolicy import ExternalPolicy
-from gym_collision_avoidance.envs.policies.LearningPolicy import LearningPolicy
-from gym_collision_avoidance.envs.policies.PPOCADRLPolicy import PPOCADRLPolicy
 import operator
 import math
-
-import matplotlib.pyplot as plt
-
-# from sensor_msgs.msg import LaserScan
 
 class Agent(object):
     def __init__(self, start_x, start_y, goal_x, goal_y, radius,
@@ -193,8 +186,6 @@ class Agent(object):
         for sensor in self.sensors:
             sensor_data = sensor.sense(agents, agent_index, top_down_map)
             self.sensor_data[sensor.name] = sensor_data
-            # plt.imshow(sensor_data)
-            # plt.pause(0.01)
 
     def _update_state_history(self):
         global_state, ego_state = self.to_vector()
@@ -315,7 +306,7 @@ class Agent(object):
         obs[0] = self.id
         # obs[1] should be 1 if using PPO, 0 otherwise,
         #  so that RL trainer can make policy updates on PPO agents only
-        obs[1] = isinstance(self.policy, PPOCADRLPolicy) or isinstance(self.policy, LearningPolicy)
+        obs[1] = self.policy.ppo_or_learning_policy
         if Config.MULTI_AGENT_ARCH == 'RNN':
             obs[Config.AGENT_ID_LENGTH] = 0
         obs[Config.AGENT_ID_LENGTH + Config.FIRST_STATE_INDEX:

@@ -98,8 +98,8 @@ class CollisionAvoidanceEnv(gym.Env):
             self.observation_space = gym.spaces.Dict({})
             for state in Config.STATES_IN_OBS:
                 self.observation_space.spaces[state] = gym.spaces.Box(Config.STATE_INFO_DICT[state]['bounds'][0]*np.ones((Config.STATE_INFO_DICT[state]['size'])),
-                                                                        Config.STATE_INFO_DICT[state]['bounds'][1]*np.ones((Config.STATE_INFO_DICT[state]['size'])),
-                                                                        dtype=Config.STATE_INFO_DICT[state]['dtype'])
+                    Config.STATE_INFO_DICT[state]['bounds'][1]*np.ones((Config.STATE_INFO_DICT[state]['size'])),
+                    dtype=Config.STATE_INFO_DICT[state]['dtype'])
                 for agent in range(Config.MAX_NUM_AGENTS_IN_ENVIRONMENT):
                     self.observation[agent][state] = np.zeros((Config.STATE_INFO_DICT[state]['size']), dtype=Config.STATE_INFO_DICT[state]['dtype'])
         except:

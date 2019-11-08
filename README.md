@@ -13,6 +13,20 @@ Reward is given to agents when arriving at the goal.
 
 ### To replicate experiments in submitted IJRR paper:
 
+```bash
+git clone --recursive <url>
+cd gym-collision-avoidance/gym_collision_avoidance
+```
+
+#### Virtualenv style (easier?)
+
+Formations (spelling out CADRL):
+```bash
+./experiments/run_cadrl_formations.sh
+```
+
+#### Docker style
+
 Start docker and move to correct dir
 ```
 docker_run_cadrl_openai
@@ -29,3 +43,35 @@ python3 run_cadrl_formations.py
 python3 run_full_test_suite.py
 python3 process_full_test_suite_pickles.py
 ```
+
+
+### Common Issues
+
+#### On OSX
+
+```
+RuntimeError: Python is not installed as a framework. The Mac OS X backend will not be able to function correctly if Python is not installed as a framework.
+```
+
+Add a line `backend: TkAgg` to `~/.matplotlib/matplotlibrc`.
+
+
+
+```
+error: Cannot compile MPI programs. Check your configuration!!!
+```
+
+Do:
+```bash
+brew install mpich
+```
+
+```
+error with matplotlib and freetype not being found
+```
+
+Do:
+```bash
+brew install pkg-config
+```
+
