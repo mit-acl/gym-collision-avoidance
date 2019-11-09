@@ -1,9 +1,9 @@
 # gym-collision-avoidance
 
 TODOS:
+- Set config option to use array obs instead of dict by default
 - Get the test suite code working
 - Get the small test suite code working
-- Set config option to use array obs instead of dict by default
 - Download on a fresh computer and test
 - Confirm RVO works
 - Confirm DRLLong works

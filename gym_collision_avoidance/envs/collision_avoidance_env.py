@@ -25,13 +25,12 @@ from gym_collision_avoidance.envs import test_cases as tc
 
 class CollisionAvoidanceEnv(gym.Env):
     metadata = {
+        # UNUSED !!
         'render.modes': ['human', 'rgb_array'],
         'video.frames_per_second': 30
     }
 
     def __init__(self):
-
-        # self.id = int(np.random.uniform(1, 1e5))
 
         # Initialize Rewards
         self._initialize_rewards()
@@ -44,26 +43,19 @@ class CollisionAvoidanceEnv(gym.Env):
         self.collision_dist = Config.COLLISION_DIST
         self.getting_close_range = Config.GETTING_CLOSE_RANGE
 
+        # Plotting Parameters
         self.evaluate = Config.EVALUATE_MODE
         self.plot_episodes = Config.PLOT_EPISODES
         self.plt_limits = Config.PLT_LIMITS
         self.plt_fig_size = Config.PLT_FIG_SIZE
         self.test_case_index = -1
 
-        # Size of domain (only used for viz)
-        self.min_x = -10.0
-        self.max_x = 10.0
-        self.min_y = -10.0
-        self.max_y = 10.0
-
-        if Config.TRAIN_ON_MULTIPLE_AGENTS:
-            self.low_state = np.zeros((Config.FULL_LABELED_STATE_LENGTH))
-            self.high_state = np.zeros((Config.FULL_LABELED_STATE_LENGTH))
-        else:
-            self.low_state = np.zeros((Config.FULL_STATE_LENGTH))
-            self.high_state = np.zeros((Config.FULL_STATE_LENGTH))
-
-        self.viewer = None
+        # if Config.TRAIN_ON_MULTIPLE_AGENTS:
+        #     self.low_state = np.zeros((Config.FULL_LABELED_STATE_LENGTH))
+        #     self.high_state = np.zeros((Config.FULL_LABELED_STATE_LENGTH))
+        # else:
+        #     self.low_state = np.zeros((Config.FULL_STATE_LENGTH))
+        #     self.high_state = np.zeros((Config.FULL_STATE_LENGTH))
 
         # Upper/Lower bounds on Actions
         self.max_heading_change = np.pi/3
@@ -195,7 +187,6 @@ class CollisionAvoidanceEnv(gym.Env):
         self.episode_step_number = 0
         self._init_agents()
         self._init_static_map()
-        self._init_env()
         for state in Config.STATES_IN_OBS:
             for agent in range(Config.MAX_NUM_AGENTS_IN_ENVIRONMENT):
                 self.observation[agent][state] = np.zeros((Config.STATE_INFO_DICT[state]['size']), dtype=Config.STATE_INFO_DICT[state]['dtype'])
@@ -206,34 +197,27 @@ class CollisionAvoidanceEnv(gym.Env):
         return
 
     def _take_action(self, actions, dt):
-        ###############################
-        # This function sends an action to each Agent object's take_action method.
-        ###############################
+        # Send the selected action to the agent's dynamics model
         for i, agent in enumerate(self.agents):
             agent.take_action(actions[i,:], dt)
 
     def _take_action2(self, actions, dt):
-        ###############################
-        # This function sends an action to each Agent object's take_action method.
-        ###############################
         num_actions_per_agent = 2  # speed, delta heading angle
         all_actions = np.zeros((len(self.agents), num_actions_per_agent), dtype=np.float32)
+
+        # Agents set their action (either from external or w/ find_next_action)
         for agent_index, agent in enumerate(self.agents):
             if agent.is_done:
                 continue
             if agent.policy.is_still_learning:
-                # print('still learning')
                 all_actions[agent_index, :] = agent.policy.network_output_to_action(agent, actions[agent_index])
-                # print(all_actions[agent_index, :])
             else:
-                # print('not still learning')
                 dict_obs = self.observation[agent_index]
                 all_actions[agent_index, :] = agent.policy.find_next_action(dict_obs, self.agents, agent_index)
-                # print(all_actions[agent_index, :])
 
+        # After all agents have selected actions, run one dynamics update
         for i, agent in enumerate(self.agents):
             agent.take_action(all_actions[i,:], dt)
-            # print(agent.pos_global_frame)
 
     def update_top_down_map(self):
         self.map.add_agents_to_map(self.agents)
@@ -389,28 +373,20 @@ class CollisionAvoidanceEnv(gym.Env):
         return which_agents_done, game_over
 
     def _get_obs(self):
-        ###############################
-        # Each agent observes the other agents in the scene and returns an observation
-        # vector in a standard format, defined in config.
-        #
-        # Outputs
-        #   - next_observations: array with each agent's observation vector, stacked
-        ###############################
 
+        # Agents have moved (states have changed), so update the map view
         self.update_top_down_map()
+
+        # Agents collect a reading from their map-based sensors
         for i, agent in enumerate(self.agents):
             agent.sense(self.agents, i, self.map)
 
-        # if Config.TRAIN_ON_MULTIPLE_AGENTS:
-        #     next_observations = np.empty([len(self.agents),
-        #                                   Config.FULL_LABELED_STATE_LENGTH])
-        # else:
-        #     next_observations = np.empty([len(self.agents),
-        #                                   Config.FULL_STATE_LENGTH])
+        # Agents fill in their element of the multiagent observation vector
         for i, agent in enumerate(self.agents):
             agent.observe_simple(self.agents)
             for state in Config.STATES_IN_OBS:
                 self.observation[i][state][:] = np.array(eval("agent." + Config.STATE_INFO_DICT[state]['attr']))
+        
         return self.observation
 
     def _initialize_rewards(self):
@@ -428,10 +404,6 @@ class CollisionAvoidanceEnv(gym.Env):
         self.min_possible_reward = np.min(self.possible_reward_values)
         self.max_possible_reward = np.max(self.possible_reward_values)
 
-    def _init_env(self, test_case=None, alg='PPO'):
-        # currently a useless method
-        return
-            
 
 if __name__ == '__main__':
     print("See example.py for a minimum working example.")

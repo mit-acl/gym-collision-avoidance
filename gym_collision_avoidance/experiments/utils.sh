@@ -14,3 +14,4 @@ export TF_CPP_MIN_LOG_LEVEL=2
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BASE_DIR=${DIR}/../..
 source $BASE_DIR/venv/bin/activate
+echo "Entered virtualenv."
