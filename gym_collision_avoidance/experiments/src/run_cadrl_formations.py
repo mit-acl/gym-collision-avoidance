@@ -17,6 +17,8 @@ Config.ANIMATE_EPISODES = True
 start_from_last_configuration = True
 Config.DT = 0.1
 Config.NEAR_GOAL_THRESHOLD = 0.2
+Config.PLT_LIMITS = [[-5, 6], [-2, 7]]
+Config.PLT_FIG_SIZE = (10,10)
 
 # record_pickle_files = True
 record_pickle_files = False

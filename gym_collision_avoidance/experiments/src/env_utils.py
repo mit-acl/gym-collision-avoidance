@@ -2,8 +2,6 @@ import gym
 import numpy as np
 from gym_collision_avoidance.envs.config import Config
 from gym_collision_avoidance.envs.wrappers import FlattenDictWrapper, MultiagentFlattenDictWrapper, MultiagentDummyVecEnv
-# from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
-from baselines import bench, logger
 
 def create_env():
     import tensorflow as tf
@@ -13,12 +11,15 @@ def create_env():
     ncpu = 1
     def make_env():
         env = gym.make("CollisionAvoidance-v0")
-        # env = bench.Monitor(env, logger.get_dir(), allow_early_resets=True)
         env = MultiagentFlattenDictWrapper(env, dict_keys=Config.STATES_IN_OBS, max_num_agents=Config.MAX_NUM_AGENTS_IN_ENVIRONMENT)
         return env
     env = MultiagentDummyVecEnv([make_env for _ in range(num_envs)])
-    # env = DummyVecEnv([make_env for _ in range(num_envs)])
     unwrapped_envs = [e.unwrapped for e in env.envs]
+    
+    # Set env id for each env
+    for i, e in enumerate(unwrapped_envs):
+        e.id = i
+    
     one_env = unwrapped_envs[0]
     return env, one_env
 

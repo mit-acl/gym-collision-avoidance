@@ -27,6 +27,9 @@ class Config:
 
     LASERSCAN_LENGTH = 512 # num range readings in one scan
 
+    PLT_LIMITS = None
+    PLT_FIG_SIZE = (10, 8)
+
     MAX_NUM_AGENTS_IN_ENVIRONMENT = 10
     MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT = MAX_NUM_AGENTS_IN_ENVIRONMENT - 1
     # STATES_IN_OBS = ['dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agent_states', 'use_ppo'] # 2-agent net

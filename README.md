@@ -1,5 +1,18 @@
 # gym-collision-avoidance
 
+TODOS:
+- Get the test suite code working
+- Get the small test suite code working
+- Set config option to use array obs instead of dict by default
+- Download on a fresh computer and test
+- Confirm RVO works
+- Confirm DRLLong works
+- Confirm CADRL works
+- Confirm example.py works
+- Confirm sensors work
+- Clean up README
+- Fix permissions on all files
+
 The [Collision Avoidance](https://bitbucket.org/mfe7/gym-collision-avoidance) is a multiagent
 domain featuring continuous state and action spaces.
 
@@ -16,6 +29,7 @@ Reward is given to agents when arriving at the goal.
 ```bash
 git clone --recursive <url>
 cd gym-collision-avoidance/gym_collision_avoidance
+./install.sh
 ```
 
 #### Virtualenv style (easier?)

@@ -31,7 +31,7 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def __init__(self):
 
-        self.id = int(np.random.uniform(1, 1e5))
+        # self.id = int(np.random.uniform(1, 1e5))
 
         # Initialize Rewards
         self._initialize_rewards()
@@ -46,6 +46,8 @@ class CollisionAvoidanceEnv(gym.Env):
 
         self.evaluate = Config.EVALUATE_MODE
         self.plot_episodes = Config.PLOT_EPISODES
+        self.plt_limits = Config.PLT_LIMITS
+        self.plt_fig_size = Config.PLT_FIG_SIZE
         self.test_case_index = -1
 
         # Size of domain (only used for viz)
@@ -157,7 +159,10 @@ class CollisionAvoidanceEnv(gym.Env):
                 circles_along_traj=Config.PLOT_CIRCLES_ALONG_TRAJ,
                 plot_save_dir=self.plot_save_dir,
                 plot_policy_name=self.plot_policy_name,
-                save_for_animation=True)
+                save_for_animation=True,
+                limits=self.plt_limits,
+                fig_size=self.plt_fig_size,
+                show=False)
 
         # Check which agents' games are finished (at goal/collided/out of time)
         which_agents_done, game_over = self._check_which_agents_done()
@@ -181,9 +186,10 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def reset(self):
         if self.episode_step_number is not None and self.episode_step_number > 0 and Config.PLOT_EPISODES and self.test_case_index >= 0:
-            plot_episode(self.agents, self.evaluate, self.map, self.test_case_index, self.id, circles_along_traj=Config.PLOT_CIRCLES_ALONG_TRAJ, plot_save_dir=self.plot_save_dir, plot_policy_name=self.plot_policy_name)
+            test_case_index = self.test_case_index - 1
+            plot_episode(self.agents, self.evaluate, self.map, test_case_index, self.id, circles_along_traj=Config.PLOT_CIRCLES_ALONG_TRAJ, plot_save_dir=self.plot_save_dir, plot_policy_name=self.plot_policy_name, limits=self.plt_limits, fig_size=self.plt_fig_size, show=True)
             if Config.ANIMATE_EPISODES:
-                animate_episode(num_agents=len(self.agents), plot_save_dir=self.plot_save_dir, plot_policy_name=self.plot_policy_name, test_case_index=self.test_case_index)
+                animate_episode(num_agents=len(self.agents), plot_save_dir=self.plot_save_dir, plot_policy_name=self.plot_policy_name, test_case_index=test_case_index)
             self.episode_number += 1
         self.begin_episode = True
         self.episode_step_number = 0
