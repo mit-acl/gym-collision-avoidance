@@ -78,7 +78,7 @@ def animate_episode(num_agents, plot_save_dir=None, plot_policy_name=None, test_
 def plot_episode(agents, in_evaluate_mode,
     env_map=None, test_case_index=0, env_id=0,
     circles_along_traj=True, plot_save_dir=None, plot_policy_name=None,
-    save_for_animation=False, limits=None, fig_size=(10,8), show=False):
+    save_for_animation=False, limits=None, fig_size=(10,8), show=False, save=False):
     if max([agent.step_num for agent in agents]) == 0:
         return
 
@@ -204,7 +204,7 @@ def plot_episode(agents, in_evaluate_mode,
     else:
         ax.axis('equal')
 
-    if in_evaluate_mode:
+    if in_evaluate_mode and save:
         fig_name = base_fig_name.format(
             policy=plot_policy_name,
             num_agents = len(agents),

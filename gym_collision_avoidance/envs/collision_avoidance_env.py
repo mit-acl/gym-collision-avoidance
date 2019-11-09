@@ -9,6 +9,7 @@ import gym.spaces
 import numpy as np
 import itertools
 import copy
+import os
 
 from gym_collision_avoidance.envs.config import Config
 from gym_collision_avoidance.envs.util import find_nearest, rgba2rgb
@@ -39,7 +40,8 @@ class CollisionAvoidanceEnv(gym.Env):
 
         # Plotting Parameters
         self.evaluate = Config.EVALUATE_MODE
-        self.plot_episodes = Config.PLOT_EPISODES
+
+        self.plot_episodes = Config.SHOW_EPISODE_PLOTS or Config.SAVE_EPISODE_PLOTS
         self.plt_limits = Config.PLT_LIMITS
         self.plt_fig_size = Config.PLT_FIG_SIZE
         self.test_case_index = -1
@@ -59,40 +61,37 @@ class CollisionAvoidanceEnv(gym.Env):
 
         ### The gym.spaces library doesn't support Python2.7 (syntax of Super().__init__())
         self.action_space_type = Config.ACTION_SPACE_TYPE
-        try:
-            if self.action_space_type == Config.discrete:
-                self.action_space = gym.spaces.Discrete(self.actions.num_actions, dtype=np.float32)
-            elif self.action_space_type == Config.continuous:
-                self.low_action = np.array([self.min_speed,
-                                            self.min_heading_change])
-                self.high_action = np.array([self.max_speed,
-                                             self.max_heading_change])
-                self.action_space = gym.spaces.Box(self.low_action, self.high_action, dtype=np.float32)
-            
+        
+        if self.action_space_type == Config.discrete:
+            self.action_space = gym.spaces.Discrete(self.actions.num_actions, dtype=np.float32)
+        elif self.action_space_type == Config.continuous:
+            self.low_action = np.array([self.min_speed,
+                                        self.min_heading_change])
+            self.high_action = np.array([self.max_speed,
+                                         self.max_heading_change])
+            self.action_space = gym.spaces.Box(self.low_action, self.high_action, dtype=np.float32)
+        
 
-            # original observation space
-            # self.observation_space = gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
-            
-            # not used...
-            # self.observation_space = np.array([gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
-                                               # for _ in range(self.num_agents)])
-            # observation_space = gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
-            
-            # single agent dict obs
-            self.observation = {}
+        # original observation space
+        # self.observation_space = gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
+        
+        # not used...
+        # self.observation_space = np.array([gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
+                                           # for _ in range(self.num_agents)])
+        # observation_space = gym.spaces.Box(self.low_state, self.high_state, dtype=np.float32)
+        
+        # single agent dict obs
+        self.observation = {}
+        for agent in range(Config.MAX_NUM_AGENTS_IN_ENVIRONMENT):
+            self.observation[agent] = {}
+
+        self.observation_space = gym.spaces.Dict({})
+        for state in Config.STATES_IN_OBS:
+            self.observation_space.spaces[state] = gym.spaces.Box(Config.STATE_INFO_DICT[state]['bounds'][0]*np.ones((Config.STATE_INFO_DICT[state]['size'])),
+                Config.STATE_INFO_DICT[state]['bounds'][1]*np.ones((Config.STATE_INFO_DICT[state]['size'])),
+                dtype=Config.STATE_INFO_DICT[state]['dtype'])
             for agent in range(Config.MAX_NUM_AGENTS_IN_ENVIRONMENT):
-                self.observation[agent] = {}
-
-            self.observation_space = gym.spaces.Dict({})
-            for state in Config.STATES_IN_OBS:
-                self.observation_space.spaces[state] = gym.spaces.Box(Config.STATE_INFO_DICT[state]['bounds'][0]*np.ones((Config.STATE_INFO_DICT[state]['size'])),
-                    Config.STATE_INFO_DICT[state]['bounds'][1]*np.ones((Config.STATE_INFO_DICT[state]['size'])),
-                    dtype=Config.STATE_INFO_DICT[state]['dtype'])
-                for agent in range(Config.MAX_NUM_AGENTS_IN_ENVIRONMENT):
-                    self.observation[agent][state] = np.zeros((Config.STATE_INFO_DICT[state]['size']), dtype=Config.STATE_INFO_DICT[state]['dtype'])
-        except:
-            print("[gym_collision_avoidance] Can't load gym spaces - probably because you're using \
-                    Python2, and Gym supports Python3 only.")
+                self.observation[agent][state] = np.zeros((Config.STATE_INFO_DICT[state]['size']), dtype=Config.STATE_INFO_DICT[state]['dtype'])
 
         self.agents = None
         self.default_agents = None
@@ -147,7 +146,8 @@ class CollisionAvoidanceEnv(gym.Env):
                 save_for_animation=True,
                 limits=self.plt_limits,
                 fig_size=self.plt_fig_size,
-                show=False)
+                show=False,
+                save=True)
 
         # Check which agents' games are finished (at goal/collided/out of time)
         which_agents_done, game_over = self._check_which_agents_done()
@@ -170,11 +170,10 @@ class CollisionAvoidanceEnv(gym.Env):
             {'which_agents_done': which_agents_done_dict}
 
     def reset(self):
-        if self.episode_step_number is not None and self.episode_step_number > 0 and Config.PLOT_EPISODES and self.test_case_index >= 0:
-            test_case_index = self.test_case_index - 1
-            plot_episode(self.agents, self.evaluate, self.map, test_case_index, self.id, circles_along_traj=Config.PLOT_CIRCLES_ALONG_TRAJ, plot_save_dir=self.plot_save_dir, plot_policy_name=self.plot_policy_name, limits=self.plt_limits, fig_size=self.plt_fig_size, show=True)
+        if self.episode_step_number is not None and self.episode_step_number > 0 and self.plot_episodes and self.test_case_index >= 0:
+            plot_episode(self.agents, self.evaluate, self.map, self.test_case_index, self.id, circles_along_traj=Config.PLOT_CIRCLES_ALONG_TRAJ, plot_save_dir=self.plot_save_dir, plot_policy_name=self.plot_policy_name, limits=self.plt_limits, fig_size=self.plt_fig_size, show=Config.SHOW_EPISODE_PLOTS, save=Config.SAVE_EPISODE_PLOTS)
             if Config.ANIMATE_EPISODES:
-                animate_episode(num_agents=len(self.agents), plot_save_dir=self.plot_save_dir, plot_policy_name=self.plot_policy_name, test_case_index=test_case_index)
+                animate_episode(num_agents=len(self.agents), plot_save_dir=self.plot_save_dir, plot_policy_name=self.plot_policy_name, test_case_index=self.test_case_index)
             self.episode_number += 1
         self.begin_episode = True
         self.episode_step_number = 0
@@ -390,6 +389,9 @@ class CollisionAvoidanceEnv(gym.Env):
         self.min_possible_reward = np.min(self.possible_reward_values)
         self.max_possible_reward = np.max(self.possible_reward_values)
 
+    def set_plot_save_dir(self, plot_save_dir):
+        os.makedirs(plot_save_dir, exist_ok=True)
+        self.plot_save_dir = plot_save_dir
 
 if __name__ == '__main__':
     print("See example.py for a minimum working example.")

@@ -31,7 +31,6 @@ class Config:
     # USE_LASERSCAN_IN_OBSERVATION = True
     USE_LASERSCAN_IN_OBSERVATION = False
     NUM_TEST_CASES = 50
-    PLOT_EPISODES = False # with matplotlib, plot after each episode
     PLOT_EVERY_N_EPISODES = 100 # for tensorboard visualization
     DT             = 0.2 # seconds between simulation time steps
     REWARD_AT_GOAL = 1.0 # reward given when agent reaches goal position

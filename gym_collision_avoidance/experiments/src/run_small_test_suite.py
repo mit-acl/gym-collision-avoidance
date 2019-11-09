@@ -7,15 +7,18 @@ from gym_collision_avoidance.envs.config import Config
 import gym_collision_avoidance.envs.test_cases as tc
 from gym_collision_avoidance.experiments.src.env_utils import run_episode, create_env, store_stats
 
-from gym_collision_avoidance.envs.policies.PPOCADRLPolicy import PPOCADRLPolicy
-from gym_collision_avoidance.envs.policies.RVOPolicy import RVOPolicy
+# from gym_collision_avoidance.envs.policies.PPOCADRLPolicy import PPOCADRLPolicy
+# from gym_collision_avoidance.envs.policies.RVOPolicy import RVOPolicy
 from gym_collision_avoidance.envs.policies.CADRLPolicy import CADRLPolicy
 from gym_collision_avoidance.envs.policies.GA3CCADRLPolicy import GA3CCADRLPolicy
+from gym_collision_avoidance.envs.sensors.OtherAgentsStatesSensor import OtherAgentsStatesSensor
+
 
 np.random.seed(0)
 
 Config.EVALUATE_MODE = True
-Config.PLOT_EPISODES = True
+Config.SAVE_EPISODE_PLOTS = True
+Config.SHOW_EPISODE_PLOTS = False
 Config.ANIMATE_EPISODES = False
 start_from_last_configuration = False
 Config.DT = 0.1
@@ -29,20 +32,24 @@ policies = {
             'GA3C-CADRL-10': {
                 'policy': GA3CCADRLPolicy,
                 'checkpt_dir': 'IROS18',
-                'checkpt_name': 'network_01900000'
+                'checkpt_name': 'network_01900000',
+                'sensors': [OtherAgentsStatesSensor]
                 },
             'GA3C-CADRL-10-AWS': {
                 'policy': GA3CCADRLPolicy,
                 'checkpt_dir': 'run-20190727_192048-qedrf08y',
-                'checkpt_name': 'network_01900000'
+                'checkpt_name': 'network_01900000',
+                'sensors': [OtherAgentsStatesSensor]
                 },
             'GA3C-CADRL-4-AWS': {
                 'policy': GA3CCADRLPolicy,
                 'checkpt_dir': "run-20190727_015942-jzuhlntn",
-                'checkpt_name': 'network_01490000'
+                'checkpt_name': 'network_01490000',
+                'sensors': [OtherAgentsStatesSensor]
                 },
             'CADRL': {
                 'policy': CADRLPolicy,
+                'sensors': [OtherAgentsStatesSensor]
                 },
             # 'RVO': {
             #     'policy': RVOPolicy,
@@ -56,15 +63,11 @@ Config.PLOT_CIRCLES_ALONG_TRAJ = True
 
 Config.NUM_TEST_CASES = num_test_cases
 
-import tensorflow as tf
-tf.Session().__enter__()
 env, one_env = create_env()
 
 for num_agents in num_agents_to_test:
 
-    plot_save_dir = os.path.dirname(os.path.realpath(__file__)) + '/results/small_test_suites/{num_agents}_agents/figs/'.format(num_agents=num_agents)
-    os.makedirs(plot_save_dir, exist_ok=True)
-    one_env.plot_save_dir = plot_save_dir
+    one_env.set_plot_save_dir(os.path.dirname(os.path.realpath(__file__)) + '/../results/small_test_suites/{num_agents}_agents/figs/'.format(num_agents=num_agents))
 
     test_case_args['num_agents'] = num_agents
     stats = {}
@@ -86,14 +89,15 @@ for num_agents in num_agents_to_test:
             one_env.plot_policy_name = policy
             policy_class = policies[policy]['policy']
             test_case_args['agents_policy'] = policy_class
+            test_case_args['agents_sensors'] = policies[policy]['sensors']
             agents = test_case_fn(**test_case_args)
             for agent in agents:
                 if 'checkpt_name' in policies[policy]:
                     agent.policy.env = env
                     agent.policy.initialize_network(**policies[policy])
             one_env.set_agents(agents)
-            one_env.test_case_index = test_case
             init_obs = env.reset()
+            one_env.test_case_index = test_case
 
             times_to_goal, extra_times_to_goal, collision, all_at_goal, any_stuck, agents = run_episode(env, one_env)
 

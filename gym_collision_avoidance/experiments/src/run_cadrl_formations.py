@@ -13,7 +13,8 @@ from gym_collision_avoidance.envs.sensors.OtherAgentsStatesSensor import OtherAg
 np.random.seed(0)
 
 Config.EVALUATE_MODE = True
-Config.PLOT_EPISODES = True
+Config.SAVE_EPISODE_PLOTS = True
+Config.SHOW_EPISODE_PLOTS = False
 Config.ANIMATE_EPISODES = True
 start_from_last_configuration = True
 Config.DT = 0.1
@@ -44,9 +45,8 @@ letters = ['C', 'A', 'D', 'R', 'L']
 
 env, one_env = create_env()
 
-plot_save_dir = os.path.dirname(os.path.realpath(__file__)) + '/../results/cadrl_formations/'
-os.makedirs(plot_save_dir, exist_ok=True)
-one_env.plot_save_dir = plot_save_dir
+one_env.set_plot_save_dir(
+    os.path.dirname(os.path.realpath(__file__)) + '/../results/cadrl_formations/')
 
 for num_agents in num_agents_to_test:
     test_case_args['num_agents'] = num_agents
@@ -76,8 +76,9 @@ for num_agents in num_agents_to_test:
                     agent.policy.env = env
                     agent.policy.initialize_network(**policies[policy])
             one_env.set_agents(agents)
-            one_env.test_case_index = test_case
+
             init_obs = env.reset()
+            one_env.test_case_index = test_case
 
             times_to_goal, extra_times_to_goal, collision, all_at_goal, any_stuck, agents = run_episode(env, one_env)
 

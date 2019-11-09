@@ -1,9 +1,7 @@
 # gym-collision-avoidance
 
 TODOS:
-- Set config option to use array obs instead of dict by default
 - Get the test suite code working
-- Get the small test suite code working
 - Get submodule init working
 - Confirm RVO works
 - Confirm DRLLong works
