@@ -4,7 +4,7 @@ TODOS:
 - Set config option to use array obs instead of dict by default
 - Get the test suite code working
 - Get the small test suite code working
-- Download on a fresh computer and test
+- Get submodule init working
 - Confirm RVO works
 - Confirm DRLLong works
 - Confirm CADRL works
@@ -12,6 +12,7 @@ TODOS:
 - Confirm sensors work
 - Clean up README
 - Fix permissions on all files
+- Download on a fresh computer and test
 
 The [Collision Avoidance](https://bitbucket.org/mfe7/gym-collision-avoidance) is a multiagent
 domain featuring continuous state and action spaces.

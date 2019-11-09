@@ -372,7 +372,7 @@ class CollisionAvoidanceEnv(gym.Env):
         # Agents fill in their element of the multiagent observation vector
         for i, agent in enumerate(self.agents):
             self.observation[i] = agent.get_observation_dict(self.agents)
-        
+
         return self.observation
 
     def _initialize_rewards(self):
