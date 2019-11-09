@@ -131,8 +131,7 @@ class CollisionAvoidanceEnv(gym.Env):
         self.episode_step_number += 1
 
         # Take action
-        self._take_action2(actions, dt)
-        # self._take_action(actions, dt)
+        self._take_action(actions, dt)
 
         # Collect rewards
         rewards = self._compute_rewards()
@@ -191,11 +190,6 @@ class CollisionAvoidanceEnv(gym.Env):
         return
 
     def _take_action(self, actions, dt):
-        # Send the selected action to the agent's dynamics model
-        for i, agent in enumerate(self.agents):
-            agent.take_action(actions[i,:], dt)
-
-    def _take_action2(self, actions, dt):
         num_actions_per_agent = 2  # speed, delta heading angle
         all_actions = np.zeros((len(self.agents), num_actions_per_agent), dtype=np.float32)
 
@@ -377,9 +371,7 @@ class CollisionAvoidanceEnv(gym.Env):
 
         # Agents fill in their element of the multiagent observation vector
         for i, agent in enumerate(self.agents):
-            agent.observe_simple(self.agents)
-            for state in Config.STATES_IN_OBS:
-                self.observation[i][state][:] = np.array(eval("agent." + Config.STATE_INFO_DICT[state]['attr']))
+            self.observation[i] = agent.get_observation_dict(self.agents)
         
         return self.observation
 

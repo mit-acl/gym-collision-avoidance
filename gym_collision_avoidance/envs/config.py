@@ -56,7 +56,7 @@ class Config:
                             'dtype': np.float32,
                             'size': (MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT,7),
                             'bounds': [-np.inf, np.inf],
-                            'attr': 'get_agent_data("other_agents_states")',
+                            'attr': 'get_sensor_data("other_agents_states")',
                             'std': np.tile(np.array([5.0, 5.0, 1.0, 1.0, 1.0, 5.0, 1.0], dtype=np.float32), (MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT, 1)),
                             'mean': np.tile(np.array([0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 1.0], dtype=np.float32), (MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT, 1)),
                             },

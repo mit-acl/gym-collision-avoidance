@@ -31,7 +31,6 @@ class Agent(object):
 
         # Store past selected actions
         self.chosen_action_dict = {}
-        self.action_time_lag = 0.0
 
         self.num_actions_to_store = 2
         self.action_dim = 2
@@ -143,23 +142,6 @@ class Agent(object):
         self.past_actions = np.roll(self.past_actions, 1, axis=0)
         self.past_actions[0, :] = action
 
-        # if self.action_time_lag > 0:
-        #     # This is a future feature... action_time_lag = 0 for now.
-        #     # Store current action in dictionary,
-        #     # then look up the past action that should be executed this step
-        #     self.chosen_action_dict[self.t] = action
-        #     timestamp_of_action_to_execute = self.t - self.action_time_lag
-        #     if timestamp_of_action_to_execute < 0:
-        #         action_to_execute = np.array([0.0, 0.0])
-        #     else:
-        #         nearest_timestamp, _ = find_nearest(np.array(
-        #             self.chosen_action_dict.keys()),
-        #             timestamp_of_action_to_execute)
-        #         action_to_execute = \
-        #             self.chosen_action_dict[nearest_timestamp[0]]
-        # else:
-        #     action_to_execute = action
-
         # In the case of ExternalDynamics, this call does nothing,
         # but set_state was called instead
         self.dynamics_model.step(action, dt)
@@ -182,6 +164,7 @@ class Agent(object):
         return
 
     def sense(self, agents, agent_index, top_down_map):
+        print("[sense] sensors:", self.sensors)
         self.sensor_data = {}
         for sensor in self.sensors:
             sensor_data = sensor.sense(agents, agent_index, top_down_map)
@@ -219,66 +202,6 @@ class Agent(object):
         ego_state = np.array([self.t, self.dist_to_goal, self.heading_ego_frame])
         return global_state, ego_state
 
-    def observe_simple(self, agents):
-        other_agent_dists = {}
-        for i, other_agent in enumerate(agents):
-            if other_agent.id == self.id:
-                continue
-            # project other elements onto the new reference frame
-            rel_pos_to_other_global_frame = other_agent.pos_global_frame - \
-                self.pos_global_frame
-            dist_between_agent_centers = np.linalg.norm(
-                    rel_pos_to_other_global_frame)
-            dist_2_other = dist_between_agent_centers - self.radius - \
-                other_agent.radius
-            if dist_between_agent_centers > Config.SENSING_HORIZON:
-                # print "Agent too far away"
-                continue
-            other_agent_dists[i] = dist_2_other
-        sorted_pairs = sorted(other_agent_dists.items(),
-                              key=operator.itemgetter(1))
-        sorted_inds = [ind for (ind, pair) in sorted_pairs]
-        sorted_inds.reverse()
-        clipped_sorted_inds = \
-            sorted_inds[-Config.MAX_NUM_OTHER_AGENTS_OBSERVED:]
-        clipped_sorted_agents = [agents[i] for i in clipped_sorted_inds]
-
-        self.other_agents_states = np.zeros((Config.MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT, 7))
-        i = 0
-        other_agent_count = 0
-        for other_agent in clipped_sorted_agents:
-            if other_agent.id == self.id:
-                continue
-            # project other elements onto the new reference frame
-            rel_pos_to_other_global_frame = other_agent.pos_global_frame - \
-                self.pos_global_frame
-            p_parallel_ego_frame = np.dot(rel_pos_to_other_global_frame,
-                                          self.ref_prll)
-            p_orthog_ego_frame = np.dot(rel_pos_to_other_global_frame,
-                                        self.ref_orth)
-            v_parallel_ego_frame = np.dot(other_agent.vel_global_frame,
-                                          self.ref_prll)
-            v_orthog_ego_frame = np.dot(other_agent.vel_global_frame,
-                                        self.ref_orth)
-            dist_2_other = np.linalg.norm(rel_pos_to_other_global_frame) - \
-                self.radius - other_agent.radius
-            combined_radius = self.radius + other_agent.radius
-
-            other_obs = np.array([p_parallel_ego_frame,
-                                  p_orthog_ego_frame,
-                                  v_parallel_ego_frame,
-                                  v_orthog_ego_frame,
-                                  other_agent.radius,
-                                  combined_radius,
-                                  dist_2_other])
-            
-            if other_agent_count == 0:
-                self.other_agent_states[:] = other_obs
-
-            self.other_agents_states[other_agent_count,:] = other_obs
-            other_agent_count += 1
-        self.num_other_agents_observed = other_agent_count
-
     def get_sensor_data(self, sensor_name):
         if sensor_name in self.sensor_data:
             return self.sensor_data[sensor_name]
@@ -289,125 +212,131 @@ class Agent(object):
     def get_agent_data_equiv(self, attribute, value):
         return eval("self."+attribute) == value
 
-    def observe(self, agents):
-        #
-        # Observation vector is as follows;
-        # [<this_agent_info>, <other_agent_1_info>, ... , <other_agent_n_info>]
-        # where <this_agent_info> = [id, dist_to_goal, heading (in ego frame)]
-        # where <other_agent_i_info> =
-        #  [pos in this agent's ego parallel coord, pos in
-        #       this agent's ego orthog coord]
+    def get_observation_dict(self, agents):
+        observation = {}
+        for state in Config.STATES_IN_OBS:
+            observation[state] = np.array(eval("self." + Config.STATE_INFO_DICT[state]['attr']))
+        return observation
 
-        obs = np.zeros((Config.FULL_LABELED_STATE_LENGTH))
+    # def observe(self, agents):
+    #     #
+    #     # Observation vector is as follows;
+    #     # [<this_agent_info>, <other_agent_1_info>, ... , <other_agent_n_info>]
+    #     # where <this_agent_info> = [id, dist_to_goal, heading (in ego frame)]
+    #     # where <other_agent_i_info> =
+    #     #  [pos in this agent's ego parallel coord, pos in
+    #     #       this agent's ego orthog coord]
 
-        # Own agent state
-        # ID is removed before inputting to NN
-        # num other agents is used to rearrange other agents into seq. by NN
-        obs[0] = self.id
-        # obs[1] should be 1 if using PPO, 0 otherwise,
-        #  so that RL trainer can make policy updates on PPO agents only
-        obs[1] = self.policy.ppo_or_learning_policy
-        if Config.MULTI_AGENT_ARCH == 'RNN':
-            obs[Config.AGENT_ID_LENGTH] = 0
-        obs[Config.AGENT_ID_LENGTH + Config.FIRST_STATE_INDEX:
-            Config.AGENT_ID_LENGTH + Config.FIRST_STATE_INDEX +
-            Config.HOST_AGENT_STATE_SIZE] = \
-            self.dist_to_goal, self.heading_ego_frame, self.pref_speed, \
-            self.radius
+    #     obs = np.zeros((Config.FULL_LABELED_STATE_LENGTH))
 
-        other_agent_dists = {}
-        for i, other_agent in enumerate(agents):
-            if other_agent.id == self.id:
-                continue
-            # project other elements onto the new reference frame
-            rel_pos_to_other_global_frame = other_agent.pos_global_frame - \
-                self.pos_global_frame
-            dist_between_agent_centers = np.linalg.norm(
-                    rel_pos_to_other_global_frame)
-            dist_2_other = dist_between_agent_centers - self.radius - \
-                other_agent.radius
-            if dist_between_agent_centers > Config.SENSING_HORIZON:
-                # print "Agent too far away"
-                continue
-            other_agent_dists[i] = dist_2_other
-        sorted_pairs = sorted(other_agent_dists.items(),
-                              key=operator.itemgetter(1))
-        sorted_inds = [ind for (ind, pair) in sorted_pairs]
-        sorted_inds.reverse()
-        clipped_sorted_inds = \
-            sorted_inds[-Config.MAX_NUM_OTHER_AGENTS_OBSERVED:]
-        clipped_sorted_agents = [agents[i] for i in clipped_sorted_inds]
+    #     # Own agent state
+    #     # ID is removed before inputting to NN
+    #     # num other agents is used to rearrange other agents into seq. by NN
+    #     obs[0] = self.id
+    #     # obs[1] should be 1 if using PPO, 0 otherwise,
+    #     #  so that RL trainer can make policy updates on PPO agents only
+    #     obs[1] = self.policy.ppo_or_learning_policy
+    #     if Config.MULTI_AGENT_ARCH == 'RNN':
+    #         obs[Config.AGENT_ID_LENGTH] = 0
+    #     obs[Config.AGENT_ID_LENGTH + Config.FIRST_STATE_INDEX:
+    #         Config.AGENT_ID_LENGTH + Config.FIRST_STATE_INDEX +
+    #         Config.HOST_AGENT_STATE_SIZE] = \
+    #         self.dist_to_goal, self.heading_ego_frame, self.pref_speed, \
+    #         self.radius
 
-        i = 0
-        for other_agent in clipped_sorted_agents:
-            if other_agent.id == self.id:
-                continue
-            # project other elements onto the new reference frame
-            rel_pos_to_other_global_frame = other_agent.pos_global_frame - \
-                self.pos_global_frame
-            p_parallel_ego_frame = np.dot(rel_pos_to_other_global_frame,
-                                          self.ref_prll)
-            p_orthog_ego_frame = np.dot(rel_pos_to_other_global_frame,
-                                        self.ref_orth)
-            v_parallel_ego_frame = np.dot(other_agent.vel_global_frame,
-                                          self.ref_prll)
-            v_orthog_ego_frame = np.dot(other_agent.vel_global_frame,
-                                        self.ref_orth)
-            dist_2_other = np.linalg.norm(rel_pos_to_other_global_frame) - \
-                self.radius - other_agent.radius
-            combined_radius = self.radius + other_agent.radius
-            is_on = 1
+    #     other_agent_dists = {}
+    #     for i, other_agent in enumerate(agents):
+    #         if other_agent.id == self.id:
+    #             continue
+    #         # project other elements onto the new reference frame
+    #         rel_pos_to_other_global_frame = other_agent.pos_global_frame - \
+    #             self.pos_global_frame
+    #         dist_between_agent_centers = np.linalg.norm(
+    #                 rel_pos_to_other_global_frame)
+    #         dist_2_other = dist_between_agent_centers - self.radius - \
+    #             other_agent.radius
+    #         if dist_between_agent_centers > Config.SENSING_HORIZON:
+    #             # print "Agent too far away"
+    #             continue
+    #         other_agent_dists[i] = dist_2_other
+    #     sorted_pairs = sorted(other_agent_dists.items(),
+    #                           key=operator.itemgetter(1))
+    #     sorted_inds = [ind for (ind, pair) in sorted_pairs]
+    #     sorted_inds.reverse()
+    #     clipped_sorted_inds = \
+    #         sorted_inds[-Config.MAX_NUM_OTHER_AGENTS_OBSERVED:]
+    #     clipped_sorted_agents = [agents[i] for i in clipped_sorted_inds]
 
-            start_index = Config.AGENT_ID_LENGTH + Config.FIRST_STATE_INDEX + \
-                Config.HOST_AGENT_STATE_SIZE + \
-                Config.OTHER_AGENT_FULL_OBSERVATION_LENGTH*i
-            end_index = Config.AGENT_ID_LENGTH + Config.FIRST_STATE_INDEX + \
-                Config.HOST_AGENT_STATE_SIZE + \
-                Config.OTHER_AGENT_FULL_OBSERVATION_LENGTH*(i+1)
+    #     i = 0
+    #     for other_agent in clipped_sorted_agents:
+    #         if other_agent.id == self.id:
+    #             continue
+    #         # project other elements onto the new reference frame
+    #         rel_pos_to_other_global_frame = other_agent.pos_global_frame - \
+    #             self.pos_global_frame
+    #         p_parallel_ego_frame = np.dot(rel_pos_to_other_global_frame,
+    #                                       self.ref_prll)
+    #         p_orthog_ego_frame = np.dot(rel_pos_to_other_global_frame,
+    #                                     self.ref_orth)
+    #         v_parallel_ego_frame = np.dot(other_agent.vel_global_frame,
+    #                                       self.ref_prll)
+    #         v_orthog_ego_frame = np.dot(other_agent.vel_global_frame,
+    #                                     self.ref_orth)
+    #         dist_2_other = np.linalg.norm(rel_pos_to_other_global_frame) - \
+    #             self.radius - other_agent.radius
+    #         combined_radius = self.radius + other_agent.radius
+    #         is_on = 1
 
-            other_obs = np.array([p_parallel_ego_frame,
-                                  p_orthog_ego_frame,
-                                  v_parallel_ego_frame,
-                                  v_orthog_ego_frame,
-                                  other_agent.radius,
-                                  combined_radius,
-                                  dist_2_other])
-            if Config.MULTI_AGENT_ARCH in ['WEIGHT_SHARING', 'VANILLA']:
-                other_obs = np.hstack([other_obs, is_on])
-            obs[start_index:end_index] = other_obs
-            i += 1
+    #         start_index = Config.AGENT_ID_LENGTH + Config.FIRST_STATE_INDEX + \
+    #             Config.HOST_AGENT_STATE_SIZE + \
+    #             Config.OTHER_AGENT_FULL_OBSERVATION_LENGTH*i
+    #         end_index = Config.AGENT_ID_LENGTH + Config.FIRST_STATE_INDEX + \
+    #             Config.HOST_AGENT_STATE_SIZE + \
+    #             Config.OTHER_AGENT_FULL_OBSERVATION_LENGTH*(i+1)
 
-        if Config.MULTI_AGENT_ARCH == 'RNN':
-            # will be used by RNN for seq_length
-            obs[Config.AGENT_ID_LENGTH] = i
-        if Config.MULTI_AGENT_ARCH in ['WEIGHT_SHARING', 'VANILLA']:
-            for j in range(i, Config.MAX_NUM_OTHER_AGENTS_OBSERVED):
-                start_index = Config.AGENT_ID_LENGTH + \
-                        Config.FIRST_STATE_INDEX + \
-                        Config.HOST_AGENT_STATE_SIZE + \
-                        Config.OTHER_AGENT_FULL_OBSERVATION_LENGTH*j
-                end_index = Config.AGENT_ID_LENGTH + \
-                    Config.FIRST_STATE_INDEX + \
-                    Config.HOST_AGENT_STATE_SIZE + \
-                    Config.OTHER_AGENT_FULL_OBSERVATION_LENGTH*(j+1)
-                other_obs[-1] = 0
-                obs[start_index:end_index] = other_obs
+    #         other_obs = np.array([p_parallel_ego_frame,
+    #                               p_orthog_ego_frame,
+    #                               v_parallel_ego_frame,
+    #                               v_orthog_ego_frame,
+    #                               other_agent.radius,
+    #                               combined_radius,
+    #                               dist_2_other])
+    #         if Config.MULTI_AGENT_ARCH in ['WEIGHT_SHARING', 'VANILLA']:
+    #             other_obs = np.hstack([other_obs, is_on])
+    #         obs[start_index:end_index] = other_obs
+    #         i += 1
 
-        if Config.USE_LASERSCAN_IN_OBSERVATION:
-            start_index = end_index
-            end_index = start_index + Config.LASERSCAN_LENGTH
-            obs[start_index:end_index] = self.latest_laserscan.ranges
+    #     if Config.MULTI_AGENT_ARCH == 'RNN':
+    #         # will be used by RNN for seq_length
+    #         obs[Config.AGENT_ID_LENGTH] = i
+    #     if Config.MULTI_AGENT_ARCH in ['WEIGHT_SHARING', 'VANILLA']:
+    #         for j in range(i, Config.MAX_NUM_OTHER_AGENTS_OBSERVED):
+    #             start_index = Config.AGENT_ID_LENGTH + \
+    #                     Config.FIRST_STATE_INDEX + \
+    #                     Config.HOST_AGENT_STATE_SIZE + \
+    #                     Config.OTHER_AGENT_FULL_OBSERVATION_LENGTH*j
+    #             end_index = Config.AGENT_ID_LENGTH + \
+    #                 Config.FIRST_STATE_INDEX + \
+    #                 Config.HOST_AGENT_STATE_SIZE + \
+    #                 Config.OTHER_AGENT_FULL_OBSERVATION_LENGTH*(j+1)
+    #             other_obs[-1] = 0
+    #             obs[start_index:end_index] = other_obs
 
-        #  Only adds previous 1 action to state vector
-        # past_actions = self.past_actions[1:3,:].flatten()
-        # obs = np.hstack([obs, past_actions])
+    #     if Config.USE_LASERSCAN_IN_OBSERVATION:
+    #         start_index = end_index
+    #         end_index = start_index + Config.LASERSCAN_LENGTH
+    #         obs[start_index:end_index] = self.latest_laserscan.ranges
 
-        if Config.TRAIN_ON_MULTIPLE_AGENTS:
-            return obs
-        else:
-            # if only one agent is being trained on,
-            # the agent's ID is irrelevant (always 0), so cut it off obs vector
-            return obs[2:]
+    #     #  Only adds previous 1 action to state vector
+    #     # past_actions = self.past_actions[1:3,:].flatten()
+    #     # obs = np.hstack([obs, past_actions])
+
+    #     if Config.TRAIN_ON_MULTIPLE_AGENTS:
+    #         return obs
+    #     else:
+    #         # if only one agent is being trained on,
+    #         # the agent's ID is irrelevant (always 0), so cut it off obs vector
+    #         return obs[2:]
 
     def get_ref(self):
         #

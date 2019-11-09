@@ -12,6 +12,7 @@ from gym_collision_avoidance.envs.dynamics.UnicycleDynamicsMaxTurnRate import Un
 from gym_collision_avoidance.envs.dynamics.ExternalDynamics import ExternalDynamics
 from gym_collision_avoidance.envs.sensors.OccupancyGridSensor import OccupancyGridSensor
 from gym_collision_avoidance.envs.sensors.LaserScanSensor import LaserScanSensor
+from gym_collision_avoidance.envs.sensors.OtherAgentsStatesSensor import OtherAgentsStatesSensor
 from gym_collision_avoidance.envs.config import Config
 
 import os
@@ -154,7 +155,7 @@ def full_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, a
     ### UNDO THESE
     return agents
 
-def formation(agents, letter, num_agents=6, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[]):
+def formation(agents, letter, num_agents=6, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor]):
     formations = {
         'A': 2*np.array([
               [-1.5, 0.0], # A

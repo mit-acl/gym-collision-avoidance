@@ -8,6 +8,7 @@ import gym_collision_avoidance.envs.test_cases as tc
 from gym_collision_avoidance.experiments.src.env_utils import run_episode, create_env, store_stats
 
 from gym_collision_avoidance.envs.policies.GA3CCADRLPolicy import GA3CCADRLPolicy
+from gym_collision_avoidance.envs.sensors.OtherAgentsStatesSensor import OtherAgentsStatesSensor
 
 np.random.seed(0)
 
@@ -34,7 +35,8 @@ policies = {
             'GA3C-CADRL-10': {
                 'policy': GA3CCADRLPolicy,
                 'checkpt_dir': 'IROS18',
-                'checkpt_name': 'network_01900000'
+                'checkpt_name': 'network_01900000',
+                'sensors': [OtherAgentsStatesSensor]
                 },
             }
 
@@ -67,10 +69,7 @@ for num_agents in num_agents_to_test:
             one_env.plot_policy_name = policy
             policy_class = policies[policy]['policy']
             test_case_args['agents_policy'] = policy_class
-            if 'sensors' in policies[policy]:
-                test_case_args['agents_sensors'] = policies[policy]['sensors']
-            else:
-                test_case_args['agents_sensors'] = []
+            test_case_args['agents_sensors'] = policies[policy]['sensors']
             agents = test_case_fn(**test_case_args)
             for agent in agents:
                 if 'checkpt_name' in policies[policy]:
