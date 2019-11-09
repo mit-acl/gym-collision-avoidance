@@ -7,14 +7,8 @@ MIT Aerospace Controls Lab
 import gym
 import gym.spaces
 import numpy as np
-from shapely.geometry import Polygon, Point
-from shapely.affinity import translate, rotate
-import pickle
-import time
-from collections import OrderedDict
 import itertools
 import copy
-import matplotlib.pyplot as plt
 
 from gym_collision_avoidance.envs.config import Config
 from gym_collision_avoidance.envs.util import find_nearest, rgba2rgb
