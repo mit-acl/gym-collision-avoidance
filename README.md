@@ -1,7 +1,6 @@
 # gym-collision-avoidance
 
 TODOS:
-- Get example.py working using assistance from ppo code
 - Get submodule init working
 - Confirm RVO works
 - Confirm DRLLong works

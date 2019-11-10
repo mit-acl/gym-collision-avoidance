@@ -27,21 +27,23 @@ env.set_plot_save_dir(
 
 # Set agent configuration (start/goal pos, radius, size, policy)
 agents = tc.get_testcase_two_agents()
+agents[1].policy.initialize_network() # Load the GA3C-CADRL weights
 env.set_agents(agents)
 
 obs = env.reset() # Get agents' initial observations
 
 # Repeatedly send actions to the environment based on agents' observations
-num_steps = 50
+num_steps = 100
 for i in range(num_steps):
 
     # Query the external agents' policies
     # e.g., actions[0] = external_policy(dict_obs[0])
     actions = {}
-    actions[0] = np.array([1., 0.2])
+    actions[0] = np.array([1., 0.5])
 
     # Internal agents (running a pre-learned policy defined in envs/policies)
     # will automatically query their policy during env.step
+    # ==> no need to supply actions for internal agents here
 
     # Run a simulation step (check for collisions, move sim agents)
     obs, rewards, game_over, which_agents_done = env.step(actions)
