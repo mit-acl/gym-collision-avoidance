@@ -27,6 +27,8 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def __init__(self):
 
+        self.id = 0
+
         # Initialize Rewards
         self._initialize_rewards()
 
@@ -44,7 +46,7 @@ class CollisionAvoidanceEnv(gym.Env):
         self.plot_episodes = Config.SHOW_EPISODE_PLOTS or Config.SAVE_EPISODE_PLOTS
         self.plt_limits = Config.PLT_LIMITS
         self.plt_fig_size = Config.PLT_FIG_SIZE
-        self.test_case_index = -1
+        self.test_case_index = 0
 
         # if Config.TRAIN_ON_MULTIPLE_AGENTS:
         #     self.low_state = np.zeros((Config.FULL_LABELED_STATE_LENGTH))
@@ -156,21 +158,16 @@ class CollisionAvoidanceEnv(gym.Env):
         for i, agent in enumerate(self.agents):
             which_agents_done_dict[agent.id] = which_agents_done[i]
 
-
-        # if game_over:
-        #     for agent in self.agents:
-        #         reason = 'timed out'
-        #         if agent.in_collision:
-        #             reason = "collided with another agent/wall"
-        #         elif agent.is_at_goal:
-        #             reason = "arrived at the goal!"
-        #         print("Agent {} {}".format(agent.id, reason))
-
         return next_observations, rewards, game_over, \
             {'which_agents_done': which_agents_done_dict}
 
     def reset(self):
+        print("reset")
+        print(self.episode_step_number)
+        print(self.plot_episodes)
+        print(self.test_case_index)
         if self.episode_step_number is not None and self.episode_step_number > 0 and self.plot_episodes and self.test_case_index >= 0:
+            print("plot ep")
             plot_episode(self.agents, self.evaluate, self.map, self.test_case_index, self.id, circles_along_traj=Config.PLOT_CIRCLES_ALONG_TRAJ, plot_save_dir=self.plot_save_dir, plot_policy_name=self.plot_policy_name, limits=self.plt_limits, fig_size=self.plt_fig_size, show=Config.SHOW_EPISODE_PLOTS, save=Config.SAVE_EPISODE_PLOTS)
             if Config.ANIMATE_EPISODES:
                 animate_episode(num_agents=len(self.agents), plot_save_dir=self.plot_save_dir, plot_policy_name=self.plot_policy_name, test_case_index=self.test_case_index)
@@ -189,11 +186,13 @@ class CollisionAvoidanceEnv(gym.Env):
         return
 
     def _take_action(self, actions, dt):
+        print("_take_action: {}".format(actions))
         num_actions_per_agent = 2  # speed, delta heading angle
         all_actions = np.zeros((len(self.agents), num_actions_per_agent), dtype=np.float32)
 
         # Agents set their action (either from external or w/ find_next_action)
         for agent_index, agent in enumerate(self.agents):
+            print("Agent {}, {}".format(agent_index, agent.policy))
             if agent.is_done:
                 continue
             if agent.policy.is_still_learning:
@@ -202,6 +201,7 @@ class CollisionAvoidanceEnv(gym.Env):
                 dict_obs = self.observation[agent_index]
                 all_actions[agent_index, :] = agent.policy.find_next_action(dict_obs, self.agents, agent_index)
 
+        print(all_actions)
         # After all agents have selected actions, run one dynamics update
         for i, agent in enumerate(self.agents):
             agent.take_action(all_actions[i,:], dt)
@@ -249,7 +249,7 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def _compute_rewards(self):
         ###############################
-        # We check for collisions and reaching of the goal here, and also assign
+        # Check for collisions and reaching of the goal here, and also assign
         # the corresponding rewards based on those calculations.
         #
         # Outputs
@@ -257,10 +257,10 @@ class CollisionAvoidanceEnv(gym.Env):
         #               is a list of scalars if we are training on mult agents
         ###############################
 
-        if Config.TRAIN_ON_MULTIPLE_AGENTS:
-            agents = self.agents
-        else:
+        if Config.TRAIN_SINGLE_AGENT:
             agents = [self.agents[0]]
+        else:
+            agents = self.agents
 
         # if nothing noteworthy happened in that timestep, reward = -0.01
         rewards = self.reward_time_step*np.ones(len(agents))
@@ -301,7 +301,7 @@ class CollisionAvoidanceEnv(gym.Env):
                         #     rewards[i] = self.reward_entered_norm_zone
         rewards = np.clip(rewards, self.min_possible_reward,
                           self.max_possible_reward)
-        if not Config.TRAIN_ON_MULTIPLE_AGENTS:
+        if Config.TRAIN_SINGLE_AGENT:
             rewards = rewards[0]
         return rewards
 
@@ -348,15 +348,18 @@ class CollisionAvoidanceEnv(gym.Env):
         which_agents_done = np.logical_or.reduce((at_goal_condition, ran_out_of_time_condition, in_collision_condition))
         for agent_index, agent in enumerate(self.agents):
             agent.is_done = which_agents_done[agent_index]
+        
         if Config.EVALUATE_MODE:
+            # Episode ends when every agent is done
             game_over = np.all(which_agents_done)
-        elif Config.TRAIN_ON_MULTIPLE_AGENTS:
+        elif Config.TRAIN_SINGLE_AGENT:
+            # Episode ends when ego agent is done
+            game_over = which_agents_done[0]
+        else:
+            # Episode is done when all *learning* agents are done
             learning_agent_inds = [i for i in range(len(self.agents)) if self.agents[i].policy.is_still_learning]
             game_over = np.all(which_agents_done[learning_agent_inds])
-            # game_over = which_agents_done[0]
-        else:
-            # game_over = np.all(which_agents_done)
-            game_over = which_agents_done[0]
+        
         return which_agents_done, game_over
 
     def _get_obs(self):

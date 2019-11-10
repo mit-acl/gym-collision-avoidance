@@ -36,6 +36,8 @@ class MultiagentFlattenDictWrapper(gym.ObservationWrapper):
         self.dict_observation_space = self.env.observation_space
 
     def observation(self, observation):
+        # Turn multiagent dict obs into a really long 1d array
+        # with all agents & states concatenated
         assert isinstance(observation, dict)
         obs = []
         for agent in range(self.max_num_agents):

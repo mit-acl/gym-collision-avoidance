@@ -31,7 +31,7 @@ def get_plot_save_dir(plot_save_dir, plot_policy_name, agents=None):
     return plot_save_dir, plot_policy_name, base_fig_name
 
 def animate_episode(num_agents, plot_save_dir=None, plot_policy_name=None, test_case_index=0):
-    plot_save_dir, plot_policy_name, base_fig_name = get_plot_save_dir(plot_save_dir, plot_policy_name)
+    plot_save_dir, plot_policy_name, base_fig_name = get_plot_save_dir(plot_save_dir, plot_policy_name, agents)
     
     # Load all images of the current episode (each animation)
     fig_name = base_fig_name.format(
@@ -82,7 +82,7 @@ def plot_episode(agents, in_evaluate_mode,
     if max([agent.step_num for agent in agents]) == 0:
         return
 
-    plot_save_dir, plot_policy_name, base_fig_name = get_plot_save_dir(plot_save_dir, plot_policy_name)
+    plot_save_dir, plot_policy_name, base_fig_name = get_plot_save_dir(plot_save_dir, plot_policy_name, agents)
 
     fig = plt.figure(env_id)
     fig.set_size_inches(fig_size[0], fig_size[1])

@@ -1,13 +1,12 @@
 # gym-collision-avoidance
 
 TODOS:
-- Get the test suite code working
+- Get example.py working using assistance from ppo code
 - Get submodule init working
 - Confirm RVO works
 - Confirm DRLLong works
-- Confirm CADRL works
-- Confirm example.py works
 - Confirm sensors work
+- Get GA3C-CADRL to actually use the dict obs?
 - Clean up README
 - Fix permissions on all files
 - Download on a fresh computer and test

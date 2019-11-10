@@ -63,7 +63,9 @@ Config.PLOT_CIRCLES_ALONG_TRAJ = True
 
 Config.NUM_TEST_CASES = num_test_cases
 
+print("Creating environment.")
 env, one_env = create_env()
+print("Created environment.")
 
 for num_agents in num_agents_to_test:
 

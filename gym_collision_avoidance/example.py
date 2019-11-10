@@ -1,50 +1,55 @@
 import os
 import numpy as np
-from gym_collision_avoidance.envs import collision_avoidance_env
+import gym
 from gym_collision_avoidance.envs import test_cases as tc
+from gym_collision_avoidance.envs.config import Config
 
-# Minimum working example
+'''
+Minimum working example:
+2 agents: 1 running external policy, 1 running GA3C-CADRL
+'''
+
+# Set config parameters (overriding config.py)
+Config.DT = 0.1
+Config.SAVE_EPISODE_PLOTS = True
+
+# Create single tf session for all experiments
+import tensorflow as tf
+tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+tf.Session().__enter__()
 
 # Instantiate the environment
-env = collision_avoidance_env.CollisionAvoidanceEnv()
+env = gym.make("CollisionAvoidance-v0")
+
+# In case you want to save plots, choose the directory
+env.set_plot_save_dir(
+    os.path.dirname(os.path.realpath(__file__)) + '/experiments/results/example/')
 
 # Set agent configuration (start/goal pos, radius, size, policy)
-agents = tc.get_testcase_hololens_and_ga3c_cadrl()
+agents = tc.get_testcase_two_agents()
 env.set_agents(agents)
 
-# Set static map of the environment (e.g. if there are static obstacles)
-# static_map_filename = os.path.dirname(collision_avoidance_env.__file__)+"/world_maps/002.png"
-# env.set_static_map(map_filename=static_map_filename)
+obs = env.reset() # Get agents' initial observations
 
-# Set up empty np array for agents' actions
-num_actions_per_agent = 2  # speed, delta heading angle
-actions = np.zeros((len(env.agents), num_actions_per_agent), dtype=np.float32)
-
-obs = env.reset()  # Get agents' initial observations
-
-# Alternate btwn sending actions to the environment, receiving feedback
+# Repeatedly send actions to the environment based on agents' observations
 num_steps = 50
 for i in range(num_steps):
 
-    # Query the agents' policies (e.g. using obs vector or list of agents)
-    # Note: This needs to occur before updating the real agent positions!
-    for agent_index, agent in enumerate(env.agents):
-        actions[agent_index, :] = agent.policy.find_next_action(obs, env.agents, agent_index)
+    # Query the external agents' policies
+    # e.g., actions[0] = external_policy(dict_obs[0])
+    actions = {}
+    actions[0] = np.array([1., 0.2])
 
-    # Update position of real agents based on real sensor data (if necessary)
-    state_of_real_agents = [[-1, 0.1*i, 2+np.random.normal(0, 0.1)]]
-    for state in state_of_real_agents:
-        agent = env.agents[state[0]]
-        agent.set_state(px=state[1], py=state[2])
+    # Internal agents (running a pre-learned policy defined in envs/policies)
+    # will automatically query their policy during env.step
 
     # Run a simulation step (check for collisions, move sim agents)
     obs, rewards, game_over, which_agents_done = env.step(actions)
+    print("--")
 
     if game_over:
         print("All agents finished!")
-        # To start a new episode...
-        # env.init_agents(agents) # again with new test case
-        # obs = env.reset()
         break
+env.reset()
 
 print("Experiment over.")

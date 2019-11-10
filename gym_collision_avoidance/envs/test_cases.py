@@ -39,8 +39,8 @@ def get_testcase_two_agents():
     goal_x = 3
     goal_y = 3
     agents = [
-        Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, PPOPolicy, UnicycleDynamics, [], 0),
-        Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, PPOPolicy, UnicycleDynamics, [], 1)
+        Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, LearningPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 0),
+        Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 1)
         ]
     return agents
 

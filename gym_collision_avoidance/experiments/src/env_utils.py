@@ -2,6 +2,7 @@ import gym
 import numpy as np
 from gym_collision_avoidance.envs.config import Config
 from gym_collision_avoidance.envs.wrappers import FlattenDictWrapper, MultiagentFlattenDictWrapper, MultiagentDummyVecEnv
+from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 
 def create_env():
     import tensorflow as tf
@@ -9,11 +10,26 @@ def create_env():
     tf.Session().__enter__()
     num_envs = 1
     ncpu = 1
+    
     def make_env():
         env = gym.make("CollisionAvoidance-v0")
-        env = MultiagentFlattenDictWrapper(env, dict_keys=Config.STATES_IN_OBS, max_num_agents=Config.MAX_NUM_AGENTS_IN_ENVIRONMENT)
+
+        # The env provides a dict observation by default. Most RL code
+        # doesn't handle dict observations, so these wrappers convert to arrays
+        if Config.TRAIN_SINGLE_AGENT:
+            # only return observations of a single agent
+            env = FlattenDictWrapper(env, dict_keys=Config.STATES_IN_OBS)
+        else:
+            # return observation of all agents (as a long array)
+            env = MultiagentFlattenDictWrapper(env, dict_keys=Config.STATES_IN_OBS, max_num_agents=Config.MAX_NUM_AGENTS_IN_ENVIRONMENT)
+        
         return env
-    env = MultiagentDummyVecEnv([make_env for _ in range(num_envs)])
+    
+    # To be prepared for training on multiple instances of the env at once
+    if Config.TRAIN_SINGLE_AGENT:
+        env = DummyVecEnv([make_env for _ in range(num_envs)])
+    else:
+        env = MultiagentDummyVecEnv([make_env for _ in range(num_envs)])
     unwrapped_envs = [e.unwrapped for e in env.envs]
     
     # Set env id for each env

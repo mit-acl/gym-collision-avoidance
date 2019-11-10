@@ -8,11 +8,12 @@ class Config:
     ACTION_SPACE_TYPE   = continuous
 
     ANIMATE_EPISODES    = False
+    SHOW_EPISODE_PLOTS = False
+    SAVE_EPISODE_PLOTS = False
     TRAIN_MODE           = False # Enable to see the trained agent in action (for testing)
     PLAY_MODE           = False # Enable to see the trained agent in action (for testing)
     EVALUATE_MODE       = True # Enable to see the trained agent in action (for testing)
-    TRAIN_ON_MULTIPLE_AGENTS = True
-    # TRAIN_ON_MULTIPLE_AGENTS = False
+    TRAIN_SINGLE_AGENT = True
     NEAR_GOAL_THRESHOLD = 0.2
 
     LASERSCAN_LENGTH = 512 # num range readings in one scan
@@ -24,12 +25,10 @@ class Config:
     GAMMA = 0.99
     LEARNING_RATE = 1e-3
 
-    PLOT_CIRCLES_ALONG_TRAJ = False
+    PLOT_CIRCLES_ALONG_TRAJ = True
 
     #########################################################################
     # COLLISION AVOIDANCE PARAMETER
-    # USE_LASERSCAN_IN_OBSERVATION = True
-    USE_LASERSCAN_IN_OBSERVATION = False
     NUM_TEST_CASES = 50
     PLOT_EVERY_N_EPISODES = 100 # for tensorboard visualization
     DT             = 0.2 # seconds between simulation time steps
