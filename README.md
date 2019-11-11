@@ -82,14 +82,15 @@ brew install pkg-config
 ### Policies Implemented
 
 Learning-based:
-- SA-CADRL
-- GA3C-CADRL
-- DRL_Long
+- SA-CADRL: [Socially Aware Motion Planning with Deep Reinforcement Learning
+](https://arxiv.org/pdf/1703.08862.pdf)
+- GA3C-CADRL: [Motion Planning Among Dynamic, Decision-Making Agents with Deep Reinforcement Learning](https://arxiv.org/pdf/1805.01956.pdf)
+- DRL_Long: [Towards Optimally Decentralized Multi-Robot Collision Avoidance via Deep Reinforcement Learning](https://arxiv.org/abs/1709.10082)
 
 Classical:
-- RVO/ORCA
-- Non-Cooperative
-- Static
+- RVO/ORCA: [Python-RVO2](https://github.com/sybrenstuvel/Python-RVO2)
+- Non-Cooperative (constant velocity toward goal position)
+- Static (zero velocity)
 
 Desired Additions:
 - DWA
