@@ -58,21 +58,12 @@ RuntimeError: Python is not installed as a framework. The Mac OS X backend will 
 
 Add a line `backend: TkAgg` to `~/.matplotlib/matplotlibrc`.
 
-
-```
-error: Cannot compile MPI programs. Check your configuration!!!
-```
-
-Do:
+`error: Cannot compile MPI programs. Check your configuration!!!`:
 ```bash
 brew install mpich
 ```
 
-```
-error with matplotlib and freetype not being found
-```
-
-Do:
+`error with matplotlib and freetype not being found`:
 ```bash
 brew install pkg-config
 ```
