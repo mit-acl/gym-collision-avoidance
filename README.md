@@ -16,7 +16,6 @@ Reward is given to agents when arriving at the goal.
 Grab the code from github, initialize submodules, install dependencies and src code
 ```bash
 git clone --recursive git@github.com:mit-acl/gym-collision-avoidance.git
-cd gym-collision-avoidance
 ./install.sh
 ```
 
@@ -24,8 +23,7 @@ cd gym-collision-avoidance
 
 To simulate a 2-agent scenario:
 ```bash
-./experiments/utils.sh # sources the virtualenv etc.
-python3 gym_collision_avoidance/example.py
+./example.sh
 ```
 
 You can use `example.py` as a starting point to write code for this environment.
