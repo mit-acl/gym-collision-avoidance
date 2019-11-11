@@ -1,6 +1,6 @@
 # gym-collision-avoidance
 
-<img src="misc/000_GA3C-CADRL-10_6agents.png" width="500" alt="Agents spelling ``C''">
+<img src="misc/000_GA3C-CADRL-10_6agents.gif" width="500" alt="Agents spelling ``C''">
 
 This is a multiagent domain featuring continuous state and action spaces.
 
@@ -9,7 +9,7 @@ Episodes end when agents reach their goal or collide.
 Agents can observe the environment through one of many types of sensors, including one which provides raw state info about other agents.
 Reward is given to agents when arriving at the goal.
 
-*Objective*: Provide a flexible codebase, reduce time spent re-implementing existing works, and establish baselines for multiagent collision avoidance problems.
+**Objective**: Provide a flexible codebase, reduce time spent re-implementing existing works, and establish baselines for multiagent collision avoidance problems.
 
 ### Install
 
@@ -29,7 +29,11 @@ python3 gym_collision_avoidance/example.py
 
 You can use this as a starting point to write code based on this environment.
 
-### To replicate experiments in submitted IJRR paper:
+---
+
+### Further experiments
+
+#### To replicate experiments in submitted IJRR paper:
 
 Formations (spelling out CADRL):
 ```bash
@@ -40,6 +44,8 @@ Full test suite:
 ```bash
 ./experiments/run_full_test_suite.sh
 ```
+
+---
 
 ### Common Issues
 
@@ -70,6 +76,8 @@ Do:
 brew install pkg-config
 ```
 
+---
+
 ### Policies Implemented
 
 Learning-based:
@@ -88,6 +96,8 @@ Desired Additions:
 - Additional learning-based methods
 - Centralized planners
 
+---
+
 ### TODOs:
 - Get DRLLong working by pointing to correct commit on mfe's fork (cuda in python)
 - Confirm sensors work
@@ -95,6 +105,8 @@ Desired Additions:
 - Clean up README
 - Fix permissions on all files
 - Download on a fresh computer and test
+
+---
 
 ### If you find this code useful, please consider citing:
 
