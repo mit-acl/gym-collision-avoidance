@@ -22,12 +22,13 @@ cd gym-collision-avoidance
 
 ### Minimum working example
 
-Run this file to simulate a 2-agent scenario:
+To simulate a 2-agent scenario:
 ```bash
+./experiments/utils.sh # sources the virtualenv etc.
 python3 gym_collision_avoidance/example.py
 ```
 
-You can use this as a starting point to write code based on this environment.
+You can use `example.py` as a starting point to write code for this environment.
 
 ---
 
