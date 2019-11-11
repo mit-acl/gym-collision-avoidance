@@ -27,7 +27,7 @@ env.set_plot_save_dir(
 
 # Set agent configuration (start/goal pos, radius, size, policy)
 agents = tc.get_testcase_two_agents()
-agents[1].policy.initialize_network() # Load the GA3C-CADRL weights
+[agent.policy.initialize_network() for agent in agents if hasattr(agent.policy, 'initialize_network')]
 env.set_agents(agents)
 
 obs = env.reset() # Get agents' initial observations
@@ -47,7 +47,6 @@ for i in range(num_steps):
 
     # Run a simulation step (check for collisions, move sim agents)
     obs, rewards, game_over, which_agents_done = env.step(actions)
-    print("--")
 
     if game_over:
         print("All agents finished!")

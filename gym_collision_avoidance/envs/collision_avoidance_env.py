@@ -162,12 +162,7 @@ class CollisionAvoidanceEnv(gym.Env):
             {'which_agents_done': which_agents_done_dict}
 
     def reset(self):
-        print("reset")
-        print(self.episode_step_number)
-        print(self.plot_episodes)
-        print(self.test_case_index)
         if self.episode_step_number is not None and self.episode_step_number > 0 and self.plot_episodes and self.test_case_index >= 0:
-            print("plot ep")
             plot_episode(self.agents, self.evaluate, self.map, self.test_case_index, self.id, circles_along_traj=Config.PLOT_CIRCLES_ALONG_TRAJ, plot_save_dir=self.plot_save_dir, plot_policy_name=self.plot_policy_name, limits=self.plt_limits, fig_size=self.plt_fig_size, show=Config.SHOW_EPISODE_PLOTS, save=Config.SAVE_EPISODE_PLOTS)
             if Config.ANIMATE_EPISODES:
                 animate_episode(num_agents=len(self.agents), plot_save_dir=self.plot_save_dir, plot_policy_name=self.plot_policy_name, test_case_index=self.test_case_index)
@@ -186,13 +181,11 @@ class CollisionAvoidanceEnv(gym.Env):
         return
 
     def _take_action(self, actions, dt):
-        print("_take_action: {}".format(actions))
         num_actions_per_agent = 2  # speed, delta heading angle
         all_actions = np.zeros((len(self.agents), num_actions_per_agent), dtype=np.float32)
 
         # Agents set their action (either from external or w/ find_next_action)
         for agent_index, agent in enumerate(self.agents):
-            print("Agent {}, {}".format(agent_index, agent.policy))
             if agent.is_done:
                 continue
             if agent.policy.is_still_learning:
@@ -201,7 +194,6 @@ class CollisionAvoidanceEnv(gym.Env):
                 dict_obs = self.observation[agent_index]
                 all_actions[agent_index, :] = agent.policy.find_next_action(dict_obs, self.agents, agent_index)
 
-        print(all_actions)
         # After all agents have selected actions, run one dynamics update
         for i, agent in enumerate(self.agents):
             agent.take_action(all_actions[i,:], dt)

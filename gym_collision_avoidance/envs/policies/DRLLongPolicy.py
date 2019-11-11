@@ -82,7 +82,8 @@ class DRLLongPolicy(Policy):
         #         pickle.dump(self.obs_stack, f, protocol=2)
         #     assert(0)
 
-        mean, scaled_action = generate_action_no_sampling(env=None, state_list=state_list,
+        env_ = type('', (object,), {'index': 0})
+        mean, scaled_action = generate_action_no_sampling(env=env_, state_list=state_list,
                                                policy=self.nn, action_bound=self.action_bound)
 
         [vx, vw] = scaled_action[0]
