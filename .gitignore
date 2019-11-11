@@ -5,6 +5,7 @@ logs
 *.swp
 *~
 *.lprof
+*.DS_Store
 
 .vscode
 

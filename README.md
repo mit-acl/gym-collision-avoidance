@@ -1,5 +1,7 @@
 # gym-collision-avoidance
 
+<img src="misc/000_GA3C-CADRL-10_6agents.png" width="500" alt="Agents spelling ``C''">
+
 This is a multiagent domain featuring continuous state and action spaces.
 
 Agents try to get to their own goal location (chosen at the start of each episode) by using one of many collision avoidance policies implemented.
@@ -13,8 +15,8 @@ Reward is given to agents when arriving at the goal.
 
 Grab the code from github, initialize submodules, install dependencies and src code
 ```bash
-git clone --recursive <url>
-cd gym-collision-avoidance/gym_collision_avoidance
+git clone --recursive git@github.com:mit-acl/gym-collision-avoidance.git
+cd gym-collision-avoidance
 ./install.sh
 ```
 
@@ -93,3 +95,25 @@ Desired Additions:
 - Clean up README
 - Fix permissions on all files
 - Download on a fresh computer and test
+
+### If you find this code useful, please consider citing:
+
+M. Everett, Y. Chen, and J. P. How, "Motion Planning Among Dynamic, Decision-Making Agents with Deep Reinforcement Learning", IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 2018
+
+Paper: https://arxiv.org/abs/1805.01956
+Video: https://www.youtube.com/watch?v=XHoXkWLhwYQ
+
+Bibtex:
+```
+@inproceedings{Everett18_IROS,
+  address = {Madrid, Spain},
+  author = {Everett, Michael and Chen, Yu Fan and How, Jonathan P.},
+  booktitle = {IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+  date-modified = {2018-10-03 06:18:08 -0400},
+  month = sep,
+  title = {Motion Planning Among Dynamic, Decision-Making Agents with Deep Reinforcement Learning},
+  year = {2018},
+  url = {https://arxiv.org/pdf/1805.01956.pdf},
+  bdsk-url-1 = {https://arxiv.org/pdf/1805.01956.pdf}
+}
+```
