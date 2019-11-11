@@ -26,6 +26,8 @@ To simulate a 2-agent scenario:
 ./example.sh
 ```
 
+This will save a plot in `experiments/results/example` so you can visualize the agents' trajectories.
+
 You can use `example.py` as a starting point to write code for this environment.
 
 ---

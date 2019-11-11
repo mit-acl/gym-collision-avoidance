@@ -23,7 +23,7 @@ env = gym.make("CollisionAvoidance-v0")
 
 # In case you want to save plots, choose the directory
 env.set_plot_save_dir(
-    os.path.dirname(os.path.realpath(__file__)) + '/experiments/results/example/')
+    os.path.dirname(os.path.realpath(__file__)) + '/../../experiments/results/example/')
 
 # Set agent configuration (start/goal pos, radius, size, policy)
 agents = tc.get_testcase_two_agents()

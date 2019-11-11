@@ -7,7 +7,7 @@ At the end of the day, you just need to provide a list of Agent objects to the e
 - If you want some final position configuration, consider something like `formation`.
 - For a large, static test suite, consider creating a pickle file of [start_x, start_y, goal_x, goal_y, radius, pref_speed] tuples and use our code to convert that into a list of Agents, as in `preset_testCases`.
 
-After defining a test case function that returns a list of Agents, you can select that test case fn in the evaluation code, e.g. 
+After defining a test case function that returns a list of Agents, you can select that test case fn in the evaluation code (see example.py)
 
 '''
 
