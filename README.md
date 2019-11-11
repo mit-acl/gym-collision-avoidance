@@ -103,7 +103,6 @@ Desired Additions:
 - Get GA3C-CADRL to actually use the dict obs?
 - Clean up README
 - Fix permissions on all files
-- Download on a fresh computer and test
 
 ---
 
