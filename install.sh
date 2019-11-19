@@ -4,25 +4,26 @@ set -e
 # Directory of this script
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-# Virtualenv
+# Virtualenv w/ python3
 python3 -m pip install virtualenv
 cd $DIR
-virtualenv venv
+virtualenv -p python3 venv
 source venv/bin/activate
+export PYTHONPATH=${DIR}/venv/bin/python/dist-packages
 
 # Install this pkg and its requirements
-python3 -m pip install -r requirements.txt
-python3 -m pip install -e .
+python -m pip install -r requirements.txt
+python -m pip install -e .
 
 # Install RVO and its requirements
 cd gym_collision_avoidance/envs/policies/Python-RVO2
-python3 -m pip install Cython
+python -m pip install Cython
 if [[ "$OSTYPE" == "darwin"* ]]; then
     export MACOSX_DEPLOYMENT_TARGET=10.15
     brew install cmake
 fi
-python3 setup.py build
-python3 setup.py install
+python setup.py build
+python setup.py install
 
 # Install DRL Long's requirements
-python3 -m pip install torch torchvision
+python -m pip install torch torchvision

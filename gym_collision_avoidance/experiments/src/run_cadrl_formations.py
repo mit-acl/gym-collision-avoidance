@@ -21,6 +21,7 @@ Config.DT = 0.1
 Config.NEAR_GOAL_THRESHOLD = 0.2
 Config.PLT_LIMITS = [[-5, 6], [-2, 7]]
 Config.PLT_FIG_SIZE = (10,10)
+Config.PLOT_CIRCLES_ALONG_TRAJ = False
 
 # record_pickle_files = True
 record_pickle_files = False
@@ -30,7 +31,7 @@ num_agents_to_test = [6]
 test_case_fn = tc.formation
 
 test_case_args = {}
-num_test_cases = Config.NUM_TEST_CASES
+num_test_cases = 10
 
 policies = {
             'GA3C-CADRL-10': {

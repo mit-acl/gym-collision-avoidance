@@ -26,7 +26,7 @@ To simulate a 2-agent scenario:
 ./example.sh
 ```
 
-This will save a plot in `experiments/results/example` so you can visualize the agents' trajectories.
+This will save a plot in `gym_collision_avoidance/experiments/results/example` so you can visualize the agents' trajectories.
 
 You can use `example.py` as a starting point to write code for this environment.
 
@@ -38,13 +38,10 @@ You can use `example.py` as a starting point to write code for this environment.
 
 Formations (spelling out CADRL):
 ```bash
-./experiments/run_cadrl_formations.sh
+./gym_collision_avoidance/experiments/run_cadrl_formations.sh
 ```
 
-Full test suite:
-```bash
-./experiments/run_full_test_suite.sh
-```
+This will run 10 test cases and save plots and animations (`.gif` and `.mp4`) format in `gym_collision_avoidance/experiments/results/cadrl_formations`.
 
 ---
 
@@ -93,9 +90,9 @@ Desired Additions:
 
 ### TODOs:
 - Get DRLLong working by pointing to correct commit on mfe's fork (cuda in python)
+- Add test suite code to README
 - Confirm sensors work
 - Get GA3C-CADRL to actually use the dict obs?
-- Clean up README
 - Fix permissions on all files
 
 ---

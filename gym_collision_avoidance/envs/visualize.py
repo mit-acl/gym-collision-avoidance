@@ -30,7 +30,7 @@ def get_plot_save_dir(plot_save_dir, plot_policy_name, agents=None):
     base_fig_name = "{test_case}_{policy}_{num_agents}agents{step}.{extension}"
     return plot_save_dir, plot_policy_name, base_fig_name
 
-def animate_episode(num_agents, plot_save_dir=None, plot_policy_name=None, test_case_index=0):
+def animate_episode(num_agents, plot_save_dir=None, plot_policy_name=None, test_case_index=0, agents=None):
     plot_save_dir, plot_policy_name, base_fig_name = get_plot_save_dir(plot_save_dir, plot_policy_name, agents)
     
     # Load all images of the current episode (each animation)
