@@ -46,6 +46,15 @@ def get_testcase_two_agents():
         ]
     return agents
 
+def get_testcase_two_agents_external_rvo():
+    goal_x = 3
+    goal_y = 3
+    agents = [
+        Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, ExternalPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 0),
+        Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, RVOPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 1)
+        ]
+    return agents
+
 def get_testcase_two_agents_laserscanners():
     goal_x = 3
     goal_y = 3

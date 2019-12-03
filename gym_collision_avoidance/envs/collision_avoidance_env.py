@@ -188,7 +188,9 @@ class CollisionAvoidanceEnv(gym.Env):
         for agent_index, agent in enumerate(self.agents):
             if agent.is_done:
                 continue
-            if agent.policy.is_still_learning:
+            if agent.policy.is_external:
+                all_actions[agent_index, :] = actions[agent_index]
+            elif agent.policy.is_still_learning:
                 all_actions[agent_index, :] = agent.policy.network_output_to_action(agent, actions[agent_index])
             else:
                 dict_obs = self.observation[agent_index]
