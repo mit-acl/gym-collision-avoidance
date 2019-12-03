@@ -22,7 +22,7 @@ if $SOURCE_VENV; then
 fi
 
 # Install this pkg and its requirements
-python -m pip install -r requirements.txt
+python -m pip install -r $DIR/requirements.txt
 python -m pip install -e $DIR
 
 # Install RVO and its requirements
