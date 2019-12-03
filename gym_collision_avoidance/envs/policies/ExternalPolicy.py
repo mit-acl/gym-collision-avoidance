@@ -2,8 +2,8 @@ import numpy as np
 from gym_collision_avoidance.envs.policies.Policy import Policy
 
 class ExternalPolicy(Policy):
-    def __init__(self):
-        Policy.__init__(self, str="External")
+    def __init__(self, str="External"):
+        Policy.__init__(self, str=str)
         self.is_external = True
         self.is_still_learning = False
 
