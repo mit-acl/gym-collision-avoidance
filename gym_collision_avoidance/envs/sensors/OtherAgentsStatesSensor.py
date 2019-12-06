@@ -34,7 +34,6 @@ class OtherAgentsStatesSensor(Sensor):
         clipped_sorted_agents = [agents[i] for i in clipped_sorted_inds]
 
         other_agents_states = np.zeros((Config.MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT, 7))
-        i = 0
         other_agent_count = 0
         for other_agent in clipped_sorted_agents:
             if other_agent.id == host_agent.id:

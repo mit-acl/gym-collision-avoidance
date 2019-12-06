@@ -14,20 +14,18 @@ class RVOPolicy(Policy):
         neighbor_dist = Config.SENSING_HORIZON
         max_neighbors = Config.MAX_NUM_AGENTS_IN_ENVIRONMENT
 
-        max_speed = 0.0 # dummy values
-        radius = 0.0 # dummy values
         self.has_fixed_speed = False
         self.heading_noise = False
 
         self.max_delta_heading = np.pi/6
         
         # TODO share this parameter with environment
-        time_horizon = 5.0
+        time_horizon = 5.0 # NOTE: bjorn used 1.0 in training for corl19
         # Initialize RVO simulator
         self.sim = rvo2.PyRVOSimulator(timeStep=self.dt, neighborDist=neighbor_dist, 
             maxNeighbors=max_neighbors, timeHorizon=time_horizon, 
-            timeHorizonObst=time_horizon, radius=radius, 
-            maxSpeed=max_speed)
+            timeHorizonObst=time_horizon, radius=0.0, 
+            maxSpeed=0.0)
 
         self.is_init = False
 
