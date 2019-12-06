@@ -43,6 +43,16 @@ Formations (spelling out CADRL):
 
 This will run 10 test cases and save plots and animations (`.gif` and `.mp4`) format in `gym_collision_avoidance/experiments/results/cadrl_formations`.
 
+#### To collect a dataset of trajectories:
+
+```bash
+./gym_collision_avoidance/experiments/run_trajectory_dataset_creator.sh
+```
+
+This will store `png`s of the trajectories and a `.pkl` file of relevant data from the trajectories in the `experiments/results/trajectory_dataset` folder.
+The resulting dataset could be used to train predictive models, initialize an RL agent's policy, etc.
+You can change the `test_case_fn` to use different scenarios, the `policies` dict to give agents different policies, etc.
+
 ---
 
 ### Common Issues

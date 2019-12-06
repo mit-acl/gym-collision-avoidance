@@ -91,7 +91,7 @@ def get_testcase_random(num_agents=None, side_length=None, speed_bnds=None, radi
 def get_testcase_2agents_swap(test_case_index, num_test_cases=10, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[]):
     pref_speed = 1.0
     radius = 0.5
-    goal_x = 3
+    goal_x = 8
     goal_y = 0
 
     total_delta = 3.
