@@ -142,6 +142,12 @@ class Agent(object):
         self.past_actions = np.roll(self.past_actions, 1, axis=0)
         self.past_actions[0, :] = action
 
+        # Store info about the TF btwn the ego frame and global frame before moving agent
+        goal_direction = self.goal_global_frame - self.pos_global_frame 
+        theta = np.arctan2(goal_direction[1], goal_direction[0])
+        self.T_global_ego = np.array([[np.cos(theta), -np.sin(theta), self.pos_global_frame[0]], [np.sin(theta), np.cos(theta), self.pos_global_frame[1]], [0,0,1]])
+        self.ego_to_global_theta = theta
+
         # In the case of ExternalDynamics, this call does nothing,
         # but set_state was called instead
         self.dynamics_model.step(action, dt)
@@ -239,19 +245,45 @@ class Agent(object):
         self.past_global_velocities = np.roll(self.past_global_velocities,1,axis=0)
         self.past_global_velocities[0,:] = self.vel_global_frame
 
+    def ego_pos_to_global_pos(self, ego_pos):
+        # goal_direction = self.goal_global_frame - self.pos_global_frame 
+        # theta = np.arctan2(goal_direction[1], goal_direction[0])
+        # T_global_ego = np.array([[np.cos(theta), -np.sin(theta), self.pos_global_frame[0]], [np.sin(theta), np.cos(theta), self.pos_global_frame[1]], [0,0,1]])
+        if ego_pos.ndim == 1:
+            ego_pos_ = np.array([ego_pos[0], ego_pos[1], 1])
+            global_pos = np.dot(self.T_global_ego, ego_pos_)
+            return global_pos[:2]
+        else:
+            ego_pos_ = np.hstack([ego_pos, np.ones((ego_pos.shape[0],1))])
+            global_pos = np.dot(self.T_global_ego, ego_pos_.T).T
+            return global_pos[:,:2]
+
+    def global_pos_to_ego_pos(self, global_pos):
+        # goal_direction = self.goal_global_frame - self.pos_global_frame 
+        # theta = np.arctan2(goal_direction[1], goal_direction[0])
+        # T_ego_global = np.linalg.inv(np.array([[np.cos(theta), -np.sin(theta), self.pos_global_frame[0]], [np.sin(theta), np.cos(theta), self.pos_global_frame[1]], [0,0,1]]))
+        ego_pos = np.dot(np.linalg.inv(self.T_global_ego), np.array([global_pos[0], global_pos[1], 1]))
+        return ego_pos[:2]
 
 if __name__ == '__main__':
-    start_x = 5
-    start_y = 10
-    goal_x = 2
-    goal_y = -5
+    start_x = -3
+    start_y = 1
+    goal_x = 3
+    goal_y = 0
     radius = 0.5
     pref_speed = 1.2
     initial_heading = 0.0
+    from gym_collision_avoidance.envs.policies.GA3CCADRLPolicy import GA3CCADRLPolicy
+    from gym_collision_avoidance.envs.dynamics.UnicycleDynamics import UnicycleDynamics
+    policy = GA3CCADRLPolicy
+    dynamics_model = UnicycleDynamics
+    sensors = []
     id = 0
-    # agent = Agent(start_x, start_y, goal_x, goal_y, radius,
-    #              pref_speed, initial_heading, id)
-    agents = [Agent(start_x, start_y, goal_x, goal_y, radius,
-                 pref_speed, initial_heading, i) for i in range(4)]
-    agents[0].observe(agents)
+    agent = Agent(start_x, start_y, goal_x, goal_y, radius,
+                 pref_speed, initial_heading, policy, dynamics_model, sensors, id)
+    print(agent.ego_pos_to_global_pos(np.array([1,0.5])))
+    print(agent.global_pos_to_ego_pos(np.array([-1.93140658, 1.32879797])))
+    # agents = [Agent(start_x, start_y, goal_x, goal_y, radius,
+    #              pref_speed, initial_heading, i) for i in range(4)]
+    # agents[0].observe(agents)
     print("Created Agent.")

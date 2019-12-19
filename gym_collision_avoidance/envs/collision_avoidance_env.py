@@ -148,6 +148,7 @@ class CollisionAvoidanceEnv(gym.Env):
                 save_for_animation=True,
                 limits=self.plt_limits,
                 fig_size=self.plt_fig_size,
+                perturbed_obs=self.perturbed_obs,
                 show=False,
                 save=True)
 
@@ -389,6 +390,9 @@ class CollisionAvoidanceEnv(gym.Env):
     def set_plot_save_dir(self, plot_save_dir):
         os.makedirs(plot_save_dir, exist_ok=True)
         self.plot_save_dir = plot_save_dir
+
+    def set_perturbed_info(self, perturbed_obs):
+        self.perturbed_obs = perturbed_obs
 
 if __name__ == '__main__':
     print("See example.py for a minimum working example.")
