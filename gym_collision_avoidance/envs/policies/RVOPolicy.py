@@ -20,7 +20,7 @@ class RVOPolicy(Policy):
         self.max_delta_heading = np.pi/6
         
         # TODO share this parameter with environment
-        time_horizon = 5.0 # NOTE: bjorn used 1.0 in training for corl19
+        time_horizon = Config.RVO_TIME_HORIZON # NOTE: bjorn used 1.0 in training for corl19
         # Initialize RVO simulator
         self.sim = rvo2.PyRVOSimulator(timeStep=self.dt, neighborDist=neighbor_dist, 
             maxNeighbors=max_neighbors, timeHorizon=time_horizon, 
