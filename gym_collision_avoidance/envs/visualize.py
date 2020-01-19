@@ -28,11 +28,14 @@ def get_plot_save_dir(plot_save_dir, plot_policy_name, agents=None):
     if plot_policy_name is None:
         plot_policy_name = agents[0].policy.str
 
+    collision_plot_dir = plot_save_dir + "/collisions/"
+    os.makedirs(collision_plot_dir, exist_ok=True)
+
     base_fig_name = "{test_case}_{policy}_{num_agents}agents{step}.{extension}"
-    return plot_save_dir, plot_policy_name, base_fig_name
+    return plot_save_dir, plot_policy_name, base_fig_name, collision_plot_dir
 
 def animate_episode(num_agents, plot_save_dir=None, plot_policy_name=None, test_case_index=0, agents=None):
-    plot_save_dir, plot_policy_name, base_fig_name = get_plot_save_dir(plot_save_dir, plot_policy_name, agents)
+    plot_save_dir, plot_policy_name, base_fig_name, collision_plot_dir = get_plot_save_dir(plot_save_dir, plot_policy_name, agents)
     
     # Load all images of the current episode (each animation)
     fig_name = base_fig_name.format(
@@ -85,7 +88,7 @@ def plot_episode(agents, in_evaluate_mode,
     if max([agent.step_num for agent in agents]) == 0:
         return
 
-    plot_save_dir, plot_policy_name, base_fig_name = get_plot_save_dir(plot_save_dir, plot_policy_name, agents)
+    plot_save_dir, plot_policy_name, base_fig_name, collision_plot_dir = get_plot_save_dir(plot_save_dir, plot_policy_name, agents)
 
     fig = plt.figure(env_id)
     fig.set_size_inches(fig_size[0], fig_size[1])
@@ -132,6 +135,9 @@ def plot_episode(agents, in_evaluate_mode,
             extension='png')
         filename = plot_save_dir+fig_name
         plt.savefig(filename)
+
+        if np.any([agent.in_collision for agent in agents]):
+            plt.savefig(collision_plot_dir+fig_name)
 
     if save_for_animation:
         fig_name = base_fig_name.format(
