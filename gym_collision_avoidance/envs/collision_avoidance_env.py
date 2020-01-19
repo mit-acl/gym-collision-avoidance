@@ -48,6 +48,8 @@ class CollisionAvoidanceEnv(gym.Env):
         self.plt_fig_size = Config.PLT_FIG_SIZE
         self.test_case_index = 0
 
+        self.animation_period_steps = Config.ANIMATION_PERIOD_STEPS
+
         # if Config.TRAIN_ON_MULTIPLE_AGENTS:
         #     self.low_state = np.zeros((Config.FULL_LABELED_STATE_LENGTH))
         #     self.high_state = np.zeros((Config.FULL_LABELED_STATE_LENGTH))
@@ -108,6 +110,8 @@ class CollisionAvoidanceEnv(gym.Env):
         self.plot_save_dir = None
         self.plot_policy_name = None
 
+        self.perturbed_obs = None
+
     def step(self, actions, dt=None):
         ###############################
         # This is the main function. An external process will compute an action for every agent
@@ -140,7 +144,7 @@ class CollisionAvoidanceEnv(gym.Env):
         # Take observation
         next_observations = self._get_obs()
 
-        if Config.ANIMATE_EPISODES and self.episode_step_number % 5 == 0:
+        if Config.ANIMATE_EPISODES and self.episode_step_number % self.animation_period_steps == 0:
             plot_episode(self.agents, False, self.map, self.test_case_index,
                 circles_along_traj=Config.PLOT_CIRCLES_ALONG_TRAJ,
                 plot_save_dir=self.plot_save_dir,
@@ -252,17 +256,12 @@ class CollisionAvoidanceEnv(gym.Env):
         #               is a list of scalars if we are training on mult agents
         ###############################
 
-        if Config.TRAIN_SINGLE_AGENT:
-            agents = [self.agents[0]]
-        else:
-            agents = self.agents
-
         # if nothing noteworthy happened in that timestep, reward = -0.01
-        rewards = self.reward_time_step*np.ones(len(agents))
+        rewards = self.reward_time_step*np.ones(len(self.agents))
         collision_with_agent, collision_with_wall, entered_norm_zone, dist_btwn_nearest_agent = \
             self._check_for_collisions()
 
-        for i, agent in enumerate(agents):
+        for i, agent in enumerate(self.agents):
             if agent.is_at_goal:
                 if agent.was_at_goal_already is False:
                     # agents should only receive the goal reward once
@@ -277,7 +276,7 @@ class CollisionAvoidanceEnv(gym.Env):
                         rewards[i] = self.reward_collision_with_agent
                         agent.in_collision = True
                         # print("Agent %i: Collision with another agent!"
-                              # % agent.id)
+                        #       % agent.id)
                     elif collision_with_wall[i]:
                         rewards[i] = self.reward_collision_with_wall
                         agent.in_collision = True
@@ -285,13 +284,13 @@ class CollisionAvoidanceEnv(gym.Env):
                               # % agent.id)
                     else:
                         # There was no collision
-                        if dist_btwn_nearest_agent[i] <= 0.2:
+                        if dist_btwn_nearest_agent[i] <= Config.GETTING_CLOSE_RANGE:
                             rewards[i] = -0.1 - dist_btwn_nearest_agent[i]/2.
                             # print("Agent %i: Got close to another agent!"
                             #       % agent.id)
-                        # if abs(agent.past_actions[0, 1]) > 0.4:
-                        #     # Slightly penalize wiggly behavior
-                        #     rewards[i] += -0.005
+                        if abs(agent.past_actions[0, 1]) > self.wiggly_behavior_threshold:
+                            # Slightly penalize wiggly behavior
+                            rewards[i] += self.reward_wiggly_behavior
                         # elif entered_norm_zone[i]:
                         #     rewards[i] = self.reward_entered_norm_zone
         rewards = np.clip(rewards, self.min_possible_reward,
@@ -379,11 +378,17 @@ class CollisionAvoidanceEnv(gym.Env):
         self.reward_getting_close = Config.REWARD_GETTING_CLOSE
         self.reward_entered_norm_zone = Config.REWARD_ENTERED_NORM_ZONE
         self.reward_time_step = Config.REWARD_TIME_STEP
+
+        self.reward_wiggly_behavior = Config.REWARD_WIGGLY_BEHAVIOR
+        self.wiggly_behavior_threshold = Config.WIGGLY_BEHAVIOR_THRESHOLD
+
         self.possible_reward_values = \
             np.array([self.reward_at_goal,
                       self.reward_collision_with_agent,
                       self.reward_time_step,
-                      self.reward_collision_with_wall])
+                      self.reward_collision_with_wall,
+                      self.reward_wiggly_behavior
+                      ])
         self.min_possible_reward = np.min(self.possible_reward_values)
         self.max_possible_reward = np.max(self.possible_reward_values)
 

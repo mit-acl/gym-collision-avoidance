@@ -38,6 +38,10 @@ class Config:
     REWARD_GETTING_CLOSE   = -0.1 # reward when agent gets close to another agent (unused?)
     REWARD_ENTERED_NORM_ZONE   = -0.05 # reward when agent enters another agent's social zone
     REWARD_TIME_STEP   = 0.0 # default reward given if none of the others apply (encourage speed)
+
+    REWARD_WIGGLY_BEHAVIOR = 0.0
+    WIGGLY_BEHAVIOR_THRESHOLD = np.inf
+
     NUM_STEPS_IN_OBS_HISTORY = 1 # number of time steps to store in observation vector
     NUM_PAST_ACTIONS_IN_STATE = 0
     COLLISION_DIST = 0.0 # meters between agents' boundaries for collision
@@ -52,6 +56,7 @@ class Config:
     MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT = MAX_NUM_AGENTS_IN_ENVIRONMENT - 1
     MAX_NUM_OTHER_AGENTS_OBSERVED = MAX_NUM_AGENTS_IN_ENVIRONMENT - 1
 
+    ANIMATION_PERIOD_STEPS = 5 # plot every n-th DT step (if animate mode on)
     PLT_LIMITS = None
     PLT_FIG_SIZE = (10, 8)
 
