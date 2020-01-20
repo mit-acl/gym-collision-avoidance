@@ -154,6 +154,26 @@ def full_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, a
     agents = cadrl_test_case_to_agents(cadrl_test_case, agents_policy=agents_policy, agents_dynamics=agents_dynamics, agents_sensors=agents_sensors)
     return agents
 
+def full_test_suite_carrl(num_agents, test_case_index):
+    cadrl_test_case = preset_testCases(num_agents, full_test_suite=True, vpref_constraint=False, radius_bounds=None, carrl=True)[test_case_index]
+    agents = []
+    agents.append(cadrl_test_case_to_agents([cadrl_test_case[0,:]], agents_policy=CARRLPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])[0])
+    agents.append(cadrl_test_case_to_agents([cadrl_test_case[1,:]], agents_policy=RVOPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])[0])
+    agents[1].id = 1
+    return agents
+
+def get_testcase_random_carrl():
+    num_agents = 2
+    side_length = 2
+    speed_bnds = [0.5, 1.5]
+    radius_bnds = [0.2, 0.8]
+    test_case = tc.generate_rand_test_case_multi(num_agents, side_length, speed_bnds, radius_bnds)
+    agents = []
+    agents.append(cadrl_test_case_to_agents([test_case[0,:]], agents_policy=CARRLPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])[0])
+    agents.append(cadrl_test_case_to_agents([test_case[1,:]], agents_policy=RVOPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])[0])
+    agents[1].id = 1
+    return agents
+
 def formation(agents, letter, num_agents=6, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor]):
     formations = {
         'A': 2*np.array([
@@ -255,7 +275,7 @@ def cadrl_test_case_to_agents(test_case, agents_policy=LearningPolicy, agents_dy
         agents.append(Agent(px, py, gx, gy, radius, pref_speed, heading, agent_policy_list[i], agent_dynamics_list[i], agent_sensors_list[i], i))
     return agents
 
-def preset_testCases(num_agents, full_test_suite=False, vpref_constraint=False, radius_bounds=None):
+def preset_testCases(num_agents, full_test_suite=False, vpref_constraint=False, radius_bounds=None, carrl=False):
     if full_test_suite:
         num_test_cases = 500
 
@@ -267,6 +287,8 @@ def preset_testCases(num_agents, full_test_suite=False, vpref_constraint=False, 
         filename = test_case_filename.format(
                 num_agents=num_agents, num_test_cases=num_test_cases, pref_speed_string=pref_speed_string,
                 dir=os.path.dirname(os.path.realpath(__file__)))
+        if carrl:
+            filename = filename[:-2]+'_carrl'+filename[-2:]
         test_cases = pickle.load(open(filename, "rb"), encoding='latin1')
 
     else:
@@ -489,6 +511,12 @@ if __name__ == '__main__':
     radius_bnds = [0.1, 0.1]
     num_agents = 4
     side_length = 4
+
+    ## CARRL
+    num_agents = 2
+    side_length = 2
+    speed_bnds = [0.5, 1.5]
+    radius_bnds = [0.2, 0.8]
 
     num_test_cases = 500
     test_cases = []
