@@ -44,12 +44,11 @@ class Agent(object):
         self.dist_to_goal = 0.0
         self.near_goal_threshold = Config.NEAR_GOAL_THRESHOLD
 
-
         self.straight_line_time_to_reach_goal = (np.linalg.norm(self.pos_global_frame - self.goal_global_frame) - self.near_goal_threshold)/self.pref_speed
         if Config.EVALUATE_MODE or Config.PLAY_MODE:
-            self.time_remaining_to_reach_goal = 8*self.straight_line_time_to_reach_goal
+            self.time_remaining_to_reach_goal = Config.MAX_TIME_RATIO*self.straight_line_time_to_reach_goal
         else:
-            self.time_remaining_to_reach_goal = 5*self.straight_line_time_to_reach_goal
+            self.time_remaining_to_reach_goal = Config.MAX_TIME_RATIO*self.straight_line_time_to_reach_goal
         self.t = 0.0
         self.t_offset = None
         self.step_num = 0

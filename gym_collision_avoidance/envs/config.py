@@ -14,9 +14,6 @@ class Config:
     PLAY_MODE           = False # Enable to see the trained agent in action (for testing)
     EVALUATE_MODE       = True # Enable to see the trained agent in action (for testing)
     TRAIN_SINGLE_AGENT = True
-    NEAR_GOAL_THRESHOLD = 0.2
-
-    LASERSCAN_LENGTH = 512 # num range readings in one scan
 
     LSTM_HIDDEN_SIZE = 16
     NUM_LAYERS = 2
@@ -24,8 +21,6 @@ class Config:
     NETWORK = "mfe_network"
     GAMMA = 0.99
     LEARNING_RATE = 1e-3
-
-    PLOT_CIRCLES_ALONG_TRAJ = True
 
     #########################################################################
     # COLLISION AVOIDANCE PARAMETER
@@ -38,14 +33,17 @@ class Config:
     REWARD_GETTING_CLOSE   = -0.1 # reward when agent gets close to another agent (unused?)
     REWARD_ENTERED_NORM_ZONE   = -0.05 # reward when agent enters another agent's social zone
     REWARD_TIME_STEP   = 0.0 # default reward given if none of the others apply (encourage speed)
-
     REWARD_WIGGLY_BEHAVIOR = 0.0
     WIGGLY_BEHAVIOR_THRESHOLD = np.inf
-
-    NUM_STEPS_IN_OBS_HISTORY = 1 # number of time steps to store in observation vector
-    NUM_PAST_ACTIONS_IN_STATE = 0
     COLLISION_DIST = 0.0 # meters between agents' boundaries for collision
     GETTING_CLOSE_RANGE = 0.2 # meters between agents' boundaries for collision
+
+    LASERSCAN_LENGTH = 512 # num range readings in one scan
+    NUM_STEPS_IN_OBS_HISTORY = 1 # number of time steps to store in observation vector
+    NUM_PAST_ACTIONS_IN_STATE = 0
+
+    NEAR_GOAL_THRESHOLD = 0.2
+    MAX_TIME_RATIO = 8. # agent has this number times the straight-line-time to reach its goal before "timing out"
 
     SENSING_HORIZON  = np.inf
     # SENSING_HORIZON  = 3.0
@@ -56,6 +54,7 @@ class Config:
     MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT = MAX_NUM_AGENTS_IN_ENVIRONMENT - 1
     MAX_NUM_OTHER_AGENTS_OBSERVED = MAX_NUM_AGENTS_IN_ENVIRONMENT - 1
 
+    PLOT_CIRCLES_ALONG_TRAJ = True
     ANIMATION_PERIOD_STEPS = 5 # plot every n-th DT step (if animate mode on)
     PLT_LIMITS = None
     PLT_FIG_SIZE = (10, 8)
