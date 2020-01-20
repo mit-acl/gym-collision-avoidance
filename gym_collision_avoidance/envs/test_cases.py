@@ -157,8 +157,14 @@ def full_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, a
 def full_test_suite_carrl(num_agents, test_case_index):
     cadrl_test_case = preset_testCases(num_agents, full_test_suite=True, vpref_constraint=False, radius_bounds=None, carrl=True)[test_case_index]
     agents = []
+
+    ### NOTE: SAMPLING from this just using np.choice is gonna screw stuff up!! It won't be fair each time this is called that the other agent had the same policy
+    other_agent_policy_options = [NonCooperativePolicy]
+    # other_agent_policy_options = [NonCooperativePolicy, CADRLPolicy, RVOPolicy]
+    other_agent_policy = other_agent_policy_options[test_case_index%len(other_agent_policy_options)]
     agents.append(cadrl_test_case_to_agents([cadrl_test_case[0,:]], agents_policy=CARRLPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])[0])
-    agents.append(cadrl_test_case_to_agents([cadrl_test_case[1,:]], agents_policy=RVOPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])[0])
+    agents.append(cadrl_test_case_to_agents([cadrl_test_case[1,:]], agents_policy=other_agent_policy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])[0])
+    # agents.append(cadrl_test_case_to_agents([cadrl_test_case[1,:]], agents_policy=RVOPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])[0])
     agents[1].id = 1
     return agents
 
