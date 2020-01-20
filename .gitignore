@@ -13,3 +13,5 @@ gym_collision_avoidance/experiments/results
 
 venv
 log
+
+gym_collision_avoidance/envs/policies/CADRL/pickle_files/multi/nn_training_param.p
