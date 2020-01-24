@@ -154,8 +154,8 @@ def full_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, a
     agents = cadrl_test_case_to_agents(cadrl_test_case, agents_policy=agents_policy, agents_dynamics=agents_dynamics, agents_sensors=agents_sensors)
     return agents
 
-def full_test_suite_carrl(num_agents, test_case_index):
-    cadrl_test_case = preset_testCases(num_agents, full_test_suite=True, vpref_constraint=False, radius_bounds=None, carrl=True)[test_case_index]
+def full_test_suite_carrl(num_agents, test_case_index, seed=None):
+    cadrl_test_case = preset_testCases(num_agents, full_test_suite=True, vpref_constraint=False, radius_bounds=None, carrl=True, seed=seed)[test_case_index]
     agents = []
 
     ### NOTE: SAMPLING from this just using np.choice is gonna screw stuff up!! It won't be fair each time this is called that the other agent had the same policy
@@ -281,7 +281,7 @@ def cadrl_test_case_to_agents(test_case, agents_policy=LearningPolicy, agents_dy
         agents.append(Agent(px, py, gx, gy, radius, pref_speed, heading, agent_policy_list[i], agent_dynamics_list[i], agent_sensors_list[i], i))
     return agents
 
-def preset_testCases(num_agents, full_test_suite=False, vpref_constraint=False, radius_bounds=None, carrl=False):
+def preset_testCases(num_agents, full_test_suite=False, vpref_constraint=False, radius_bounds=None, carrl=False, seed=None):
     if full_test_suite:
         num_test_cases = 500
 
@@ -295,6 +295,8 @@ def preset_testCases(num_agents, full_test_suite=False, vpref_constraint=False, 
                 dir=os.path.dirname(os.path.realpath(__file__)))
         if carrl:
             filename = filename[:-2]+'_carrl'+filename[-2:]
+        if seed is not None:
+            filename = filename[:-2]+'_seed'+str(seed).zfill(3)+filename[-2:]
         test_cases = pickle.load(open(filename, "rb"), encoding='latin1')
 
     else:
@@ -510,7 +512,10 @@ def get_testcase_hololens_and_cadrl():
     return agents
 
 if __name__ == '__main__':
-    np.random.seed(0)
+    seed = 0
+    carrl = False
+    
+    np.random.seed(seed)
     # speed_bnds = [0.5, 1.5]
     speed_bnds = [1.0, 1.0]
     # radius_bnds = [0.2, 0.8]
@@ -519,10 +524,11 @@ if __name__ == '__main__':
     side_length = 4
 
     ## CARRL
-    num_agents = 2
-    side_length = 2
-    speed_bnds = [0.5, 1.5]
-    radius_bnds = [0.2, 0.8]
+    if carrl:
+        num_agents = 2
+        side_length = 2
+        speed_bnds = [0.5, 1.5]
+        radius_bnds = [0.2, 0.8]
 
     num_test_cases = 500
     test_cases = []
@@ -539,6 +545,9 @@ if __name__ == '__main__':
     filename = test_case_filename.format(
                 num_agents=num_agents, num_test_cases=num_test_cases, pref_speed_string=pref_speed_string,
                 dir=os.path.dirname(os.path.realpath(__file__)))
+    if carrl:
+        filename = filename[:-2] + '_carrl' + filename[-2:]
+    filename = filename[:-2] + '_seed' + str(seed).zfill(3) + filename[-2:]
 
     os.makedirs(os.path.dirname(filename), exist_ok=True)
 
