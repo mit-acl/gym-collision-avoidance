@@ -29,6 +29,8 @@ class RVOPolicy(Policy):
 
         self.is_init = False
 
+        self.use_non_coop_policy = True
+
     def init(self):
         state_dim = 2
         self.pos_agents = np.empty((self.n_agents, state_dim))
@@ -72,7 +74,20 @@ class RVOPolicy(Policy):
             self.sim.setAgentPrefVelocity(self.rvo_agents[a], tuple(self.pref_vel_agents[a,:]))
 
         # Set ego agent's collaborativity
-        self.sim.setAgentCollabCoeff(self.rvo_agents[agent_index], Config.RVO_COLLAB_COEFF)
+        if Config.RVO_COLLAB_COEFF < 0:
+            # agent is anti-collaborative ==> every X seconds, it chooses btwn non-coop and adversarial,
+            # where the PMF of which policy to run is defined by abs(collab_coeff)\in(0,1].
+
+            # if a certain freq, randomly select btwn use non coop policy vs. rvo
+            if round(agents[agent_index].t % Config.RVO_ANTI_COLLAB_T, 3) < Config.DT or \
+                round(Config.RVO_ANTI_COLLAB_T - agents[agent_index].t % Config.RVO_ANTI_COLLAB_T, 3) < Config.DT:
+                self.use_non_coop_policy = np.random.choice([True, False], p=[1-abs(Config.RVO_COLLAB_COEFF), abs(Config.RVO_COLLAB_COEFF)])
+            if self.use_non_coop_policy:
+                self.sim.setAgentCollabCoeff(self.rvo_agents[agent_index], 0.0)
+            else:
+                self.sim.setAgentCollabCoeff(self.rvo_agents[agent_index], Config.RVO_COLLAB_COEFF)
+        else:
+            self.sim.setAgentCollabCoeff(self.rvo_agents[agent_index], Config.RVO_COLLAB_COEFF)
 
         # Execute one step in the RVO simulator
         self.sim.doStep()
