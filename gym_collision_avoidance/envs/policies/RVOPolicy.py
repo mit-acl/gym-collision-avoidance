@@ -43,10 +43,6 @@ class RVOPolicy(Policy):
         for a in range(self.n_agents):
             self.rvo_agents[a] = self.sim.addAgent((0,0))
         
-        # Set RVO agent's collaborativity
-        # self.sim.setAgentCollabCoeff(self.rvo_agents[1], 0.5)
-        #sim.setAgentCollabCoeff(a1, 0.)
-
         self.is_init = True
 
     def find_next_action(self, obs, agents, agent_index):
@@ -74,6 +70,9 @@ class RVOPolicy(Policy):
             self.sim.setAgentPosition(self.rvo_agents[a], tuple(self.pos_agents[a,:]))
             self.sim.setAgentVelocity(self.rvo_agents[a], tuple(self.vel_agents[a,:]))
             self.sim.setAgentPrefVelocity(self.rvo_agents[a], tuple(self.pref_vel_agents[a,:]))
+
+        # Set ego agent's collaborativity
+        self.sim.setAgentCollabCoeff(self.rvo_agents[agent_index], Config.RVO_COLLAB_COEFF)
 
         # Execute one step in the RVO simulator
         self.sim.doStep()

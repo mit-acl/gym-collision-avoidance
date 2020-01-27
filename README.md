@@ -75,6 +75,13 @@ brew install mpich
 brew install pkg-config
 ```
 
+To update the `Python-RVO2` source code and re-generate the `rvo2` python library, the results won't have any effect unless you remove the `build` dir:
+```bash
+# enter the venv
+cd gym-collision-avoidance/gym_collision_avoidance/envs/policies/Python-RVO2
+rm -rf build && python setup.py build && python setup.py install
+```
+
 ---
 
 ### Policies Implemented

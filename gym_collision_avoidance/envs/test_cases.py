@@ -38,6 +38,14 @@ from gym_collision_avoidance.envs.policies.CADRL.scripts.multi import gen_rand_t
 
 test_case_filename = "{dir}/test_cases/{pref_speed_string}{num_agents}_agents_{num_test_cases}_cases.p"
 
+policy_dict = {
+    'rvo': RVOPolicy,
+    'noncoop': NonCooperativePolicy,
+    'carrl': CARRLPolicy,
+    'external': ExternalPolicy,
+    'GA3C': GA3CCADRLPolicy
+}
+
 def get_testcase_two_agents():
     goal_x = 3
     goal_y = 3
@@ -154,17 +162,17 @@ def full_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, a
     agents = cadrl_test_case_to_agents(cadrl_test_case, agents_policy=agents_policy, agents_dynamics=agents_dynamics, agents_sensors=agents_sensors)
     return agents
 
-def full_test_suite_carrl(num_agents, test_case_index, seed=None):
+def full_test_suite_carrl(num_agents, test_case_index, seed=None, other_agent_policy_options=None):
     cadrl_test_case = preset_testCases(num_agents, full_test_suite=True, vpref_constraint=False, radius_bounds=None, carrl=True, seed=seed)[test_case_index]
     agents = []
 
-    ### NOTE: SAMPLING from this just using np.choice is gonna screw stuff up!! It won't be fair each time this is called that the other agent had the same policy
-    other_agent_policy_options = [NonCooperativePolicy]
-    # other_agent_policy_options = [NonCooperativePolicy, CADRLPolicy, RVOPolicy]
-    other_agent_policy = other_agent_policy_options[test_case_index%len(other_agent_policy_options)]
+    if other_agent_policy_options is None:
+        other_agent_policy_options = [RVOPolicy]
+    else:
+        other_agent_policy_options = [policy_dict[pol] for pol in other_agent_policy_options]
+    other_agent_policy = other_agent_policy_options[test_case_index%len(other_agent_policy_options)] # dont just sample (inconsistency btwn same test_case)
     agents.append(cadrl_test_case_to_agents([cadrl_test_case[0,:]], agents_policy=CARRLPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])[0])
     agents.append(cadrl_test_case_to_agents([cadrl_test_case[1,:]], agents_policy=other_agent_policy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])[0])
-    # agents.append(cadrl_test_case_to_agents([cadrl_test_case[1,:]], agents_policy=RVOPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])[0])
     agents[1].id = 1
     return agents
 
