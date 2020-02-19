@@ -2,12 +2,22 @@
 
 <img src="misc/000_GA3C-CADRL-10_6agents.gif" width="500" alt="Agents spelling ``C''">
 
-This is a multiagent domain featuring continuous state and action spaces.
+This is the code associated with the following paper:
 
-Agents try to get to their own goal location (chosen at the start of each episode) by using one of many collision avoidance policies implemented.
-Episodes end when agents reach their goal or collide.
+M. Everett, Y. Chen, and J. P. How, "Motion Planning Among Dynamic, Decision-Making Agents with Deep Reinforcement Learning", IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 2018
+
+Paper: https://arxiv.org/abs/1805.01956
+Video: https://www.youtube.com/watch?v=XHoXkWLhwYQ
+
+This repo also contains the trained policy for the SA-CADRL paper (referred to as CADRL here) from the proceeding paper:
+
+Yu Fan Chen, Michael Everett, Miao Liu, and Jonathan P. How. “Socially Aware Motion Planning with Deep Reinforcement Learning.” IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Vancouver, BC, Canada, Sept. 2017.
+
+### About
+
+In this multiagent environment, agents try to get to their own goal location (specified at the start of each episode) by using one of many collision avoidance policies implemented.
+Episodes end when agents reach their goal, collide, or timeout.
 Agents can observe the environment through one of many types of sensors, including one which provides raw state info about other agents.
-Reward is given to agents when arriving at the goal.
 
 **Objective**: Provide a flexible codebase, reduce time spent re-implementing existing works, and establish baselines for multiagent collision avoidance problems.
 
@@ -16,6 +26,7 @@ Reward is given to agents when arriving at the goal.
 Grab the code from github, initialize submodules, install dependencies and src code
 ```bash
 git clone --recursive git@github.com:mit-acl/gym-collision-avoidance.git
+cd gym-collision-avoidance
 ./install.sh
 ```
 
@@ -101,25 +112,21 @@ Desired Additions:
 - DWA
 - Social Forces
 - Additional learning-based methods
+- Other model-based methods
 - Centralized planners
 
 ---
 
 ### TODOs:
-- Get DRLLong working by pointing to correct commit on mfe's fork (cuda in python)
-- Add test suite code to README
-- Confirm sensors work
-- Get GA3C-CADRL to actually use the dict obs?
-- Fix permissions on all files
+[ ] Get DRLLong working by pointing to correct commit on mfe's fork (cuda in python)
+[ ] Add test suite code to README
+[ ] Confirm sensors work
+[ ] Get GA3C-CADRL to actually use the dict obs?
 
 ---
 
 ### If you find this code useful, please consider citing:
 
-M. Everett, Y. Chen, and J. P. How, "Motion Planning Among Dynamic, Decision-Making Agents with Deep Reinforcement Learning", IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 2018
-
-Paper: https://arxiv.org/abs/1805.01956
-Video: https://www.youtube.com/watch?v=XHoXkWLhwYQ
 
 Bibtex:
 ```
