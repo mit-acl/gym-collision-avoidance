@@ -5,9 +5,8 @@
 This is the code associated with the following paper:
 
 M. Everett, Y. Chen, and J. P. How, "Motion Planning Among Dynamic, Decision-Making Agents with Deep Reinforcement Learning", IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 2018
-
-Paper: https://arxiv.org/abs/1805.01956
-Video: https://www.youtube.com/watch?v=XHoXkWLhwYQ
+*  Paper: https://arxiv.org/abs/1805.01956
+*  Video: https://www.youtube.com/watch?v=XHoXkWLhwYQ
 
 This repo also contains the trained policy for the SA-CADRL paper (referred to as CADRL here) from the proceeding paper:
 
@@ -25,7 +24,7 @@ Agents can observe the environment through one of many types of sensors, includi
 
 Grab the code from github, initialize submodules, install dependencies and src code
 ```bash
-git clone --recursive git@github.com:mit-acl/gym-collision-avoidance.git
+git clone --recursive git@github.com:mit-acl/gym-collision-avoidance.git # If internal to MIT-ACL, use GitLab origin instead
 cd gym-collision-avoidance
 ./install.sh
 ```
@@ -118,17 +117,15 @@ Desired Additions:
 ---
 
 ### TODOs:
-[ ] Get DRLLong working by pointing to correct commit on mfe's fork (cuda in python)
-[ ] Add test suite code to README
-[ ] Confirm sensors work
-[ ] Get GA3C-CADRL to actually use the dict obs?
+- [ ] Get DRLLong working by pointing to correct commit on mfe's fork (cuda in python)
+- [ ] Add test suite code to README
+- [ ] Confirm sensors work
+- [ ] Get GA3C-CADRL to actually use the dict obs?
 
 ---
 
 ### If you find this code useful, please consider citing:
 
-
-Bibtex:
 ```
 @inproceedings{Everett18_IROS,
   address = {Madrid, Spain},
