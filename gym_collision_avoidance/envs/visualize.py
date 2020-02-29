@@ -1,5 +1,9 @@
 import numpy as np
 from gym_collision_avoidance.envs.util import find_nearest, rgba2rgb
+from sys import platform
+if platform == "darwin":
+    import matplotlib as mpl
+    mpl.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib
 import os
@@ -36,7 +40,7 @@ def get_plot_save_dir(plot_save_dir, plot_policy_name, agents=None):
 
 def animate_episode(num_agents, plot_save_dir=None, plot_policy_name=None, test_case_index=0, agents=None):
     plot_save_dir, plot_policy_name, base_fig_name, collision_plot_dir = get_plot_save_dir(plot_save_dir, plot_policy_name, agents)
-    
+
     # Load all images of the current episode (each animation)
     fig_name = base_fig_name.format(
             policy=plot_policy_name,
@@ -84,7 +88,7 @@ def plot_episode(agents, in_evaluate_mode,
     circles_along_traj=True, plot_save_dir=None, plot_policy_name=None,
     save_for_animation=False, limits=None, perturbed_obs=None,
     fig_size=(10,8), show=False, save=False):
-    
+
     if max([agent.step_num for agent in agents]) == 0:
         return
 
@@ -170,7 +174,7 @@ def draw_agents(agents, circles_along_traj, ax, last_index=-1):
             plt.plot(agent.global_state_history[0, 3],
                      agent.global_state_history[0, 4],
                      color=plt_color, marker='*', markersize=20)
-            
+
             # Display circle at agent pos every circle_spacing (nom 1.5 sec)
             circle_spacing = 0.4
             circle_times = np.arange(0.0, agent.global_state_history[agent.step_num+last_index, 0],
@@ -265,7 +269,7 @@ def plot_perturbed_observation(agents, ax, perturbed_info):
         other_agent_lower_left_before_rotation = other_agent_pos + eps_lower_left_before_rotation
         ax.add_patch(plt.Circle(other_agent_perturbed_pos,
                      radius=agents[1].radius, fill=False, ec=plt_colors[-1]))
-        
+
         if perturber.p == "inf":
             ax.add_patch(plt.Rectangle(other_agent_perturbed_lower_left_before_rotation,
                 width=2*perturber.epsilon_adversarial[0,4],
