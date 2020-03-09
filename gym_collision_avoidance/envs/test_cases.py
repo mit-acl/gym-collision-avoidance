@@ -55,14 +55,21 @@ def get_testcase_two_agents():
         ]
     return agents
 
-def get_testcase_two_agents_external_rvo():
+def get_testcase_two_agents_carrl_rvo():
     goal_x = 3
     goal_y = 0
     agents = [
-        # Agent(0.735, -0.568, -0.254, 0.798, 0.567, 1.444, -2.313, CARRLPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 0),
-        # Agent(0.105, -1.83, 0.342, 1.935, 0.236, 1.17, 1.36, RVOPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 1)
         Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.0, CARRLPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 0),
         Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, np.pi, RVOPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 1)
+        ]
+    return agents
+
+def get_testcase_two_agents_carrl_noncoop():
+    goal_x = 0
+    goal_y = 3
+    agents = [
+        Agent(0, 0, goal_x, goal_y, 0.5, 1.0, 0.0, CARRLPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 0),
+        Agent(goal_x, goal_y, 0, 0, 0.5, 1.0, np.pi, NonCooperativePolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 1)
         ]
     return agents
 
