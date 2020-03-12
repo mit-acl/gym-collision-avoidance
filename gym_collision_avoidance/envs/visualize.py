@@ -8,7 +8,6 @@ from matplotlib.collections import LineCollection
 import glob
 import imageio
 
-import moviepy.editor as mp
 
 matplotlib.rcParams.update({'font.size': 24})
 
@@ -76,6 +75,7 @@ def animate_episode(num_agents, plot_save_dir=None, plot_policy_name=None, test_
     imageio.mimsave(animation_filename, images)
 
     # convert .gif to .mp4
+    import moviepy.editor as mp
     clip = mp.VideoFileClip(animation_filename)
     clip.write_videofile(animation_filename[:-4]+".mp4")
 
