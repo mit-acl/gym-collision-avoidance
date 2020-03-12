@@ -36,4 +36,4 @@ python setup.py build
 python setup.py install
 
 # Install DRL Long's requirements
-python -m pip install torch torchvision
+# python -m pip install torch torchvision
