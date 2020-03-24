@@ -65,11 +65,6 @@ class Config:
         self.RVO_ANTI_COLLAB_T = 1.0
 
         ### OBSERVATION VECTOR
-        self.STATES_IN_OBS = ['is_learning', 'num_other_agents', 'dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agents_states']
-        # STATES_IN_OBS = ['dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agent_states', 'use_ppo', 'laserscan']
-        # STATES_IN_OBS = ['dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agent_states', 'use_ppo'] # 2-agent net
-        # STATES_IN_OBS = ['dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agents_states', 'use_ppo', 'num_other_agents', 'laserscan'] # LSTM
-        self.STATES_NOT_USED_IN_POLICY = ['is_learning']
         self.STATE_INFO_DICT = {
             'dist_to_goal': {
                 'dtype': np.float32,
@@ -142,6 +137,22 @@ class Config:
                 'attr': 'get_agent_data_equiv("policy.str", "learning")'
                 }
             }
+        # TODO: Find a way to force env config.py to inherit from a parent config.py...
+        self.setup_obs()
+    
+        self.AGENT_SORTING_METHOD = "closest_last"
+        # self.AGENT_SORTING_METHOD = "closest_first"
+        # self.AGENT_SORTING_METHOD = "time_to_impact"
+
+    def setup_obs(self):
+        if not hasattr(self, "STATES_IN_OBS"):
+            self.STATES_IN_OBS = ['is_learning', 'num_other_agents', 'dist_to_goal', 'heading_ego_frame', 'pref_speed', 'radius', 'other_agents_states']
+            # STATES_IN_OBS = ['dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agent_states', 'use_ppo', 'laserscan']
+            # STATES_IN_OBS = ['dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agent_states', 'use_ppo'] # 2-agent net
+            # STATES_IN_OBS = ['dist_to_goal', 'radius', 'heading_ego_frame', 'pref_speed', 'other_agents_states', 'use_ppo', 'num_other_agents', 'laserscan'] # LSTM
+        if not hasattr(self, "STATES_NOT_USED_IN_POLICY"):
+            self.STATES_NOT_USED_IN_POLICY = ['is_learning']
+
         self.MEAN_OBS = {}; self.STD_OBS = {}
         for state in self.STATES_IN_OBS:
             if 'mean' in self.STATE_INFO_DICT[state]:
@@ -149,6 +160,3 @@ class Config:
             if 'std' in self.STATE_INFO_DICT[state]:
                 self.STD_OBS[state] = self.STATE_INFO_DICT[state]['std']
 
-        self.AGENT_SORTING_METHOD = "closest_last"
-        # AGENT_SORTING_METHOD = "closest_first"
-        # AGENT_SORTING_METHOD = "time_to_impact"
