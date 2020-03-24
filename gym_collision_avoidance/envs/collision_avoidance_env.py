@@ -136,9 +136,6 @@ class CollisionAvoidanceEnv(gym.Env):
         self.episode_step_number += 1
 
         # Take action
-        # if type(actions) == int and actions == -1:
-        #     print('**')
-        # else:
         self._take_action(actions, dt)
 
         # Collect rewards
