@@ -11,7 +11,7 @@ import itertools
 import copy
 import os
 
-from gym_collision_avoidance.envs.config import Config
+from gym_collision_avoidance.envs.config import Config as EnvConfig; Config = EnvConfig()
 from gym_collision_avoidance.envs.util import find_nearest, rgba2rgb
 from gym_collision_avoidance.envs.visualize import plot_episode, animate_episode
 from gym_collision_avoidance.envs.agent import Agent
@@ -136,6 +136,9 @@ class CollisionAvoidanceEnv(gym.Env):
         self.episode_step_number += 1
 
         # Take action
+        # if type(actions) == int and actions == -1:
+        #     print('**')
+        # else:
         self._take_action(actions, dt)
 
         # Collect rewards
@@ -160,11 +163,16 @@ class CollisionAvoidanceEnv(gym.Env):
         which_agents_done, game_over = self._check_which_agents_done()
 
         which_agents_done_dict = {}
+        which_agents_learning_dict = {}
         for i, agent in enumerate(self.agents):
             which_agents_done_dict[agent.id] = which_agents_done[i]
+            which_agents_learning_dict[agent.id] = agent.policy.is_still_learning
 
         return next_observations, rewards, game_over, \
-            {'which_agents_done': which_agents_done_dict}
+            {
+                'which_agents_done': which_agents_done_dict,
+                'which_agents_learning': which_agents_learning_dict,
+            }
 
     def reset(self):
         if self.episode_step_number is not None and self.episode_step_number > 0 and self.plot_episodes and self.test_case_index >= 0:

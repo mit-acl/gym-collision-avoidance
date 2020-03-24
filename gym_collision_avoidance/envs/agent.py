@@ -1,5 +1,5 @@
 import numpy as np
-from gym_collision_avoidance.envs.config import Config
+from gym_collision_avoidance.envs.config import Config as EnvConfig; Config = EnvConfig()
 from gym_collision_avoidance.envs.util import wrap, find_nearest
 import operator
 import math

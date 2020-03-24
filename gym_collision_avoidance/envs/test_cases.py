@@ -23,13 +23,15 @@ from gym_collision_avoidance.envs.policies.GA3CCADRLPolicy import GA3CCADRLPolic
 from gym_collision_avoidance.envs.policies.ExternalPolicy import ExternalPolicy
 from gym_collision_avoidance.envs.policies.LearningPolicy import LearningPolicy
 from gym_collision_avoidance.envs.policies.CARRLPolicy import CARRLPolicy
+from gym_collision_avoidance.envs.policies.LearningPolicyGA3C import LearningPolicyGA3C
+
 from gym_collision_avoidance.envs.dynamics.UnicycleDynamics import UnicycleDynamics
 from gym_collision_avoidance.envs.dynamics.UnicycleDynamicsMaxTurnRate import UnicycleDynamicsMaxTurnRate
 from gym_collision_avoidance.envs.dynamics.ExternalDynamics import ExternalDynamics
 from gym_collision_avoidance.envs.sensors.OccupancyGridSensor import OccupancyGridSensor
 from gym_collision_avoidance.envs.sensors.LaserScanSensor import LaserScanSensor
 from gym_collision_avoidance.envs.sensors.OtherAgentsStatesSensor import OtherAgentsStatesSensor
-from gym_collision_avoidance.envs.config import Config
+from gym_collision_avoidance.envs.config import Config as EnvConfig; Config = EnvConfig()
 
 import os
 import pickle
@@ -43,7 +45,8 @@ policy_dict = {
     'noncoop': NonCooperativePolicy,
     'carrl': CARRLPolicy,
     'external': ExternalPolicy,
-    'GA3C': GA3CCADRLPolicy
+    'GA3C': GA3CCADRLPolicy,
+    'learning_ga3c': LearningPolicyGA3C,
 }
 
 def get_testcase_two_agents():
@@ -82,7 +85,7 @@ def get_testcase_two_agents_laserscanners():
         ]
     return agents
 
-def get_testcase_random(num_agents=None, side_length=None, speed_bnds=None, radius_bnds=None, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[]):
+def get_testcase_random(num_agents=None, side_length=None, speed_bnds=None, radius_bnds=None, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor]):
     if num_agents is None:
         num_agents = np.random.randint(2, Config.MAX_NUM_AGENTS_IN_ENVIRONMENT+1)
 
@@ -250,7 +253,7 @@ def formation(agents, letter, num_agents=6, agents_policy=LearningPolicy, agents
         new_agents.append(new_agent)
     return new_agents
 
-def cadrl_test_case_to_agents(test_case, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[]):
+def cadrl_test_case_to_agents(test_case, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor]):
     ###############################
     # This function accepts a test_case in legacy cadrl format and converts it
     # into our new list of Agent objects. The legacy cadrl format is a list of
