@@ -52,8 +52,8 @@ def main():
             break
     env.reset()
 
-    print("Experiment over.")
     return True
 
 if __name__ == '__main__':
     main()
+    print("Experiment over.")

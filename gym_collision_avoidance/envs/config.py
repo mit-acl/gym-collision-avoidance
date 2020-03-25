@@ -176,3 +176,16 @@ class Example(Config):
         self.SAVE_EPISODE_PLOTS = True
         self.TRAIN_MODE = False
         self.EVALUATE_MODE = True
+
+class Formations(Config):
+    def __init__(self):
+        Config.__init__(self)
+        self.EVALUATE_MODE = True
+        self.SAVE_EPISODE_PLOTS = True
+        self.SHOW_EPISODE_PLOTS = False
+        self.ANIMATE_EPISODES = True
+        self.DT = 0.1
+        self.NEAR_GOAL_THRESHOLD = 0.2
+        self.PLT_LIMITS = [[-5, 6], [-2, 7]]
+        self.PLT_FIG_SIZE = (10,10)
+        self.PLOT_CIRCLES_ALONG_TRAJ = False
