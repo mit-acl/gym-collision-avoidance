@@ -2,7 +2,7 @@ import gym
 gym.logger.set_level(40)
 import numpy as np
 from gym_collision_avoidance.envs.config import Config as EnvConfig; Config = EnvConfig()
-from gym_collision_avoidance.envs.wrappers import FlattenDictWrapper, MultiagentFlattenDictWrapper, MultiagentDummyVecEnv
+from gym_collision_avoidance.envs.wrappers import FlattenDictWrapper, MultiagentFlattenDictWrapper, MultiagentDummyVecEnv, MultiagentDictToMultiagentArrayWrapper
 from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 
 def create_env():
@@ -21,8 +21,10 @@ def create_env():
             # only return observations of a single agent
             env = FlattenDictWrapper(env, dict_keys=Config.STATES_IN_OBS)
         else:
-            # return observation of all agents (as a long array)
-            env = MultiagentFlattenDictWrapper(env, dict_keys=Config.STATES_IN_OBS, max_num_agents=Config.MAX_NUM_AGENTS_IN_ENVIRONMENT)
+            # Convert the dict into an np array, shape=(max_num_agents, num_states_per_agent)
+            env = MultiagentDictToMultiagentArrayWrapper(env, dict_keys=Config.STATES_IN_OBS, max_num_agents=Config.MAX_NUM_AGENTS_IN_ENVIRONMENT)
+            # Convert the dict into a flat np array, shape=(max_num_agents*num_states_per_agent)
+            # env = MultiagentFlattenDictWrapper(env, dict_keys=Config.STATES_IN_OBS, max_num_agents=Config.MAX_NUM_AGENTS_IN_ENVIRONMENT)
         
         return env
     

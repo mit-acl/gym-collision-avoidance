@@ -3,7 +3,7 @@ import numpy as np
 from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 
 
-__all__ = ['FlattenDictWrapper', 'MultiagentFlattenDictWrapper', 'MultiagentDummyVecEnv']
+__all__ = ['FlattenDictWrapper', 'MultiagentFlattenDictWrapper', 'MultiagentDummyVecEnv', 'MultiagentDictToMultiagentArrayWrapper']
 
 class MultiagentFlattenDictWrapper(gym.ObservationWrapper):
     """Flattens selected keys of a Dict observation space into
@@ -14,7 +14,15 @@ class MultiagentFlattenDictWrapper(gym.ObservationWrapper):
         self.dict_keys = dict_keys
         self.max_num_agents = max_num_agents
 
-        # Figure out observation_space dimension.
+        self.setup_obs(max_num_agents, dict_keys)
+        self.observation_space = gym.spaces.Box(-np.inf, np.inf, shape=self.obs_shape, dtype='float32')
+
+        single_agent_size = self.observation_indices[0]['BOUNDS'][1] - self.observation_indices[0]['BOUNDS'][0]
+        self.single_agent_observation_space = gym.spaces.Box(-np.inf, np.inf, shape=(single_agent_size,), dtype='float32')
+
+        self.dict_observation_space = self.env.observation_space
+
+    def setup_obs(self, max_num_agents, dict_keys):
         self.observation_indices = {}
         size = 0
         for agent in range(max_num_agents):
@@ -28,12 +36,7 @@ class MultiagentFlattenDictWrapper(gym.ObservationWrapper):
             agent_upper_ind = size
             self.observation_indices[agent]['BOUNDS'] = [agent_lower_ind, agent_upper_ind]
 
-        self.observation_space = gym.spaces.Box(-np.inf, np.inf, shape=(size,), dtype='float32')
-
-        single_agent_size = agent_upper_ind-agent_lower_ind
-        self.single_agent_observation_space = gym.spaces.Box(-np.inf, np.inf, shape=(single_agent_size,), dtype='float32')
-
-        self.dict_observation_space = self.env.observation_space
+        self.obs_shape = (size,)
 
     def observation(self, observation):
         # Turn multiagent dict obs into a really long 1d array
@@ -104,3 +107,33 @@ class MultiagentDummyVecEnv(DummyVecEnv):
 
         self.buf_dones = np.zeros((self.num_envs,), dtype=np.ndarray)
         self.buf_rews  = np.zeros((self.num_envs,), dtype=np.ndarray)
+
+class MultiagentDictToMultiagentArrayWrapper(MultiagentFlattenDictWrapper):
+    def __init__(self, env, dict_keys, max_num_agents):
+        super(MultiagentDictToMultiagentArrayWrapper, self).__init__(env, dict_keys, max_num_agents=max_num_agents)
+
+    def setup_obs(self, max_num_agents, dict_keys):
+        self.observation_indices = {}
+        for agent in range(max_num_agents):
+            self.observation_indices[agent] = {}
+            size = 0
+            for key in dict_keys:
+                shape = self.env.observation_space.spaces[key].shape
+                prev_size = size
+                size += np.prod(shape)
+                self.observation_indices[agent][key] = [prev_size, size]
+            agent_upper_ind = size
+            self.observation_indices[agent]['BOUNDS'] = [0, agent_upper_ind]
+
+        self.obs_shape = (max_num_agents, size)
+
+    def observation(self, observation):
+        # Turn multiagent dict obs into a 2d array
+        # with shape (max_num_agents, num_states_per_agent)
+        assert isinstance(observation, dict)
+        obs = np.zeros(shape=self.obs_shape)
+        for agent in range(self.max_num_agents):
+            for key in self.dict_keys:
+                low, high = self.observation_indices[agent][key]
+                obs[agent][low:high] = observation[agent][key].ravel()
+        return obs
