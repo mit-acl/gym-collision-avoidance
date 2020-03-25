@@ -1,0 +1,10 @@
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+test_perturbations:
+  image: python:3.5
+  script:
+    - apt-get update && apt-get install -y cmake libopenmpi-dev
+    - ./install.sh
+    - source venv/bin/activate
+    - python gym_collision_avoidance/tests/test_collision_avoidance.py
