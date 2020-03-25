@@ -50,50 +50,23 @@ policy_dict = {
     'static': StaticPolicy,
 }
 
-# def get_testcase_two_agents():
-#     goal_x = 3
-#     goal_y = 3
-#     agents = [
-#         Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, LearningPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 0),
-#         Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 1)
-#         ]
-#     return agents
+def get_testcase_two_agents(policies=['learning', 'ga3c']):
+    goal_x = 3
+    goal_y = 3
+    agents = [
+        Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.0, policy_dict[policies[0]], UnicycleDynamics, [OtherAgentsStatesSensor], 0),
+        Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, np.pi, policy_dict[policies[1]], UnicycleDynamics, [OtherAgentsStatesSensor], 1)
+        ]
+    return agents
 
-# def get_testcase_two_agents_learningga3c_noncoop():
-#     goal_x = 3
-#     goal_y = 3
-#     agents = [
-#         Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, LearningPolicyGA3C, UnicycleDynamics, [OtherAgentsStatesSensor], 0),
-#         Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, NonCooperativePolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 1)
-#         ]
-#     return agents
-
-# def get_testcase_two_agents_carrl_rvo():
-#     goal_x = 3
-#     goal_y = 0
-#     agents = [
-#         Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.0, CARRLPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 0),
-#         Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, np.pi, RVOPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 1)
-#         ]
-#     return agents
-
-# def get_testcase_two_agents_carrl_noncoop():
-#     goal_x = 0
-#     goal_y = 3
-#     agents = [
-#         Agent(0, 0, goal_x, goal_y, 0.5, 1.0, 0.0, CARRLPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 0),
-#         Agent(goal_x, goal_y, 0, 0, 0.5, 1.0, np.pi, NonCooperativePolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 1)
-#         ]
-#     return agents
-
-# def get_testcase_two_agents_laserscanners():
-#     goal_x = 3
-#     goal_y = 3
-#     agents = [
-#         Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, PPOPolicy, UnicycleDynamics, [LaserScanSensor], 0),
-#         Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, PPOPolicy, UnicycleDynamics, [LaserScanSensor], 1)
-#         ]
-#     return agents
+def get_testcase_two_agents_laserscanners():
+    goal_x = 3
+    goal_y = 3
+    agents = [
+        Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.0, PPOPolicy, UnicycleDynamics, [LaserScanSensor], 0),
+        Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, np.pi, PPOPolicy, UnicycleDynamics, [LaserScanSensor], 1)
+        ]
+    return agents
 
 def get_testcase_random(num_agents=None, side_length=None, speed_bnds=None, radius_bnds=None, policies='learning', policy_distr=None, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor], policy_to_ensure=None):
     if num_agents is None:
@@ -523,30 +496,30 @@ def gen_circle_test_case(num_agents, radius):
         tc[i, 3] = radius*np.sin(theta_end)
     return tc
 
-def get_testcase_hololens_and_ga3c_cadrl():
-    goal_x1 = 3
-    goal_y1 = 3
-    goal_x2 = 2
-    goal_y2 = 5
-    agents = [
-              Agent(-goal_x1, goal_y1, goal_x1, -goal_y1, 0.5, 1.0, 0.5, ExternalPolicy, ExternalDynamics, [], 0), # hololens
-              Agent(goal_x1, goal_y1, goal_x1, -goal_y1, 0.5, 1.0, 0.5, ExternalPolicy, ExternalDynamics, [], 1), # real robot
-              Agent(-goal_x1+np.random.uniform(-3,3), -goal_y1+np.random.uniform(-1,1), goal_x1, goal_y1, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamicsMaxTurnRate, [], 2)
-              ]
-              # Agent(goal_x1, goal_y1, -goal_x1, -goal_y1, 0.5, 2.0, 0.5, GA3CCADRLPolicy, UnicycleDynamicsMaxTurnRate, [], 1),
-              # Agent(-goal_x2, -goal_y2, goal_x2, goal_y2, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamicsMaxTurnRate, [], 2),
-              # Agent(goal_x2, goal_y2, -goal_x2, -goal_y2, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamicsMaxTurnRate, [], 3),
-              # Agent(-goal_x2, goal_y2, goal_x2, -goal_y2, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamicsMaxTurnRate, [], 4),
-              # Agent(-goal_x1, goal_y1, goal_x1, -goal_y1, 0.5, 1.0, 0.5, ExternalPolicy, ExternalDynamics, [], 5)]
-    return agents
+# def get_testcase_hololens_and_ga3c_cadrl():
+#     goal_x1 = 3
+#     goal_y1 = 3
+#     goal_x2 = 2
+#     goal_y2 = 5
+#     agents = [
+#               Agent(-goal_x1, goal_y1, goal_x1, -goal_y1, 0.5, 1.0, 0.5, ExternalPolicy, ExternalDynamics, [], 0), # hololens
+#               Agent(goal_x1, goal_y1, goal_x1, -goal_y1, 0.5, 1.0, 0.5, ExternalPolicy, ExternalDynamics, [], 1), # real robot
+#               Agent(-goal_x1+np.random.uniform(-3,3), -goal_y1+np.random.uniform(-1,1), goal_x1, goal_y1, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamicsMaxTurnRate, [], 2)
+#               ]
+#               # Agent(goal_x1, goal_y1, -goal_x1, -goal_y1, 0.5, 2.0, 0.5, GA3CCADRLPolicy, UnicycleDynamicsMaxTurnRate, [], 1),
+#               # Agent(-goal_x2, -goal_y2, goal_x2, goal_y2, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamicsMaxTurnRate, [], 2),
+#               # Agent(goal_x2, goal_y2, -goal_x2, -goal_y2, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamicsMaxTurnRate, [], 3),
+#               # Agent(-goal_x2, goal_y2, goal_x2, -goal_y2, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamicsMaxTurnRate, [], 4),
+#               # Agent(-goal_x1, goal_y1, goal_x1, -goal_y1, 0.5, 1.0, 0.5, ExternalPolicy, ExternalDynamics, [], 5)]
+#     return agents
 
-def get_testcase_hololens_and_cadrl():
-    goal_x = 3
-    goal_y = 3
-    agents = [Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamics, [OccupancyGridSensor, LaserScanSensor], 0),
-              Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, CADRLPolicy, UnicycleDynamics, [], 1),
-              Agent(-goal_x, goal_y, goal_x, -goal_y, 0.5, 1.0, 0.5, ExternalPolicy, ExternalDynamics, [], 2)]
-    return agents
+# def get_testcase_hololens_and_cadrl():
+#     goal_x = 3
+#     goal_y = 3
+#     agents = [Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamics, [OccupancyGridSensor, LaserScanSensor], 0),
+#               Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, CADRLPolicy, UnicycleDynamics, [], 1),
+#               Agent(-goal_x, goal_y, goal_x, -goal_y, 0.5, 1.0, 0.5, ExternalPolicy, ExternalDynamics, [], 2)]
+#     return agents
 
 if __name__ == '__main__':
     seed = 0
