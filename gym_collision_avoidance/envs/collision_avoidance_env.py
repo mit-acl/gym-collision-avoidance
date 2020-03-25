@@ -407,9 +407,10 @@ class CollisionAvoidanceEnv(gym.Env):
         assert(callable(test_case_fn))
 
         # Before running test_case_fn, make sure we didn't provide any args it doesn't accept
-        test_case_fn_args = inspect.getargspec(test_case_fn).args
+        test_case_fn_args = inspect.signature(test_case_fn).parameters
         test_case_args_keys = list(test_case_args.keys())
         for key in test_case_args_keys:
+            # print("checking if {} accepts {}".format(test_case_fn, key))
             if key not in test_case_fn_args:
                 # print("{} doesn't accept {} -- removing".format(test_case_fn, key))
                 del test_case_args[key]
