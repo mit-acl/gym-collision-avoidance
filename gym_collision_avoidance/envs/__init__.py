@@ -1,8 +1,8 @@
 # Find the config file (path provided as an environment variable),
 # import and instantiate it here so all modules have access
 import os
-gym_config_path = os.environ['GYM_CONFIG_PATH']
-gym_config_class = os.environ['GYM_CONFIG_CLASS']
+gym_config_path = os.environ.get('GYM_CONFIG_PATH', os.path.join(os.path.dirname(os.path.realpath(__file__)), 'config.py'))
+gym_config_class = os.environ.get('GYM_CONFIG_CLASS', 'Config')
 
 import importlib.util
 spec = importlib.util.spec_from_file_location(gym_config_class, gym_config_path)
