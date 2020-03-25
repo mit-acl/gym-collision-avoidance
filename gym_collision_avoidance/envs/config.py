@@ -169,3 +169,10 @@ class Config(object):
             if 'std' in self.STATE_INFO_DICT[state]:
                 self.STD_OBS[state] = self.STATE_INFO_DICT[state]['std']
 
+class Example(Config):
+    def __init__(self):
+        Config.__init__(self)
+        self.DT = 0.1
+        self.SAVE_EPISODE_PLOTS = True
+        self.TRAIN_MODE = False
+        self.EVALUATE_MODE = True

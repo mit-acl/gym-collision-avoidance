@@ -1,6 +1,8 @@
 import os
 import numpy as np
 import gym
+gym.logger.set_level(40)
+os.environ['GYM_CONFIG_CLASS'] = 'Example'
 from gym_collision_avoidance.envs import test_cases as tc
 from gym_collision_avoidance.envs.config import Config
 
@@ -9,10 +11,6 @@ def main():
     Minimum working example:
     2 agents: 1 running external policy, 1 running GA3C-CADRL
     '''
-
-    # Set config parameters (overriding config.py)
-    Config.DT = 0.1
-    Config.SAVE_EPISODE_PLOTS = True
 
     # Create single tf session for all experiments
     import tensorflow as tf
