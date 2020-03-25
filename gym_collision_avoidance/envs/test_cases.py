@@ -46,6 +46,7 @@ policy_dict = {
     'carrl': CARRLPolicy,
     'external': ExternalPolicy,
     'ga3c': GA3CCADRLPolicy,
+    'learning': LearningPolicy,
     'learning_ga3c': LearningPolicyGA3C,
     'static': StaticPolicy,
 }
