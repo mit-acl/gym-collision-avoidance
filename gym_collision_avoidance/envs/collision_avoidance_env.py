@@ -10,6 +10,7 @@ import numpy as np
 import itertools
 import copy
 import os
+import inspect
 
 from gym_collision_avoidance.envs.config import Config as EnvConfig; Config = EnvConfig()
 from gym_collision_avoidance.envs.util import find_nearest, rgba2rgb
@@ -47,6 +48,8 @@ class CollisionAvoidanceEnv(gym.Env):
         self.plt_limits = Config.PLT_LIMITS
         self.plt_fig_size = Config.PLT_FIG_SIZE
         self.test_case_index = 0
+
+        self.set_testcase(Config.TEST_CASE_FN, Config.TEST_CASE_ARGS)
 
         self.animation_period_steps = Config.ANIMATION_PERIOD_STEPS
 
@@ -219,18 +222,11 @@ class CollisionAvoidanceEnv(gym.Env):
         self.default_agents = agents
 
     def _init_agents(self):
-        if self.evaluate:
-            if self.agents is not None:
-                self.prev_episode_agents = copy.deepcopy(self.agents)
+        if self.evaluate and self.agents is not None:
+            self.prev_episode_agents = copy.deepcopy(self.agents)
+
         if self.default_agents is None:
-            # self.agents = tc.get_testcase_easy()
-            self.agents = tc.get_testcase_random()
-            # self.agents = tc.get_testcase_two_agents_laserscanners()
-            # if self.episode_number == 0:
-            #     self.agents = tc.get_testcase_random()
-            # else:
-            #     # self.agents = tc.get_testcase_fixed_initial_conditions(self.agents)
-            #     self.agents = tc.get_testcase_fixed_initial_conditions_for_non_ppo(self.agents)
+            self.agents = self.test_case_fn(**self.test_case_args)
         else:
             self.agents = self.default_agents
         for agent in self.agents:
@@ -403,6 +399,22 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def set_perturbed_info(self, perturbed_obs):
         self.perturbed_obs = perturbed_obs
+
+    def set_testcase(self, test_case_fn_str, test_case_args):
+        # Provide a fn (which returns list of agents) and the fn's args,
+        # to be called on each env.reset()
+        test_case_fn = getattr(tc, test_case_fn_str, None)
+        assert(callable(test_case_fn))
+
+        # Before running test_case_fn, make sure we didn't provide any args it doesn't accept
+        test_case_fn_args = inspect.getargspec(test_case_fn).args
+        test_case_args_keys = list(test_case_args.keys())
+        for key in test_case_args_keys:
+            if key not in test_case_fn_args:
+                # print("{} doesn't accept {} -- removing".format(test_case_fn, key))
+                del test_case_args[key]
+        self.test_case_fn = test_case_fn
+        self.test_case_args = test_case_args
 
 if __name__ == '__main__':
     print("See example.py for a minimum working example.")

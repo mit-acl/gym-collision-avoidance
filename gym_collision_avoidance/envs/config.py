@@ -22,7 +22,7 @@ class Config:
         self.PLAY_MODE           = False # Enable to see the trained agent in action (for testing)
         self.EVALUATE_MODE       = False # Enable to see the trained agent in action (for testing)
         
-        self.TRAIN_SINGLE_AGENT = True
+        self.TRAIN_SINGLE_AGENT = False
 
         ### REWARDS
         self.REWARD_AT_GOAL = 1.0 # reward given when agent reaches goal position
@@ -43,6 +43,14 @@ class Config:
         self.DT             = 0.2 # seconds between simulation time steps
         self.NEAR_GOAL_THRESHOLD = 0.2
         self.MAX_TIME_RATIO = 8. # agent has this number times the straight-line-time to reach its goal before "timing out"
+        
+        ### TEST CASE SETTINGS
+        self.TEST_CASE_FN = "get_testcase_random"
+        self.TEST_CASE_ARGS = {
+            'policy_to_ensure': 'learning_ga3c',
+            'policies': ['noncoop', 'learning_ga3c', 'static'],
+            'policy_distr': [0.05, 0.9, 0.05],
+        }
         self.MAX_NUM_AGENTS_IN_ENVIRONMENT = 4
         self.MAX_NUM_AGENTS_TO_SIM = 4
         self.MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT = self.MAX_NUM_AGENTS_IN_ENVIRONMENT - 1

@@ -45,47 +45,57 @@ policy_dict = {
     'noncoop': NonCooperativePolicy,
     'carrl': CARRLPolicy,
     'external': ExternalPolicy,
-    'GA3C': GA3CCADRLPolicy,
+    'ga3c': GA3CCADRLPolicy,
     'learning_ga3c': LearningPolicyGA3C,
+    'static': StaticPolicy,
 }
 
-def get_testcase_two_agents():
-    goal_x = 3
-    goal_y = 3
-    agents = [
-        Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, LearningPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 0),
-        Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 1)
-        ]
-    return agents
+# def get_testcase_two_agents():
+#     goal_x = 3
+#     goal_y = 3
+#     agents = [
+#         Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, LearningPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 0),
+#         Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, GA3CCADRLPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 1)
+#         ]
+#     return agents
 
-def get_testcase_two_agents_carrl_rvo():
-    goal_x = 3
-    goal_y = 0
-    agents = [
-        Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.0, CARRLPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 0),
-        Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, np.pi, RVOPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 1)
-        ]
-    return agents
+# def get_testcase_two_agents_learningga3c_noncoop():
+#     goal_x = 3
+#     goal_y = 3
+#     agents = [
+#         Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, LearningPolicyGA3C, UnicycleDynamics, [OtherAgentsStatesSensor], 0),
+#         Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, NonCooperativePolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 1)
+#         ]
+#     return agents
 
-def get_testcase_two_agents_carrl_noncoop():
-    goal_x = 0
-    goal_y = 3
-    agents = [
-        Agent(0, 0, goal_x, goal_y, 0.5, 1.0, 0.0, CARRLPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 0),
-        Agent(goal_x, goal_y, 0, 0, 0.5, 1.0, np.pi, NonCooperativePolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 1)
-        ]
-    return agents
+# def get_testcase_two_agents_carrl_rvo():
+#     goal_x = 3
+#     goal_y = 0
+#     agents = [
+#         Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.0, CARRLPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 0),
+#         Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, np.pi, RVOPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 1)
+#         ]
+#     return agents
 
-def get_testcase_two_agents_laserscanners():
-    goal_x = 3
-    goal_y = 3
-    agents = [
-        Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, PPOPolicy, UnicycleDynamics, [LaserScanSensor], 0),
-        Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, PPOPolicy, UnicycleDynamics, [LaserScanSensor], 1)
-        ]
-    return agents
+# def get_testcase_two_agents_carrl_noncoop():
+#     goal_x = 0
+#     goal_y = 3
+#     agents = [
+#         Agent(0, 0, goal_x, goal_y, 0.5, 1.0, 0.0, CARRLPolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 0),
+#         Agent(goal_x, goal_y, 0, 0, 0.5, 1.0, np.pi, NonCooperativePolicy, UnicycleDynamics, [OtherAgentsStatesSensor], 1)
+#         ]
+#     return agents
 
-def get_testcase_random(num_agents=None, side_length=None, speed_bnds=None, radius_bnds=None, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor]):
+# def get_testcase_two_agents_laserscanners():
+#     goal_x = 3
+#     goal_y = 3
+#     agents = [
+#         Agent(-goal_x, -goal_y, goal_x, goal_y, 0.5, 1.0, 0.5, PPOPolicy, UnicycleDynamics, [LaserScanSensor], 0),
+#         Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, PPOPolicy, UnicycleDynamics, [LaserScanSensor], 1)
+#         ]
+#     return agents
+
+def get_testcase_random(num_agents=None, side_length=None, speed_bnds=None, radius_bnds=None, policies='learning', policy_distr=None, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor], policy_to_ensure=None):
     if num_agents is None:
         num_agents = np.random.randint(2, Config.MAX_NUM_AGENTS_IN_ENVIRONMENT+1)
 
@@ -101,75 +111,78 @@ def get_testcase_random(num_agents=None, side_length=None, speed_bnds=None, radi
     cadrl_test_case = tc.generate_rand_test_case_multi(num_agents, side_length, speed_bnds, radius_bnds)
 
     agents = cadrl_test_case_to_agents(cadrl_test_case,
-        agents_policy=agents_policy,
+        policies=policies,
+        policy_distr=policy_distr,
         agents_dynamics=agents_dynamics,
-        agents_sensors=agents_sensors)
+        agents_sensors=agents_sensors,
+        policy_to_ensure=policy_to_ensure,
+        )
     return agents
 
-def get_testcase_2agents_swap(test_case_index, num_test_cases=10, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[]):
-    pref_speed = 1.0
-    radius = 0.5
-    goal_x = 8
-    goal_y = 0
+# def get_testcase_2agents_swap(test_case_index, num_test_cases=10, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[]):
+#     pref_speed = 1.0
+#     radius = 0.5
+#     goal_x = 8
+#     goal_y = 0
 
-    total_delta = 3.
-    offset = (test_case_index - num_test_cases/2.) / (num_test_cases/total_delta)
+#     total_delta = 3.
+#     offset = (test_case_index - num_test_cases/2.) / (num_test_cases/total_delta)
 
-    agents = [
-        Agent(-goal_x, -goal_y, goal_x, goal_y+offset, radius, pref_speed, None, agents_policy, agents_dynamics, agents_sensors, 0),
-        Agent(goal_x, goal_y, -goal_x, -goal_y, radius, pref_speed, None, agents_policy, agents_dynamics, agents_sensors, 1)
-        ]
-    return agents
+#     agents = [
+#         Agent(-goal_x, -goal_y, goal_x, goal_y+offset, radius, pref_speed, None, agents_policy, agents_dynamics, agents_sensors, 0),
+#         Agent(goal_x, goal_y, -goal_x, -goal_y, radius, pref_speed, None, agents_policy, agents_dynamics, agents_sensors, 1)
+#         ]
+#     return agents
 
-def get_testcase_easy():
+# def get_testcase_easy():
 
-    num_agents = 2
-    side_length = 2
-    speed_bnds = [0.5, 1.5]
-    radius_bnds = [0.2, 0.8]
+#     num_agents = 2
+#     side_length = 2
+#     speed_bnds = [0.5, 1.5]
+#     radius_bnds = [0.2, 0.8]
 
-    test_case = tc.generate_rand_test_case_multi(num_agents, side_length, speed_bnds, radius_bnds)
+#     test_case = tc.generate_rand_test_case_multi(num_agents, side_length, speed_bnds, radius_bnds)
 
-    agents = cadrl_test_case_to_agents(test_case)
-    return agents
+#     agents = cadrl_test_case_to_agents(test_case)
+#     return agents
 
-def get_testcase_fixed_initial_conditions(agents):
-    new_agents = []
-    for agent in agents:
-        goal_x, goal_y = get_new_goal(agent.pos_global_frame)
-        new_agent = Agent(agent.pos_global_frame[0], agent.pos_global_frame[1], goal_x, goal_y, agent.radius, agent.pref_speed, agent.heading_global_frame, agent.policy.__class__, agent.dynamics_model.__class__, [], agent.id)
-        new_agents.append(new_agent)
-    return new_agents
+# def get_testcase_fixed_initial_conditions(agents):
+#     new_agents = []
+#     for agent in agents:
+#         goal_x, goal_y = get_new_goal(agent.pos_global_frame)
+#         new_agent = Agent(agent.pos_global_frame[0], agent.pos_global_frame[1], goal_x, goal_y, agent.radius, agent.pref_speed, agent.heading_global_frame, agent.policy.__class__, agent.dynamics_model.__class__, [], agent.id)
+#         new_agents.append(new_agent)
+#     return new_agents
 
-def get_testcase_fixed_initial_conditions_for_non_ppo(agents):
-    new_agents = []
-    for agent in agents:
-        if agent.policy.str == "PPO":
-            start_x, start_y = get_new_start_pos()
-        else:
-            start_x, start_y = agent.pos_global_frame
-        goal_x, goal_y = get_new_goal(agent.pos_global_frame)
-        new_agent = Agent(start_x, start_y, goal_x, goal_y, agent.radius, agent.pref_speed, agent.heading_global_frame, agent.policy.__class__, agent.dynamics_model.__class__, [], agent.id)
-        new_agents.append(new_agent)
-    return new_agents
+# def get_testcase_fixed_initial_conditions_for_non_ppo(agents):
+#     new_agents = []
+#     for agent in agents:
+#         if agent.policy.str == "PPO":
+#             start_x, start_y = get_new_start_pos()
+#         else:
+#             start_x, start_y = agent.pos_global_frame
+#         goal_x, goal_y = get_new_goal(agent.pos_global_frame)
+#         new_agent = Agent(start_x, start_y, goal_x, goal_y, agent.radius, agent.pref_speed, agent.heading_global_frame, agent.policy.__class__, agent.dynamics_model.__class__, [], agent.id)
+#         new_agents.append(new_agent)
+#     return new_agents
 
-def get_new_goal(pos):
-    bounds = np.array([[-5, 5], [-5, 5]])
-    dist_from_pos_threshold = 4.
-    far_from_pos = False
-    while not far_from_pos:
-        gx, gy = np.random.uniform(bounds[:,0], bounds[:,1])
-        far_from_pos = np.linalg.norm(pos - np.array([gx, gy])) >= dist_from_pos_threshold
-    return gx, gy
+# def get_new_goal(pos):
+#     bounds = np.array([[-5, 5], [-5, 5]])
+#     dist_from_pos_threshold = 4.
+#     far_from_pos = False
+#     while not far_from_pos:
+#         gx, gy = np.random.uniform(bounds[:,0], bounds[:,1])
+#         far_from_pos = np.linalg.norm(pos - np.array([gx, gy])) >= dist_from_pos_threshold
+#     return gx, gy
 
-def small_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[], vpref_constraint=False, radius_bnds=None):
+def small_test_suite(num_agents, test_case_index, policies='learning', agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor], vpref_constraint=False, radius_bnds=None):
     cadrl_test_case = preset_testCases(num_agents)[test_case_index]
-    agents = cadrl_test_case_to_agents(cadrl_test_case, agents_policy=agents_policy, agents_dynamics=agents_dynamics, agents_sensors=agents_sensors)
+    agents = cadrl_test_case_to_agents(cadrl_test_case, policies=policies, agents_dynamics=agents_dynamics, agents_sensors=agents_sensors)
     return agents
 
-def full_test_suite(num_agents, test_case_index, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[], vpref_constraint=False, radius_bounds=None):
+def full_test_suite(num_agents, test_case_index, policies='learning', agents_dynamics=UnicycleDynamics, agents_sensors=[], vpref_constraint=False, radius_bounds=None):
     cadrl_test_case = preset_testCases(num_agents, full_test_suite=True, vpref_constraint=vpref_constraint, radius_bounds=radius_bounds)[test_case_index]
-    agents = cadrl_test_case_to_agents(cadrl_test_case, agents_policy=agents_policy, agents_dynamics=agents_dynamics, agents_sensors=agents_sensors)
+    agents = cadrl_test_case_to_agents(cadrl_test_case, policies=policies, agents_dynamics=agents_dynamics, agents_sensors=agents_sensors)
     return agents
 
 def full_test_suite_carrl(num_agents, test_case_index, seed=None, other_agent_policy_options=None):
@@ -177,11 +190,9 @@ def full_test_suite_carrl(num_agents, test_case_index, seed=None, other_agent_po
     agents = []
 
     if other_agent_policy_options is None:
-        other_agent_policy_options = [RVOPolicy]
-    else:
-        other_agent_policy_options = [policy_dict[pol] for pol in other_agent_policy_options]
+        other_agent_policy_options = 'rvo'
     other_agent_policy = other_agent_policy_options[test_case_index%len(other_agent_policy_options)] # dont just sample (inconsistency btwn same test_case)
-    agents.append(cadrl_test_case_to_agents([cadrl_test_case[0,:]], agents_policy=CARRLPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])[0])
+    agents.append(cadrl_test_case_to_agents([cadrl_test_case[0,:]], policies='carrl', agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])[0])
     agents.append(cadrl_test_case_to_agents([cadrl_test_case[1,:]], agents_policy=other_agent_policy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])[0])
     agents[1].id = 1
     return agents
@@ -193,8 +204,8 @@ def get_testcase_random_carrl():
     radius_bnds = [0.2, 0.8]
     test_case = tc.generate_rand_test_case_multi(num_agents, side_length, speed_bnds, radius_bnds)
     agents = []
-    agents.append(cadrl_test_case_to_agents([test_case[0,:]], agents_policy=CARRLPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])[0])
-    agents.append(cadrl_test_case_to_agents([test_case[1,:]], agents_policy=RVOPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])[0])
+    agents.append(cadrl_test_case_to_agents([test_case[0,:]], policies='carrl', agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])[0])
+    agents.append(cadrl_test_case_to_agents([test_case[1,:]], policies='rvo', agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])[0])
     agents[1].id = 1
     return agents
 
@@ -253,34 +264,42 @@ def formation(agents, letter, num_agents=6, agents_policy=LearningPolicy, agents
         new_agents.append(new_agent)
     return new_agents
 
-def cadrl_test_case_to_agents(test_case, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor]):
+def cadrl_test_case_to_agents(test_case, policies='ga3c', policy_distr=None,
+    agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor], policy_to_ensure=None):
     ###############################
+    # policies: either a str denoting a policy everyone should follow
     # This function accepts a test_case in legacy cadrl format and converts it
     # into our new list of Agent objects. The legacy cadrl format is a list of
     # [start_x, start_y, goal_x, goal_y, pref_speed, radius] for each agent.
     ###############################
 
+    num_agents = np.shape(test_case)[0]
     agents = []
-    policies = [NonCooperativePolicy, LearningPolicy, StaticPolicy]
-    if Config.EVALUATE_MODE or Config.PLAY_MODE:
-        agent_policy_list = [agents_policy for _ in range(np.shape(test_case)[0])]
+    if type(policies) == str:
+        # Everyone follows the same one policy
+        agent_policy_list = [policies for _ in range(num_agents)]
+    elif type(policies) == list:
+        if policy_distr is None:
+            # No randomness in agent policies (1st agent gets policies[0], etc.)
+            assert(len(policies)>=len(policy_distr))
+            agent_policy_list = policies
+        else:
+            # Random mix of agents following various policies
+            assert(len(policies)==len(policy_distr))
+            agent_policy_list = np.random.choice(policies,
+                                                 num_agents,
+                                                 p=policy_distr)
+            if policy_to_ensure is not None and policy_to_ensure not in agent_policy_list:
+                # Make sure at least one agent is following the policy_to_ensure
+                #  (otherwise waste of time...)
+                random_agent_id = np.random.randint(len(agent_policy_list))
+                agent_policy_list[random_agent_id] = policy_to_ensure
     else:
-        # Random mix of agents following various policies
-        # agent_policy_list = np.random.choice(policies,
-        #                                      np.shape(test_case)[0],
-        #                                      p=[0.05, 0.9, 0.05])
-        agent_policy_list = np.random.choice(policies,
-                                             np.shape(test_case)[0],
-                                             p=[0.0, 1.0, 0.0])
+        print('Only handle str or list of strs for policies.')
+        raise NotImplementedError
 
-        # Make sure at least one agent is following PPO
-        #  (otherwise waste of time...)
-        if LearningPolicy not in agent_policy_list:
-            random_agent_id = np.random.randint(len(agent_policy_list))
-            agent_policy_list[random_agent_id] = LearningPolicy
-
-    agent_dynamics_list = [agents_dynamics for _ in range(np.shape(test_case)[0])]
-    agent_sensors_list = [agents_sensors for _ in range(np.shape(test_case)[0])]
+    agent_dynamics_list = [agents_dynamics for _ in range(num_agents)]
+    agent_sensors_list = [agents_sensors for _ in range(num_agents)]
 
     for i, agent in enumerate(test_case):
         px = agent[0]
@@ -296,7 +315,7 @@ def cadrl_test_case_to_agents(test_case, agents_policy=LearningPolicy, agents_dy
         else:
             heading = np.random.uniform(-np.pi, np.pi)
 
-        agents.append(Agent(px, py, gx, gy, radius, pref_speed, heading, agent_policy_list[i], agent_dynamics_list[i], agent_sensors_list[i], i))
+        agents.append(Agent(px, py, gx, gy, radius, pref_speed, heading, policy_dict[agent_policy_list[i]], agent_dynamics_list[i], agent_sensors_list[i], i))
     return agents
 
 def preset_testCases(num_agents, full_test_suite=False, vpref_constraint=False, radius_bounds=None, carrl=False, seed=None):
