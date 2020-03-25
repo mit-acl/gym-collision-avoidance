@@ -12,7 +12,7 @@ import copy
 import os
 import inspect
 
-from gym_collision_avoidance.envs.config import Config as EnvConfig; Config = EnvConfig()
+from gym_collision_avoidance.envs import Config
 from gym_collision_avoidance.envs.util import find_nearest, rgba2rgb
 from gym_collision_avoidance.envs.visualize import plot_episode, animate_episode
 from gym_collision_avoidance.envs.agent import Agent

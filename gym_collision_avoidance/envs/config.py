@@ -22,8 +22,6 @@ class Config:
         self.PLAY_MODE           = False # Enable to see the trained agent in action (for testing)
         self.EVALUATE_MODE       = False # Enable to see the trained agent in action (for testing)
         
-        self.TRAIN_SINGLE_AGENT = False
-
         ### REWARDS
         self.REWARD_AT_GOAL = 1.0 # reward given when agent reaches goal position
         self.REWARD_COLLISION_WITH_AGENT = -0.25 # reward given when agent collides with another agent
@@ -73,6 +71,7 @@ class Config:
         self.RVO_ANTI_COLLAB_T = 1.0
 
         ### OBSERVATION VECTOR
+        self.TRAIN_SINGLE_AGENT = False
         self.STATE_INFO_DICT = {
             'dist_to_goal': {
                 'dtype': np.float32,

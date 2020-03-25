@@ -31,7 +31,7 @@ from gym_collision_avoidance.envs.dynamics.ExternalDynamics import ExternalDynam
 from gym_collision_avoidance.envs.sensors.OccupancyGridSensor import OccupancyGridSensor
 from gym_collision_avoidance.envs.sensors.LaserScanSensor import LaserScanSensor
 from gym_collision_avoidance.envs.sensors.OtherAgentsStatesSensor import OtherAgentsStatesSensor
-from gym_collision_avoidance.envs.config import Config as EnvConfig; Config = EnvConfig()
+from gym_collision_avoidance.envs import Config
 
 import os
 import pickle

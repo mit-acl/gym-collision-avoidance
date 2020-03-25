@@ -1,14 +1,13 @@
-from gym_collision_avoidance.envs.collision_avoidance_env import CollisionAvoidanceEnv
-# from gym_collision_avoidance.envs import mfe_utils
-# from gym_collision_avoidance.envs import CADRL
+# Find the config file (path provided as an environment variable),
+# import and instantiate it here so all modules have access
+import os
+gym_config_path = os.environ['GYM_CONFIG_PATH']
+gym_config_class = os.environ['GYM_CONFIG_CLASS']
 
-# from gym_collision_avoidance.envs.config import Config
-# from gym_collision_avoidance.envs.util import *
-
-# from gym_collision_avoidance.envs.agent import Agent
-# from gym_collision_avoidance.envs.static_agent import StaticAgent
-# from gym_collision_avoidance.envs.non_cooperative_agent import NonCooperativeAgent
-# from gym_collision_avoidance.envs.cadrl_agent import CADRLAgent
-
-
-from gym_collision_avoidance.envs.wrappers import FlattenDictWrapper, MultiagentFlattenDictWrapper
+import importlib.util
+spec = importlib.util.spec_from_file_location(gym_config_class, gym_config_path)
+foo = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(foo)
+config_class = getattr(foo, gym_config_class, None)
+assert(callable(config_class))
+Config = config_class()
