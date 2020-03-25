@@ -1,6 +1,6 @@
 import numpy as np
 from gym_collision_avoidance.envs.sensors.Sensor import Sensor
-from gym_collision_avoidance.envs.config import Config
+from gym_collision_avoidance.envs import Config
 import matplotlib.pyplot as plt
 
 import time

@@ -1,6 +1,6 @@
 import numpy as np
 
-class Config:
+class Config(object):
     def __init__(self):
         #########################################################################
         # GENERAL PARAMETERS
@@ -49,8 +49,11 @@ class Config:
             'policies': ['noncoop', 'learning_ga3c', 'static'],
             'policy_distr': [0.05, 0.9, 0.05],
         }
-        self.MAX_NUM_AGENTS_IN_ENVIRONMENT = 4
-        self.MAX_NUM_AGENTS_TO_SIM = 4
+
+        if not hasattr(self, "MAX_NUM_AGENTS_IN_ENVIRONMENT"):
+            self.MAX_NUM_AGENTS_IN_ENVIRONMENT = 4
+        if not hasattr(self, "MAX_NUM_AGENTS_TO_SIM"):
+            self.MAX_NUM_AGENTS_TO_SIM = 4
         self.MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT = self.MAX_NUM_AGENTS_IN_ENVIRONMENT - 1
         self.MAX_NUM_OTHER_AGENTS_OBSERVED = self.MAX_NUM_AGENTS_IN_ENVIRONMENT - 1
 
@@ -144,7 +147,6 @@ class Config:
                 'attr': 'get_agent_data_equiv("policy.str", "learning")'
                 }
             }
-        # TODO: Find a way to force env config.py to inherit from a parent config.py...
         self.setup_obs()
     
         self.AGENT_SORTING_METHOD = "closest_last"

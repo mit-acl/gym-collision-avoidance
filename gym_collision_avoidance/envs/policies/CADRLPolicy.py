@@ -2,7 +2,7 @@ import numpy as np
 import os
 from gym_collision_avoidance.envs.policies.Policy import Policy
 from gym_collision_avoidance.envs.policies.CADRL.scripts.multi import nn_navigation_value_multi as nn_nav
-from gym_collision_avoidance.envs.config import Config
+from gym_collision_avoidance.envs import Config
 from gym_collision_avoidance.envs import util
 
 class CADRLPolicy(Policy):

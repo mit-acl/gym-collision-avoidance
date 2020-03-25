@@ -2,7 +2,7 @@ import numpy as np
 import os
 from gym_collision_avoidance.envs.policies.Policy import Policy
 from baselines.common.policies import build_policy
-from gym_collision_avoidance.envs.config import Config
+from gym_collision_avoidance.envs import Config
 from baselines.ppo2.mfe_network import mfe_network
 import tensorflow as tf
 

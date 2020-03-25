@@ -4,7 +4,7 @@ import operator
 from gym_collision_avoidance.envs.policies.Policy import Policy
 from gym_collision_avoidance.envs import util
 from gym_collision_avoidance.envs.policies.GA3C_CADRL import network
-from gym_collision_avoidance.envs.config import Config
+from gym_collision_avoidance.envs import Config
 
 class GA3CCADRLPolicy(Policy):
     def __init__(self):

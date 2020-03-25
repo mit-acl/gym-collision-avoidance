@@ -1,6 +1,6 @@
 import numpy as np
 from gym_collision_avoidance.envs.policies.Policy import Policy
-from gym_collision_avoidance.envs.config import Config
+from gym_collision_avoidance.envs import Config
 from gym_collision_avoidance.envs.util import *
 import rvo2
 

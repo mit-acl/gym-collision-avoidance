@@ -3,7 +3,7 @@ import os
 import operator
 from gym_collision_avoidance.envs.policies.Policy import Policy
 from gym_collision_avoidance.envs import util
-from gym_collision_avoidance.envs.config import Config
+from gym_collision_avoidance.envs import Config
 
 from gym_collision_avoidance.envs.policies.DRL_Long.model.ppo import generate_action_no_sampling
 from gym_collision_avoidance.envs.policies.DRL_Long.model.net import MLPPolicy, CNNPolicy
