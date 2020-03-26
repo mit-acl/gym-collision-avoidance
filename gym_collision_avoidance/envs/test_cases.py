@@ -309,7 +309,8 @@ def preset_testCases(num_agents, full_test_suite=False, vpref_constraint=False, 
             filename = filename[:-2]+'_carrl'+filename[-2:]
         if seed is not None:
             filename = filename[:-2]+'_seed'+str(seed).zfill(3)+filename[-2:]
-        test_cases = pickle.load(open(filename, "rb"), encoding='latin1')
+        with open(filename, "rb") as f:
+            test_cases = pickle.load(f, encoding='latin1')
 
     else:
         if num_agents == 1:
@@ -563,6 +564,7 @@ if __name__ == '__main__':
 
     os.makedirs(os.path.dirname(filename), exist_ok=True)
 
-    pickle.dump(test_cases, open(filename, "wb"))
+    with open(filename, "wb") as f:
+        pickle.dump(test_cases, f)
 
 

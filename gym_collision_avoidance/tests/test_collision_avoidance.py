@@ -55,5 +55,22 @@ class TestSum(unittest.TestCase):
                 plot_filename = os.path.dirname(os.path.realpath(__file__)) + '/../experiments/results/small_test_suites/6_agents/figs/{tc}_{policy}_6agents.png'.format(tc=str(i).zfill(3), policy=policy)
                 self.assertTrue(os.path.isfile(plot_filename))
 
+    def test_run_full_test_suite(self):
+        setup("gym_collision_avoidance.experiments.src.run_full_test_suite")
+        main = gym_collision_avoidance.experiments.src.run_full_test_suite.main
+        # Check that code runs without error
+        self.assertTrue(main())
+        
+        ### Check that all plots were generated
+        # full episode plots
+        for num_agents in [2,3,4]:
+            for policy in ['GA3C-CADRL-10', 'CADRL']:
+                # for i in range(4):
+                #     plot_filename = os.path.dirname(os.path.realpath(__file__)) + '/../experiments/results/full_test_suites/{num_agents}_agents/figs/{tc}_{policy}_{num_agents}agents.png'.format(tc=str(i).zfill(3), policy=policy, num_agents=num_agents)
+                #     print(plot_filename)
+                #     self.assertTrue(os.path.isfile(plot_filename))
+                pickle_filename = os.path.dirname(os.path.realpath(__file__)) + '/../experiments/results/full_test_suites/{num_agents}_agents/stats/{policy}.p'.format(policy=policy, num_agents=num_agents)
+                self.assertTrue(os.path.isfile(pickle_filename))
+
 if __name__ == '__main__':
     unittest.main()

@@ -2056,7 +2056,8 @@ def load_NN_navigation_value(file_dir, num_agents, mode, passing_side, filename=
         sgd_step_epsilon = 0.1
 
         nn_training_param = nn.NN_training_param(sgd_step_size, reg_lambda, nb_iter, sgd_batch_size, w_scale)
-        pickle.dump(nn_training_param, open(file_dir+"/../../pickle_files/multi/nn_training_param.p", "wb"))
+        with open(file_dir+"/../../pickle_files/multi/nn_training_param.p", "wb") as f:
+            pickle.dump(nn_training_param, f)
 
     nn_navigation = NN_navigation_value(num_agents, nn_training_param, mode=mode, passing_side=passing_side)
     

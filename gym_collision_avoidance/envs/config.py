@@ -202,3 +202,16 @@ class SmallTestSuite(Config):
         self.DT = 0.1
         self.PLOT_CIRCLES_ALONG_TRAJ = True
         self.NUM_TEST_CASES = 4
+
+class FullTestSuite(Config):
+    def __init__(self):
+        Config.__init__(self)
+        self.NEAR_GOAL_THRESHOLD = 0.8
+        self.EVALUATE_MODE = True
+        self.TRAIN_MODE = False
+        self.SAVE_EPISODE_PLOTS = True
+        self.SHOW_EPISODE_PLOTS = False
+        self.ANIMATE_EPISODES = False
+        self.DT = 0.1
+        self.PLOT_CIRCLES_ALONG_TRAJ = True
+        self.NUM_TEST_CASES = 4

@@ -8,10 +8,6 @@ from gym_collision_avoidance.envs import Config
 import gym_collision_avoidance.envs.test_cases as tc
 from gym_collision_avoidance.experiments.src.env_utils import run_episode, create_env, store_stats
 
-# from gym_collision_avoidance.envs.policies.PPOCADRLPolicy import PPOCADRLPolicy
-# from gym_collision_avoidance.envs.policies.RVOPolicy import RVOPolicy
-# from gym_collision_avoidance.envs.policies.CADRLPolicy import CADRLPolicy
-# from gym_collision_avoidance.envs.policies.GA3CCADRLPolicy import GA3CCADRLPolicy
 from gym_collision_avoidance.envs.sensors.OtherAgentsStatesSensor import OtherAgentsStatesSensor
 
 def main():
@@ -118,7 +114,8 @@ def main():
                 file_dir += '{num_agents}_agents/stats/'.format(num_agents=num_agents)
                 os.makedirs(file_dir, exist_ok=True)
                 fname = file_dir+policy+'.p'
-                pickle.dump(stats[policy], open(fname,'wb'))
+                with open(fname,'wb') as f:
+                    pickle.dump(stats[policy], f)
                 print('dumped {}'.format(fname))
     # print('---------------------')
     # print("Total time_to_goal: {0:.2f}".format(total_time_to_goal))
