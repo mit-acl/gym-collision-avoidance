@@ -63,6 +63,14 @@ This will store `png`s of the trajectories and a `.pkl` file of relevant data fr
 The resulting dataset could be used to train predictive models, initialize an RL agent's policy, etc.
 You can change the `test_case_fn` to use different scenarios, the `policies` dict to give agents different policies, etc.
 
+#### To run a small/full test suite
+```bash
+./gym_collision_avoidance/experiments/run_full_test_suite.sh
+./gym_collision_avoidance/experiments/run_small_test_suite.sh
+```
+
+These will output figs for various policies on various test cases in `experiments/results/<full/small>_test_suites`, as well as pickle files that contain stats about the test cases.
+
 ---
 
 ### Common Issues
@@ -117,8 +125,11 @@ Desired Additions:
 ---
 
 ### TODOs:
+- [ ] Pandas test suite instead of pickling numpy arrays
+- [ ] Fix ffmpeg on gitlab CI (to pass animation-generating test cases)
+- [ ] Fix full and small test case suites to end up with last last fig
+- [ ] Update full/small test case suites to be more compact (like carrl)
 - [ ] Get DRLLong working by pointing to correct commit on mfe's fork (cuda in python)
-- [ ] Add test suite code to README
 - [ ] Confirm sensors work
 - [ ] Get GA3C-CADRL to actually use the dict obs?
 
