@@ -4,7 +4,7 @@ import gym
 gym.logger.set_level(40)
 os.environ['GYM_CONFIG_CLASS'] = 'Example'
 from gym_collision_avoidance.envs import test_cases as tc
-from gym_collision_avoidance.envs.config import Config
+from gym_collision_avoidance.envs import Config
 
 def main():
     '''

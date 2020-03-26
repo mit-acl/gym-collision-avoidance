@@ -181,6 +181,7 @@ class Formations(Config):
     def __init__(self):
         Config.__init__(self)
         self.EVALUATE_MODE = True
+        self.TRAIN_MODE = False
         self.SAVE_EPISODE_PLOTS = True
         self.SHOW_EPISODE_PLOTS = False
         self.ANIMATE_EPISODES = True
@@ -189,3 +190,15 @@ class Formations(Config):
         self.PLT_LIMITS = [[-5, 6], [-2, 7]]
         self.PLT_FIG_SIZE = (10,10)
         self.PLOT_CIRCLES_ALONG_TRAJ = False
+
+class SmallTestSuite(Config):
+    def __init__(self):
+        Config.__init__(self)
+        self.EVALUATE_MODE = True
+        self.TRAIN_MODE = False
+        self.SAVE_EPISODE_PLOTS = True
+        self.SHOW_EPISODE_PLOTS = False
+        self.ANIMATE_EPISODES = False
+        self.DT = 0.1
+        self.PLOT_CIRCLES_ALONG_TRAJ = True
+        self.NUM_TEST_CASES = 4

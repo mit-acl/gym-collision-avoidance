@@ -41,7 +41,19 @@ class TestSum(unittest.TestCase):
             plot_filename = os.path.dirname(os.path.realpath(__file__)) + '/../experiments/results/cadrl_formations/animations/{}_GA3C-CADRL-10_6agents.gif'.format(str(i).zfill(3))
             self.assertTrue(os.path.isfile(plot_filename))
             plot_filename = os.path.dirname(os.path.realpath(__file__)) + '/../experiments/results/cadrl_formations/animations/{}_GA3C-CADRL-10_6agents.mp4'.format(str(i).zfill(3))
-            self.assertTrue(os.path.isfile(plot_filename))
+
+    def test_run_small_test_suite(self):
+        setup("gym_collision_avoidance.experiments.src.run_small_test_suite")
+        main = gym_collision_avoidance.experiments.src.run_small_test_suite.main
+        # Check that code runs without error
+        self.assertTrue(main())
+        
+        ### Check that all plots were generated
+        # full episode plots
+        for i in range(4):
+            for policy in ['GA3C-CADRL-10', 'GA3C-CADRL-10-AWS', 'GA3C-CADRL-4-AWS', 'CADRL', 'RVO']:
+                plot_filename = os.path.dirname(os.path.realpath(__file__)) + '/../experiments/results/small_test_suites/6_agents/figs/{tc}_{policy}_6agents.png'.format(tc=str(i).zfill(3), policy=policy)
+                self.assertTrue(os.path.isfile(plot_filename))
 
 if __name__ == '__main__':
     unittest.main()

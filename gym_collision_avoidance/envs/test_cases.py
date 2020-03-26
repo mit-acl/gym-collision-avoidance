@@ -49,6 +49,7 @@ policy_dict = {
     'learning': LearningPolicy,
     'learning_ga3c': LearningPolicyGA3C,
     'static': StaticPolicy,
+    'cadrl': CADRLPolicy,
 }
 
 def get_testcase_two_agents(policies=['learning', 'ga3c']):

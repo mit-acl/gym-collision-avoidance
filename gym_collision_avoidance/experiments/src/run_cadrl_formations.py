@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pickle
 os.environ['GYM_CONFIG_CLASS'] = 'Formations'
-from gym_collision_avoidance.envs.config import Config
+from gym_collision_avoidance.envs import Config
 import gym_collision_avoidance.envs.test_cases as tc
 from gym_collision_avoidance.experiments.src.env_utils import run_episode, create_env, store_stats
 
