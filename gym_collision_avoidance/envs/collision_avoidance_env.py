@@ -13,7 +13,7 @@ import os
 import inspect
 
 from gym_collision_avoidance.envs import Config
-from gym_collision_avoidance.envs.util import find_nearest, rgba2rgb
+from gym_collision_avoidance.envs.util import find_nearest, rgba2rgb, l2norm
 from gym_collision_avoidance.envs.visualize import plot_episode, animate_episode
 from gym_collision_avoidance.envs.agent import Agent
 from gym_collision_avoidance.envs.Map import Map
@@ -183,7 +183,8 @@ class CollisionAvoidanceEnv(gym.Env):
         self.begin_episode = True
         self.episode_step_number = 0
         self._init_agents()
-        self._init_static_map()
+        if Config.USE_STATIC_MAP:
+            self._init_static_map()
         for state in Config.STATES_IN_OBS:
             for agent in range(Config.MAX_NUM_AGENTS_IN_ENVIRONMENT):
                 self.observation[agent][state] = np.zeros((Config.STATE_INFO_DICT[state]['size']), dtype=Config.STATE_INFO_DICT[state]['dtype'])
@@ -311,26 +312,24 @@ class CollisionAvoidanceEnv(gym.Env):
         agent_inds = list(range(len(self.agents)))
         agent_pairs = list(itertools.combinations(agent_inds, 2))
         for i, j in agent_pairs:
-            agent = self.agents[i]
-            other_agent = self.agents[j]
-            dist_btwn = np.linalg.norm(
-                agent.pos_global_frame - other_agent.pos_global_frame)
-            combined_radius = agent.radius + other_agent.radius
+            dist_btwn = l2norm(self.agents[i].pos_global_frame, self.agents[j].pos_global_frame)
+            combined_radius = self.agents[i].radius + self.agents[j].radius
             dist_btwn_nearest_agent[i] = min(dist_btwn_nearest_agent[i], dist_btwn - combined_radius)
             if dist_btwn <= combined_radius:
                 # Collision with another agent!
                 collision_with_agent[i] = True
                 collision_with_agent[j] = True
-        for i in agent_inds:
-            agent = self.agents[i]
-            [pi, pj], in_map = self.map.world_coordinates_to_map_indices(agent.pos_global_frame)
-            mask = self.map.get_agent_map_indices([pi, pj], agent.radius)
-            # plt.figure('static map')
-            # plt.imshow(self.map.static_map + mask)
-            # plt.pause(0.1)
-            if in_map and np.any(self.map.static_map[mask]):
-                # Collision with wall!
-                collision_with_wall[i] = True
+        if Config.USE_STATIC_MAP:
+            for i in agent_inds:
+                agent = self.agents[i]
+                [pi, pj], in_map = self.map.world_coordinates_to_map_indices(agent.pos_global_frame)
+                mask = self.map.get_agent_map_indices([pi, pj], agent.radius)
+                # plt.figure('static map')
+                # plt.imshow(self.map.static_map + mask)
+                # plt.pause(0.1)
+                if in_map and np.any(self.map.static_map[mask]):
+                    # Collision with wall!
+                    collision_with_wall[i] = True
         return collision_with_agent, collision_with_wall, entered_norm_zone, dist_btwn_nearest_agent
 
     def _check_which_agents_done(self):
@@ -359,8 +358,9 @@ class CollisionAvoidanceEnv(gym.Env):
 
     def _get_obs(self):
 
-        # Agents have moved (states have changed), so update the map view
-        self.update_top_down_map()
+        if Config.USE_STATIC_MAP:
+            # Agents have moved (states have changed), so update the map view
+            self.update_top_down_map()
 
         # Agents collect a reading from their map-based sensors
         for i, agent in enumerate(self.agents):

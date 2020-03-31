@@ -16,6 +16,8 @@ class Config(object):
         self.ANIMATION_PERIOD_STEPS = 5 # plot every n-th DT step (if animate mode on)
         self.PLT_LIMITS = None
         self.PLT_FIG_SIZE = (10, 8)
+
+        self.USE_STATIC_MAP = False
         
         ### TRAIN / PLAY / EVALUATE
         self.TRAIN_MODE           = True # Enable to see the trained agent in action (for testing)
@@ -40,7 +42,7 @@ class Config(object):
         ### SIMULATION
         self.DT             = 0.2 # seconds between simulation time steps
         self.NEAR_GOAL_THRESHOLD = 0.2
-        self.MAX_TIME_RATIO = 8. # agent has this number times the straight-line-time to reach its goal before "timing out"
+        self.MAX_TIME_RATIO = 2. # agent has this number times the straight-line-time to reach its goal before "timing out"
         
         ### TEST CASE SETTINGS
         self.TEST_CASE_FN = "get_testcase_random"
@@ -48,6 +50,9 @@ class Config(object):
             'policy_to_ensure': 'learning_ga3c',
             'policies': ['noncoop', 'learning_ga3c', 'static'],
             'policy_distr': [0.05, 0.9, 0.05],
+            'side_length': 4,
+            'speed_bnds': [0.5, 2.0],
+            'radius_bnds': [0.2, 0.8],
         }
 
         if not hasattr(self, "MAX_NUM_AGENTS_IN_ENVIRONMENT"):
@@ -169,49 +174,51 @@ class Config(object):
             if 'std' in self.STATE_INFO_DICT[state]:
                 self.STD_OBS[state] = self.STATE_INFO_DICT[state]['std']
 
-class Example(Config):
+class EvaluateConfig(Config):
     def __init__(self):
         Config.__init__(self)
         self.DT = 0.1
+        self.MAX_TIME_RATIO = 8.
+
+class Example(EvaluateConfig):
+    def __init__(self):
+        EvaluateConfig.__init__(self)
         self.SAVE_EPISODE_PLOTS = True
         self.TRAIN_MODE = False
         self.EVALUATE_MODE = True
 
-class Formations(Config):
+class Formations(EvaluateConfig):
     def __init__(self):
-        Config.__init__(self)
+        EvaluateConfig.__init__(self)
         self.EVALUATE_MODE = True
         self.TRAIN_MODE = False
         self.SAVE_EPISODE_PLOTS = True
         self.SHOW_EPISODE_PLOTS = False
         self.ANIMATE_EPISODES = True
-        self.DT = 0.1
         self.NEAR_GOAL_THRESHOLD = 0.2
         self.PLT_LIMITS = [[-5, 6], [-2, 7]]
         self.PLT_FIG_SIZE = (10,10)
         self.PLOT_CIRCLES_ALONG_TRAJ = False
 
-class SmallTestSuite(Config):
+class SmallTestSuite(EvaluateConfig):
     def __init__(self):
-        Config.__init__(self)
+        EvaluateConfig.__init__(self)
         self.EVALUATE_MODE = True
         self.TRAIN_MODE = False
         self.SAVE_EPISODE_PLOTS = True
         self.SHOW_EPISODE_PLOTS = False
         self.ANIMATE_EPISODES = False
-        self.DT = 0.1
         self.PLOT_CIRCLES_ALONG_TRAJ = True
         self.NUM_TEST_CASES = 4
 
-class FullTestSuite(Config):
+class FullTestSuite(EvaluateConfig):
     def __init__(self):
-        Config.__init__(self)
+        EvaluateConfig.__init__(self)
         self.NEAR_GOAL_THRESHOLD = 0.8
         self.EVALUATE_MODE = True
         self.TRAIN_MODE = False
         self.SAVE_EPISODE_PLOTS = True
         self.SHOW_EPISODE_PLOTS = False
         self.ANIMATE_EPISODES = False
-        self.DT = 0.1
         self.PLOT_CIRCLES_ALONG_TRAJ = True
         self.NUM_TEST_CASES = 4

@@ -70,18 +70,9 @@ def get_testcase_two_agents_laserscanners():
         ]
     return agents
 
-def get_testcase_random(num_agents=None, side_length=None, speed_bnds=None, radius_bnds=None, policies='learning', policy_distr=None, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor], policy_to_ensure=None):
+def get_testcase_random(num_agents=None, side_length=4, speed_bnds=[0.5, 2.0], radius_bnds=[0.2, 0.8], policies='learning', policy_distr=None, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor], policy_to_ensure=None):
     if num_agents is None:
         num_agents = np.random.randint(2, Config.MAX_NUM_AGENTS_IN_ENVIRONMENT+1)
-
-    if side_length is None:
-        side_length = 4
-
-    if speed_bnds is None:
-        speed_bnds = [0.5, 1.5]
-
-    if radius_bnds is None:
-        radius_bnds = [0.2, 0.8]
 
     cadrl_test_case = tc.generate_rand_test_case_multi(num_agents, side_length, speed_bnds, radius_bnds)
 

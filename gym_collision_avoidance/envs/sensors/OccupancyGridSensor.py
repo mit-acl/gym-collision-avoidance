@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 
 class OccupancyGridSensor(Sensor):
     def __init__(self):
+        if not Config.USE_STATIC_MAP:
+            print("OccupancyGridSensor won't work without static map enabled (Config.USE_STATIC_MAP)")
+            assert(0)
         Sensor.__init__(self)
         self.x_width = 5
         self.y_width = 5

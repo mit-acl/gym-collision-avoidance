@@ -7,6 +7,9 @@ import time
 
 class LaserScanSensor(Sensor):
     def __init__(self):
+        if not Config.USE_STATIC_MAP:
+            print("LaserScanSensor won't work without static map enabled (Config.USE_STATIC_MAP)")
+            assert(0)
         Sensor.__init__(self)
         self.name = 'laserscan'
         self.num_beams = Config.LASERSCAN_LENGTH
