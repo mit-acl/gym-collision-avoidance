@@ -45,15 +45,14 @@ def add_traj(agents, trajs, dt, traj_i, max_ts):
     other_agent_i = (agent_i + 1) % 2
     agent = agents[agent_i]
     other_agent = agents[other_agent_i]
-    max_t = int(max_ts[agent_i])
     future_plan_horizon_secs = 3.0
     future_plan_horizon_steps = int(future_plan_horizon_secs / dt)
 
-    for t in range(max_t):
+    for t in range(max_ts):
         robot_linear_speed = agent.global_state_history[t, 9]
         robot_angular_speed = agent.global_state_history[t, 10] / dt
 
-        t_horizon = min(max_t, t+future_plan_horizon_steps)
+        t_horizon = min(max_ts, t+future_plan_horizon_steps)
         future_linear_speeds = agent.global_state_history[t:t_horizon, 9]
         future_angular_speeds = agent.global_state_history[t:t_horizon, 10] / dt
         predicted_cmd = np.dstack([future_linear_speeds, future_angular_speeds])
@@ -139,7 +138,11 @@ def main():
                 times_to_goal, extra_times_to_goal, collision, all_at_goal, any_stuck, agents = run_episode(env, one_env)
 
                 max_ts = [t / dt for t in times_to_goal]
-                trajs = add_traj(agents, trajs, dt, test_case, max_ts)
+                # Change the global state history according with the number of steps required to finish the episode
+                if not collision:
+                    for agent in agents:
+                        agent.global_state_history = agent.global_state_history[:agent.step_num]
+                    trajs = add_traj(agents, trajs, dt, test_case, agent.step_num)
 
         # print(trajs)
                 
@@ -148,7 +151,8 @@ def main():
         pkl_dir = file_dir + '/trajs/'
         os.makedirs(pkl_dir, exist_ok=True)
         fname = pkl_dir+policy+'.pkl'
-        pickle.dump(trajs, open(fname,'wb'))
+        # Protocol 2 makes it compatible for Python 2 and 3
+        pickle.dump(trajs, open(fname, 'wb'), protocol=2)
         print('dumped {}'.format(fname))
 
     print("Experiment over.")

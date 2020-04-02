@@ -64,7 +64,7 @@ class Agent(object):
         self.min_y = -20.0
         self.max_y = 20.0
 
-        self.num_states_in_history = 1000
+        self.num_states_in_history = 1000000
         self.global_state_dim = 11
         self.global_state_history = np.empty((self.num_states_in_history, self.global_state_dim))
         self.ego_state_dim = 3
@@ -131,6 +131,8 @@ class Agent(object):
         if self.is_at_goal or self.ran_out_of_time or self.in_collision:
             if self.is_at_goal:
                 self.was_at_goal_already = True
+                self._update_state_history()
+                self.step_num += 1
             if self.in_collision:
                 self.was_in_collision_already = True
             self.vel_global_frame = np.array([0.0, 0.0])
