@@ -12,7 +12,8 @@ class Config(object):
         self.ANIMATE_EPISODES    = False
         self.SHOW_EPISODE_PLOTS = False
         self.SAVE_EPISODE_PLOTS = False
-        self.PLOT_CIRCLES_ALONG_TRAJ = True
+        if not hasattr(self, "PLOT_CIRCLES_ALONG_TRAJ"):
+            self.PLOT_CIRCLES_ALONG_TRAJ = True
         self.ANIMATION_PERIOD_STEPS = 5 # plot every n-th DT step (if animate mode on)
         self.PLT_LIMITS = None
         self.PLT_FIG_SIZE = (10, 8)
@@ -60,7 +61,8 @@ class Config(object):
         if not hasattr(self, "MAX_NUM_AGENTS_TO_SIM"):
             self.MAX_NUM_AGENTS_TO_SIM = 4
         self.MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT = self.MAX_NUM_AGENTS_IN_ENVIRONMENT - 1
-        self.MAX_NUM_OTHER_AGENTS_OBSERVED = self.MAX_NUM_AGENTS_IN_ENVIRONMENT - 1
+        if not hasattr(self, "MAX_NUM_OTHER_AGENTS_OBSERVED"):
+            self.MAX_NUM_OTHER_AGENTS_OBSERVED = self.MAX_NUM_AGENTS_IN_ENVIRONMENT - 1
 
         ### EXPERIMENTS
         self.NUM_TEST_CASES = 50
@@ -131,11 +133,11 @@ class Config(object):
                 },
             'other_agents_states': {
                 'dtype': np.float32,
-                'size': (self.MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT,7),
+                'size': (self.MAX_NUM_OTHER_AGENTS_OBSERVED,7),
                 'bounds': [-np.inf, np.inf],
                 'attr': 'get_sensor_data("other_agents_states")',
-                'std': np.tile(np.array([5.0, 5.0, 1.0, 1.0, 1.0, 5.0, 1.0], dtype=np.float32), (self.MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT, 1)),
-                'mean': np.tile(np.array([0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 1.0], dtype=np.float32), (self.MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT, 1)),
+                'std': np.tile(np.array([5.0, 5.0, 1.0, 1.0, 1.0, 5.0, 1.0], dtype=np.float32), (self.MAX_NUM_OTHER_AGENTS_OBSERVED, 1)),
+                'mean': np.tile(np.array([0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 1.0], dtype=np.float32), (self.MAX_NUM_OTHER_AGENTS_OBSERVED, 1)),
                 },
             'laserscan': {
                 'dtype': np.float32,
@@ -177,8 +179,11 @@ class Config(object):
 class EvaluateConfig(Config):
     def __init__(self):
         Config.__init__(self)
+        self.EVALUATE_MODE = True
+        self.TRAIN_MODE = False
         self.DT = 0.1
         self.MAX_TIME_RATIO = 8.
+        self.MAX_NUM_AGENTS_IN_ENVIRONMENT = 19
 
 class Example(EvaluateConfig):
     def __init__(self):
@@ -190,8 +195,6 @@ class Example(EvaluateConfig):
 class Formations(EvaluateConfig):
     def __init__(self):
         EvaluateConfig.__init__(self)
-        self.EVALUATE_MODE = True
-        self.TRAIN_MODE = False
         self.SAVE_EPISODE_PLOTS = True
         self.SHOW_EPISODE_PLOTS = False
         self.ANIMATE_EPISODES = True
@@ -203,8 +206,6 @@ class Formations(EvaluateConfig):
 class SmallTestSuite(EvaluateConfig):
     def __init__(self):
         EvaluateConfig.__init__(self)
-        self.EVALUATE_MODE = True
-        self.TRAIN_MODE = False
         self.SAVE_EPISODE_PLOTS = True
         self.SHOW_EPISODE_PLOTS = False
         self.ANIMATE_EPISODES = False
@@ -215,8 +216,6 @@ class FullTestSuite(EvaluateConfig):
     def __init__(self):
         EvaluateConfig.__init__(self)
         self.NEAR_GOAL_THRESHOLD = 0.8
-        self.EVALUATE_MODE = True
-        self.TRAIN_MODE = False
         self.SAVE_EPISODE_PLOTS = True
         self.SHOW_EPISODE_PLOTS = False
         self.ANIMATE_EPISODES = False

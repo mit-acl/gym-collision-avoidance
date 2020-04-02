@@ -12,20 +12,6 @@ class OtherAgentsStatesSensor(Sensor):
     def sense(self, agents, agent_index, top_down_map):
         host_agent = agents[agent_index]
         other_agent_dists = {}
-        # for i, other_agent in enumerate(agents):
-        #     if other_agent.id == host_agent.id:
-        #         continue
-            # project other elements onto the new reference frame
-            # rel_pos_to_other_global_frame = other_agent.pos_global_frame - \
-            #     host_agent.pos_global_frame
-            # dist_between_agent_centers = np.linalg.norm(
-            #         rel_pos_to_other_global_frame)
-            # dist_2_other = dist_between_agent_centers - host_agent.radius - \
-            #     other_agent.radius
-            # if dist_between_agent_centers > Config.SENSING_HORIZON:
-            #     # print "Agent too far away"
-            #     continue
-            # other_agent_dists[i] = dist_2_other
         sorted_pairs = sorted(other_agent_dists.items(),
                               key=operator.itemgetter(1))
 
@@ -74,7 +60,7 @@ class OtherAgentsStatesSensor(Sensor):
         clipped_sorted_inds = sorted_inds[-Config.MAX_NUM_OTHER_AGENTS_OBSERVED:]
         clipped_sorted_agents = [agents[i] for i in clipped_sorted_inds]
 
-        other_agents_states = np.zeros((Config.MAX_NUM_OTHER_AGENTS_IN_ENVIRONMENT, 7))
+        other_agents_states = np.zeros((Config.MAX_NUM_OTHER_AGENTS_OBSERVED, 7))
         other_agent_count = 0
         for other_agent in clipped_sorted_agents:
             if other_agent.id == host_agent.id:
