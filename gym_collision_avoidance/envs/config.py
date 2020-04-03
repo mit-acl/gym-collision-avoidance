@@ -51,9 +51,12 @@ class Config(object):
             'policy_to_ensure': 'learning_ga3c',
             'policies': ['noncoop', 'learning_ga3c', 'static'],
             'policy_distr': [0.05, 0.9, 0.05],
-            'side_length': 4,
             'speed_bnds': [0.5, 2.0],
             'radius_bnds': [0.2, 0.8],
+            'side_length': [
+                {'num_agents': [0,5], 'side_length': [4,5]}, 
+                {'num_agents': [5,np.inf], 'side_length': [6,8]},
+                ],
         }
 
         if not hasattr(self, "MAX_NUM_AGENTS_IN_ENVIRONMENT"):
