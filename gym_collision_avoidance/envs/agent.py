@@ -11,17 +11,40 @@ class Agent(object):
         self.dynamics_model = dynamics_model(self)
         self.sensors = [sensor() for sensor in sensors]
 
+        # Store past selected actions
+        self.chosen_action_dict = {}
+
+        self.num_actions_to_store = 2
+        self.action_dim = 2
+        
+        self.id = id
+        self.dist_to_goal = 0.0
+        self.near_goal_threshold = Config.NEAR_GOAL_THRESHOLD
+        self.dt_nominal = Config.DT
+
+        self.min_x = -20.0
+        self.max_x = 20.0
+        self.min_y = -20.0
+        self.max_y = 20.0
+
+        self.t_offset = None
+        self.global_state_dim = 11
+        self.ego_state_dim = 3
+        
+        self.reset(px=start_x, py=start_y, gx=goal_x, gy=goal_y, pref_speed=pref_speed, radius=radius, heading=initial_heading)
+
+    def reset(self, px, py, gx, gy, pref_speed, radius, heading):
         # Global Frame states
-        self.pos_global_frame = np.array([start_x, start_y], dtype='float64')
-        self.goal_global_frame = np.array([goal_x, goal_y], dtype='float64')
+        self.pos_global_frame = np.array([px, py], dtype='float64')
+        self.goal_global_frame = np.array([gx, gy], dtype='float64')
         self.vel_global_frame = np.array([0.0, 0.0], dtype='float64')
         self.speed_global_frame = 0.0
 
-        if initial_heading is None:
+        if heading is None:
             vec_to_goal = self.goal_global_frame - self.pos_global_frame
             self.heading_global_frame = np.arctan2(vec_to_goal[1], vec_to_goal[0])
         else:
-            self.heading_global_frame = initial_heading
+            self.heading_global_frame = heading
         self.delta_heading_global_frame = 0.0
 
         # Ego Frame states
@@ -29,20 +52,12 @@ class Agent(object):
         self.heading_ego_frame = 0.0
         self.vel_ego_frame = np.array([0.0, 0.0])
 
-        # Store past selected actions
-        self.chosen_action_dict = {}
-
-        self.num_actions_to_store = 2
-        self.action_dim = 2
         self.past_actions = np.zeros((self.num_actions_to_store,
                                       self.action_dim))
 
         # Other parameters
         self.radius = radius
         self.pref_speed = pref_speed
-        self.id = id
-        self.dist_to_goal = 0.0
-        self.near_goal_threshold = Config.NEAR_GOAL_THRESHOLD
 
         self.straight_line_time_to_reach_goal = (np.linalg.norm(self.pos_global_frame - self.goal_global_frame) - self.near_goal_threshold)/self.pref_speed
         if Config.EVALUATE_MODE or Config.PLAY_MODE:
@@ -50,7 +65,7 @@ class Agent(object):
         else:
             self.time_remaining_to_reach_goal = Config.MAX_TIME_RATIO*self.straight_line_time_to_reach_goal
         self.t = 0.0
-        self.t_offset = None
+
         self.step_num = 0
 
         self.is_at_goal = False
@@ -59,15 +74,8 @@ class Agent(object):
         self.in_collision = False
         self.ran_out_of_time = False
 
-        self.min_x = -20.0
-        self.max_x = 20.0
-        self.min_y = -20.0
-        self.max_y = 20.0
-
-        self.num_states_in_history = 1000
-        self.global_state_dim = 11
+        self.num_states_in_history = int(1.2*self.time_remaining_to_reach_goal / self.dt_nominal)
         self.global_state_history = np.empty((self.num_states_in_history, self.global_state_dim))
-        self.ego_state_dim = 3
         self.ego_state_history = np.empty((self.num_states_in_history, self.ego_state_dim))
 
         # self.past_actions = np.zeros((self.num_actions_to_store,2))
@@ -81,8 +89,6 @@ class Agent(object):
         # self._check_if_at_goal()
         # self.take_action([0.0, 0.0])
 
-        self.dt_nominal = Config.DT
-
         self.min_dist_to_other_agents = np.inf
 
         self.turning_dir = 0.0
@@ -91,6 +97,7 @@ class Agent(object):
         # self.latest_laserscan.ranges = 10*np.ones(Config.LASERSCAN_LENGTH)
 
         self.is_done = False
+
 
     def __deepcopy__(self, memo):
         # Copy every attribute about the agent except its policy
