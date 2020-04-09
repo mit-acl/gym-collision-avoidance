@@ -13,6 +13,7 @@ class LaserScanSensor(Sensor):
         Sensor.__init__(self)
         self.name = 'laserscan'
         self.num_beams = Config.LASERSCAN_LENGTH
+        self.num_to_store = Config.LASERSCAN_NUM_PAST
         self.range_resolution = 0.1
         self.max_range = 6 # meters
         self.min_range = 0 # meters
@@ -23,6 +24,9 @@ class LaserScanSensor(Sensor):
         self.ranges = np.arange(self.min_range, self.max_range, self.range_resolution)
 
         self.debug = False
+
+        self.measurement_history = np.zeros((self.num_to_store, self.num_beams))
+        self.num_measurements_made = 0
 
         if self.debug:
             plt.figure('lidar')
@@ -49,6 +53,14 @@ class LaserScanSensor(Sensor):
         ranges = self.max_range*np.ones_like(self.angles)
         ranges[first_hits[0]] = self.ranges[first_hits[1]]
 
+        if self.num_measurements_made == 0:
+            self.measurement_history[:,:] = ranges
+        else:
+            self.measurement_history = np.roll(self.measurement_history, 1, axis=0)
+            self.measurement_history[0,:] = ranges
+
+        self.num_measurements_made += 1
+
         if self.debug:
             in_map_inds = np.where(in_maps)
             iis_in_map = iis[in_map_inds]
@@ -58,7 +70,7 @@ class LaserScanSensor(Sensor):
             plt.figure('lidar')
             plt.imshow(lidar_map)
             plt.pause(0.01)
-        return ranges
+        return self.measurement_history.copy()
 
     def sense_old(self, agents, agent_index, top_down_map):
         host_agent = agents[agent_index]
