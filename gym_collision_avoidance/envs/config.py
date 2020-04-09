@@ -18,7 +18,8 @@ class Config(object):
         self.PLT_LIMITS = None
         self.PLT_FIG_SIZE = (10, 8)
 
-        self.USE_STATIC_MAP = False
+        if not hasattr(self, "USE_STATIC_MAP"):
+            self.USE_STATIC_MAP = False
         
         ### TRAIN / PLAY / EVALUATE
         self.TRAIN_MODE           = True # Enable to see the trained agent in action (for testing)
@@ -68,13 +69,13 @@ class Config(object):
             self.MAX_NUM_OTHER_AGENTS_OBSERVED = self.MAX_NUM_AGENTS_IN_ENVIRONMENT - 1
 
         ### EXPERIMENTS
-        self.NUM_TEST_CASES = 50
         self.PLOT_EVERY_N_EPISODES = 100 # for tensorboard visualization
 
         ### SENSORS
         self.SENSING_HORIZON  = np.inf
         # self.SENSING_HORIZON  = 3.0
         self.LASERSCAN_LENGTH = 512 # num range readings in one scan
+        self.LASERSCAN_NUM_PAST = 3 # num range readings in one scan
         self.NUM_STEPS_IN_OBS_HISTORY = 1 # number of time steps to store in observation vector
         self.NUM_PAST_ACTIONS_IN_STATE = 0
 
@@ -144,11 +145,11 @@ class Config(object):
                 },
             'laserscan': {
                 'dtype': np.float32,
-                'size': self.LASERSCAN_LENGTH,
+                'size': (self.LASERSCAN_NUM_PAST, self.LASERSCAN_LENGTH),
                 'bounds': [0., 6.],
                 'attr': 'get_sensor_data("laserscan")',
-                'std': 5.*np.ones((self.LASERSCAN_LENGTH), dtype=np.float32),
-                'mean': 5.*np.ones((self.LASERSCAN_LENGTH), dtype=np.float32)
+                'std': 5.*np.ones((self.LASERSCAN_NUM_PAST, self.LASERSCAN_LENGTH), dtype=np.float32),
+                'mean': 5.*np.ones((self.LASERSCAN_NUM_PAST, self.LASERSCAN_LENGTH), dtype=np.float32)
                 },
             'is_learning': {
                 'dtype': np.float32,
