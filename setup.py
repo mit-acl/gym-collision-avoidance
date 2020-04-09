@@ -20,5 +20,6 @@ setup(
         'gym',
         'moviepy',
         'baselines',
+        'pandas',
     ],
 )
