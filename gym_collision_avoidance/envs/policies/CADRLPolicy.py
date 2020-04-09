@@ -20,18 +20,30 @@ class CADRLPolicy(Policy):
         self.value_net = nn_nav.load_NN_navigation_value(file_dir, num_agents, mode, passing_side, filename=filename, ifPrint=False)
 
     def find_next_action(self, obs, agents, i):
+        host_agent, agent_state, other_agents_state, other_agents_actions = self.parse_agents(agents, i)
+        action = self.query_and_rescale_action(host_agent, agent_state, other_agents_state, other_agents_actions)
+        return action
+
+    def find_next_action_and_value(self, obs, agents, i):
+        host_agent, agent_state, other_agents_state, other_agents_actions = self.parse_agents(agents, i)
+        action = self.query_and_rescale_action(host_agent, agent_state, other_agents_state, other_agents_actions)
+        value = self.value_net.find_states_values(agent_state, other_agents_state)
+        return action, value
+
+    def parse_agents(self, agents, i):
         host_agent = agents[i]
         other_agents = agents[:i]+agents[i+1:]
         agent_state = self.convert_host_agent_to_cadrl_state(host_agent)
         other_agents_state, other_agents_actions = self.convert_other_agents_to_cadrl_state(host_agent, other_agents)
-        # value = self.value_net.find_states_values(agent_state, other_agents_state)
+        return host_agent, agent_state, other_agents_state, other_agents_actions
+
+    def query_and_rescale_action(self, host_agent, agent_state, other_agents_state, other_agents_actions):
         if len(other_agents_state) > 0:
             action = self.value_net.find_next_action(agent_state, other_agents_state, other_agents_actions)
             # action[0] /= host_agent.pref_speed
             action[1] = util.wrap(action[1]-host_agent.heading_global_frame)
         else:
             action = np.array([1.0, -self.heading_ego_frame])
-
         return action
 
     def convert_host_agent_to_cadrl_state(self, agent):
