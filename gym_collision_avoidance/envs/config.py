@@ -182,19 +182,22 @@ class Config(object):
 
 class EvaluateConfig(Config):
     def __init__(self):
+        # self.MAX_NUM_AGENTS_IN_ENVIRONMENT = 19
         Config.__init__(self)
         self.EVALUATE_MODE = True
         self.TRAIN_MODE = False
         self.DT = 0.1
         self.MAX_TIME_RATIO = 8.
-        self.MAX_NUM_AGENTS_IN_ENVIRONMENT = 19
 
 class Example(EvaluateConfig):
     def __init__(self):
         EvaluateConfig.__init__(self)
         self.SAVE_EPISODE_PLOTS = True
-        self.TRAIN_MODE = False
-        self.EVALUATE_MODE = True
+        self.PLOT_CIRCLES_ALONG_TRAJ = False
+        self.ANIMATE_EPISODES = True
+        # self.SENSING_HORIZON = 4
+        self.PLT_LIMITS = [[-20, 20], [-20, 20]]
+        self.PLT_FIG_SIZE = (10,10)
 
 class Formations(EvaluateConfig):
     def __init__(self):
@@ -218,10 +221,49 @@ class SmallTestSuite(EvaluateConfig):
 
 class FullTestSuite(EvaluateConfig):
     def __init__(self):
+        self.MAX_NUM_OTHER_AGENTS_OBSERVED = 19
         EvaluateConfig.__init__(self)
-        self.NEAR_GOAL_THRESHOLD = 0.8
         self.SAVE_EPISODE_PLOTS = True
         self.SHOW_EPISODE_PLOTS = False
-        self.ANIMATE_EPISODES = False
+        self.ANIMATE_EPISODES = True
         self.PLOT_CIRCLES_ALONG_TRAJ = True
-        self.NUM_TEST_CASES = 4
+
+        self.NUM_TEST_CASES = 1
+        self.NUM_AGENTS_TO_TEST = [2]
+        self.RECORD_PICKLE_FILES = True
+
+        # # DRLMACA
+        # self.FIXED_RADIUS_AND_VPREF = True
+        # self.NEAR_GOAL_THRESHOLD = 0.8
+
+        # Normal
+        self.POLICIES_TO_TEST = [
+            # 'GA3C-CADRL-4-WS-1', 'GA3C-CADRL-4-WS-2', 'GA3C-CADRL-4-WS-3', 'GA3C-CADRL-4-WS-4', 'GA3C-CADRL-4-WS-5',
+            # 'GA3C-CADRL-4-LSTM-1', 'GA3C-CADRL-4-LSTM-2', 'GA3C-CADRL-4-LSTM-3', 'GA3C-CADRL-4-LSTM-4', 'GA3C-CADRL-4-LSTM-5',
+            'GA3C-CADRL-10-WS-1', 'GA3C-CADRL-10-WS-2', 'GA3C-CADRL-10-WS-3', 'GA3C-CADRL-10-WS-4', 'GA3C-CADRL-10-WS-5',
+            'GA3C-CADRL-10-LSTM-1', 'GA3C-CADRL-10-LSTM-2', 'GA3C-CADRL-10-LSTM-3', 'GA3C-CADRL-10-LSTM-4', 'GA3C-CADRL-10-LSTM-5',
+            # 'GA3C-CADRL-10-WS-1',
+            # 'GA3C-CADRL-10-LSTM-1',
+            # 'CADRL', 'RVO'
+            ]
+        self.FIXED_RADIUS_AND_VPREF = False
+        self.NEAR_GOAL_THRESHOLD = 0.2
+
+
+class CollectRegressionDataset(EvaluateConfig):
+    def __init__(self):
+        self.MAX_NUM_AGENTS_IN_ENVIRONMENT = 2
+        self.MAX_NUM_AGENTS_TO_SIM = 2
+        self.DATASET_NAME = ""
+
+        # # Laserscan mode
+        # self.USE_STATIC_MAP = True
+        # self.STATES_IN_OBS = ['is_learning', 'num_other_agents', 'dist_to_goal', 'heading_ego_frame', 'pref_speed', 'radius', 'laserscan']
+        # self.DATASET_NAME = "laserscan_"
+
+        EvaluateConfig.__init__(self)
+        self.TEST_CASE_ARGS['policies'] = 'CADRL'
+        self.AGENT_SORTING_METHOD = "closest_first"
+
+        # # Laserscan mode
+        # self.TEST_CASE_ARGS['agents_sensors'] = ['laserscan', 'other_agents_states']
