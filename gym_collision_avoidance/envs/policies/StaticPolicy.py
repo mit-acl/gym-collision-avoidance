@@ -8,5 +8,6 @@ class StaticPolicy(Policy):
 
     def find_next_action(self, obs, agents, i):
         # Static Agents do not move.
+        agents[i].goal_global_frame = agents[i].pos_global_frame
         action = np.array([0.0, 0.0])
         return action
