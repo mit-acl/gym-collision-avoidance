@@ -127,3 +127,8 @@ class GA3CCADRLPolicy(Policy):
     #     # where <this_agent_info> = [id, dist_to_goal, heading (in ego frame)]
     #     # where <other_agent_i_info> = [pos in this agent's ego parallel coord, pos in this agent's ego orthog coord]
     #     #
+
+
+if __name__ == '__main__':
+    policy = GA3CCADRLPolicy()
+    policy.initialize_network()

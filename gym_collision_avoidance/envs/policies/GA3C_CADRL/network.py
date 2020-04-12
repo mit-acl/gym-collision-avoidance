@@ -36,6 +36,7 @@ class NetworkVPCore(object):
     def simple_load(self, filename=None):
         if filename is None:
             print("[network.py] Didn't define simple_load filename")
+            raise NotImplementedError
         self.graph = tf.Graph()
         with self.graph.as_default() as g:
             with tf.device(self.device):
@@ -51,14 +52,33 @@ class NetworkVPCore(object):
                 self.sess.run(tf.global_variables_initializer())
                 new_saver.restore(self.sess, filename)
 
+                # for n in tf.get_default_graph().as_graph_def().node:
+                #     print(n)
+                # assert(0)
+
+                # all_ops = tf.get_default_graph().get_operations()
+                # for op in all_ops:
+                #     print(op)
+
+                # assert(0)
+
                 self.softmax_p = g.get_tensor_by_name('Softmax:0')
                 self.x = g.get_tensor_by_name('X:0')
+                self.v = g.get_tensor_by_name('Squeeze:0')
 
 class NetworkVP_rnn(NetworkVPCore):
     def __init__(self, device, model_name, num_actions):
         super(self.__class__, self).__init__(device, model_name, num_actions)
 
 if __name__ == '__main__':
+    actions = Actions().actions
+    num_actions = Actions().num_actions
+    nn = NetworkVP_rnn("/cpu:0", 'network', num_actions)
+    nn.simple_load()
+    assert(0)
+
+
+
     # unlikely to still work right off bat
     actions = Actions().actions
     num_actions = Actions().num_actions
