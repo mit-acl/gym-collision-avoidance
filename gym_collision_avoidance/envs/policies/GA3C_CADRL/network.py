@@ -21,7 +21,7 @@ class NetworkVPCore(object):
         self.model_name = model_name
         self.num_actions = num_actions
 
-    def predict_p(self, x):
+    def crop_x(self, x):
         # stupid stuff because each NN might accept diff length observation
         if x.shape[-1] > self.x.shape[-1]:
             x_ = x[:,:self.x.shape[-1]]
@@ -30,8 +30,13 @@ class NetworkVPCore(object):
             x_[:,:x.shape[1]] = x
         else:
             x_ = x
+        return x_
 
-        return self.sess.run(self.softmax_p, feed_dict={self.x: x_})
+    def predict_p(self, x):
+        x = self.crop_x(x)
+        # print(x)
+        # assert(0)
+        return self.sess.run(self.softmax_p, feed_dict={self.x: x})
 
     def simple_load(self, filename=None):
         if filename is None:
