@@ -33,10 +33,12 @@ class Agent(object):
         
         self.reset(px=start_x, py=start_y, gx=goal_x, gy=goal_y, pref_speed=pref_speed, radius=radius, heading=initial_heading)
 
-    def reset(self, px, py, gx, gy, pref_speed, radius, heading):
+    def reset(self, px=None, py=None, gx=None, gy=None, pref_speed=None, radius=None, heading=None):
         # Global Frame states
-        self.pos_global_frame = np.array([px, py], dtype='float64')
-        self.goal_global_frame = np.array([gx, gy], dtype='float64')
+        if px is not None and py is not None:
+            self.pos_global_frame = np.array([px, py], dtype='float64')
+        if gx is not None and gy is not None:
+            self.goal_global_frame = np.array([gx, gy], dtype='float64')
         self.vel_global_frame = np.array([0.0, 0.0], dtype='float64')
         self.speed_global_frame = 0.0
 
@@ -56,8 +58,10 @@ class Agent(object):
                                       self.action_dim))
 
         # Other parameters
-        self.radius = radius
-        self.pref_speed = pref_speed
+        if radius is not None:
+            self.radius = radius
+        if pref_speed is not None:
+            self.pref_speed = pref_speed
 
         self.straight_line_time_to_reach_goal = (np.linalg.norm(self.pos_global_frame - self.goal_global_frame) - self.near_goal_threshold)/self.pref_speed
         if Config.EVALUATE_MODE or Config.PLAY_MODE:
