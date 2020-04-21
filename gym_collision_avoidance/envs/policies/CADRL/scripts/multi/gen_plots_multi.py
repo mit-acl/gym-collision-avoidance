@@ -40,7 +40,7 @@ DT_NORMAL = gb.RL_dt_normal
 # need to first generate test cases using gen_results.py
 # then generate trajs using rvo (roslaunch rvo_ros rvo_traj_gen_multi.launch)
 # then generate trajs using neural nets on the same test cases 
-# 	(nn_navigation_value_multi.py)
+#   (nn_navigation_value_multi.py)
 
 # plot trajectories to a number of test cases at various training episodes
 def plot_training_process(file_dir, format_str, num_agents):
@@ -49,14 +49,14 @@ def plot_training_process(file_dir, format_str, num_agents):
 
 	# plot rvo trajs
 	# rvo_trajs_filename = file_dir + \
-	# 	"/../../pickle_files/multi/results/hard_rvo_trajs_raw.p"
+	#   "/../../pickle_files/multi/results/hard_rvo_trajs_raw.p"
 	# rvo_trajs = pickle.load(open(rvo_trajs_filename, "rb"))
 	# for i, traj in enumerate(rvo_trajs):
-	# 	nn_nav_multi.plot_traj_raw_multi(traj, '')
-	# 	plt.title('')
-	# 	file_name = 'rvo_case_'+str(i)+format_str
-	# 	plt.savefig(save_folder_dir+file_name,bbox_inches='tight')
-	# 	print 'saved', file_name
+	#   nn_nav_multi.plot_traj_raw_multi(traj, '')
+	#   plt.title('')
+	#   file_name = 'rvo_case_'+str(i)+format_str
+	#   plt.savefig(save_folder_dir+file_name,bbox_inches='tight')
+	#   print 'saved', file_name
 
 	# plot neural network trajs
 	test_cases = pickle.load(open(file_dir + \
@@ -114,7 +114,7 @@ def plot_convergence(file_dir, format_str, num_agents):
 		plt.plot(episodes, value_vec[:,i], c=color, linewidth=2)
 		# print upper_bnd
 		# plt.plot(episodes, upper_bnd * np.ones(episodes.shape), \
-		# 	c=color, ls='--', linewidth=2)
+		#   c=color, ls='--', linewidth=2)
 		color_counter += 1
 		color_counter % 7 
 		# plt.plot(episodes, )
@@ -313,7 +313,7 @@ def generate_trajs_for_comparison_cases(file_dir, format_str):
 			side_length, speed_bnds, radius_bnds, is_end_near_bnd=True)
 		# print test_cases[85]
 		# raw_input()
-		# test_cases = nn_rl.preset_testCases()	
+		# test_cases = nn_rl.preset_testCases() 
 		filename = file_dir + "/../../pickle_files/multi/results/%d_agents_test_cases.p"%num_agents
 		pickle.dump(test_cases, open(filename, "wb"))
 		print('saved %s' %filename)
@@ -334,7 +334,7 @@ def generate_trajs_for_comparison_cases(file_dir, format_str):
 		test_cases = pickle.load(open(tc_filename, "rb"))
 		# hard test cases for plotting
 		# test_cases = pickle.load(open(file_dir + \
-		# 	"/../../pickle_files/multi/results/hard_test_cases.p", "rb"))
+		#   "/../../pickle_files/multi/results/hard_test_cases.p", "rb"))
 		# save_filename = 'hard_nn_trajs_iter_%d.p' % iteration
 		NN_navigation_multi.generate_trajs_for_testcases(test_cases, file_dir=file_dir, \
 			filename=save_filename)
@@ -433,7 +433,7 @@ def generate_rvo_offset_cases(file_dir, format_str):
 		test_cases = []
 		for i in xrange(num_test_cases):
 			test_cases.append(test_case)
-		# test_cases = nn_rl.preset_testCases()	
+		# test_cases = nn_rl.preset_testCases() 
 		filename = file_dir + "/../../pickle_files/multi/results/%d_agents_rvo_offset_test_cases.p"%num_agents
 		pickle.dump(test_cases, open(filename, "wb"))
 		print('saved %s' %filename)
@@ -450,7 +450,7 @@ def genenerate_intersection_cases(file_dir, format_str):
 		test_case = np.array([[-sl, 0.0, sl, 0.0, 1.0, 0.3], \
 								[sl*np.cos(angle), sl*np.sin(angle), \
 								sl*np.cos(angle+np.pi), sl*np.sin(angle+np.pi),\
-						 		1.0, 0.3]])
+								1.0, 0.3]])
 		test_cases.append(test_case)
 	filename = file_dir + "/../../pickle_files/multi/results/intersection_test_cases.p"
 	pickle.dump(test_cases, open(filename, "wb"))
@@ -566,7 +566,7 @@ def plot_boxplot_extra_time(file_dir, format_str, plt_colors):
 
 	# import plotting functions
 	# from pylab import plot, show, savefig, xlim, figure, \
- 	#                hold, ylim, legend, boxplot, setp, axes
+	#                hold, ylim, legend, boxplot, setp, axes
 
 	# load statistics
 	trajs_extra_time = []
@@ -623,32 +623,32 @@ def plot_boxplot_extra_time(file_dir, format_str, plt_colors):
 
 # function for setting the colors of the box plots pairs
 def setBoxColors(bp, plt_colors):
-    plt.setp(bp['boxes'][0], color=plt_colors[0], linewidth=2)
-    plt.setp(bp['caps'][0], color=plt_colors[0], linewidth=2)
-    plt.setp(bp['caps'][1], color=plt_colors[0], linewidth=2)
-    plt.setp(bp['whiskers'][0], color=plt_colors[0], linewidth=2)
-    plt.setp(bp['whiskers'][1], color=plt_colors[0], linewidth=2)
-    plt.setp(bp['fliers'][0], color=plt_colors[0], ms=20, markeredgewidth=2)
-    plt.setp(bp['fliers'][1], color=plt_colors[0], ms=20, markeredgewidth=2)
-    plt.setp(bp['medians'][0], color=plt_colors[0], linewidth=2)
+	plt.setp(bp['boxes'][0], color=plt_colors[0], linewidth=2)
+	plt.setp(bp['caps'][0], color=plt_colors[0], linewidth=2)
+	plt.setp(bp['caps'][1], color=plt_colors[0], linewidth=2)
+	plt.setp(bp['whiskers'][0], color=plt_colors[0], linewidth=2)
+	plt.setp(bp['whiskers'][1], color=plt_colors[0], linewidth=2)
+	plt.setp(bp['fliers'][0], color=plt_colors[0], ms=20, markeredgewidth=2)
+	plt.setp(bp['fliers'][1], color=plt_colors[0], ms=20, markeredgewidth=2)
+	plt.setp(bp['medians'][0], color=plt_colors[0], linewidth=2)
 
-    plt.setp(bp['boxes'][1], color=plt_colors[1], linewidth=2)
-    plt.setp(bp['caps'][2], color=plt_colors[1], linewidth=2)
-    plt.setp(bp['caps'][3], color=plt_colors[1], linewidth=2)
-    plt.setp(bp['whiskers'][2], color=plt_colors[1], linewidth=2)
-    plt.setp(bp['whiskers'][3], color=plt_colors[1], linewidth=2)
-    plt.setp(bp['fliers'][2], color=plt_colors[1], ms=20, markeredgewidth=2)
-    plt.setp(bp['fliers'][3], color=plt_colors[1], ms=20, markeredgewidth=2)
-    plt.setp(bp['medians'][1], color=plt_colors[1], linewidth=2)
+	plt.setp(bp['boxes'][1], color=plt_colors[1], linewidth=2)
+	plt.setp(bp['caps'][2], color=plt_colors[1], linewidth=2)
+	plt.setp(bp['caps'][3], color=plt_colors[1], linewidth=2)
+	plt.setp(bp['whiskers'][2], color=plt_colors[1], linewidth=2)
+	plt.setp(bp['whiskers'][3], color=plt_colors[1], linewidth=2)
+	plt.setp(bp['fliers'][2], color=plt_colors[1], ms=20, markeredgewidth=2)
+	plt.setp(bp['fliers'][3], color=plt_colors[1], ms=20, markeredgewidth=2)
+	plt.setp(bp['medians'][1], color=plt_colors[1], linewidth=2)
 
-    plt.setp(bp['boxes'][2], color=plt_colors[2], linewidth=2)
-    plt.setp(bp['caps'][4], color=plt_colors[2], linewidth=2)
-    plt.setp(bp['caps'][5], color=plt_colors[2], linewidth=2)
-    plt.setp(bp['whiskers'][4], color=plt_colors[2], linewidth=2)
-    plt.setp(bp['whiskers'][5], color=plt_colors[2], linewidth=2)
-    plt.setp(bp['fliers'][4], color=plt_colors[2], ms=20, markeredgewidth=2)
-    plt.setp(bp['fliers'][5], color=plt_colors[2], ms=20, markeredgewidth=2)
-    plt.setp(bp['medians'][2], color=plt_colors[2], linewidth=2)
+	plt.setp(bp['boxes'][2], color=plt_colors[2], linewidth=2)
+	plt.setp(bp['caps'][4], color=plt_colors[2], linewidth=2)
+	plt.setp(bp['caps'][5], color=plt_colors[2], linewidth=2)
+	plt.setp(bp['whiskers'][4], color=plt_colors[2], linewidth=2)
+	plt.setp(bp['whiskers'][5], color=plt_colors[2], linewidth=2)
+	plt.setp(bp['fliers'][4], color=plt_colors[2], ms=20, markeredgewidth=2)
+	plt.setp(bp['fliers'][5], color=plt_colors[2], ms=20, markeredgewidth=2)
+	plt.setp(bp['medians'][2], color=plt_colors[2], linewidth=2)
 
 if __name__ == '__main__':
 	print('hello world from gen_plots_multi.py')
@@ -676,7 +676,7 @@ if __name__ == '__main__':
 	# plot value function
 	# plot_value_function(file_dir, format_str)
 
-	# plot passing side	
+	# plot passing side 
 	# plot_passing_side(file_dir, format_str)
 
 	# multiagent test cases

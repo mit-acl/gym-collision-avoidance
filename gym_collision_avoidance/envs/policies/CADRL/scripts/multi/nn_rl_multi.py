@@ -1239,9 +1239,9 @@ class NN_rl:
 
 			###########################################################################
 			# use all points upto 1 seconds into the future
- 			# print 'i %d, j %d' %(i, j)
- 		# 	upper_ind =  j+1 # j+1
- 		# 	lower_ind =  min(j, i+5) # i+1 
+			# print 'i %d, j %d' %(i, j)
+		# 	upper_ind =  j+1 # j+1
+		# 	lower_ind =  min(j, i+5) # i+1 
 			# dt_forward = time_vec[lower_ind:upper_ind] - time_vec[i] 
 			# state_values = values[lower_ind:upper_ind]
 
@@ -1582,12 +1582,12 @@ class NN_rl:
 		
 
 
- 	def createStuckSample(self, x):
- 		agent_state, other_agents_state = pedData.agentCentricState_2_rawState_noRotate(x)
- 		actions_theta = self.value_net_copy.find_feasible_actions(agent_state)
- 		# print agent_state
- 		# print actions_theta
- 		# print other_agents_state
+	def createStuckSample(self, x):
+		agent_state, other_agents_state = pedData.agentCentricState_2_rawState_noRotate(x)
+		actions_theta = self.value_net_copy.find_feasible_actions(agent_state)
+		# print agent_state
+		# print actions_theta
+		# print other_agents_state
 		state_values, X_intended = self.value_net_copy.find_next_states_values(agent_state, \
 			actions_theta, other_agents_state,if_return_future_states=True)
 		best_action_ind = np.argmax(state_values)

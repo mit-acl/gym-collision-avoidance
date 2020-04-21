@@ -743,8 +743,7 @@ class NN_navigation_value:
 
         return state_value, action_reward
 
-
-    def find_values_and_action_rewards(self, agent_state, actions_theta, \
+    def check_collisions_and_get_action_rewards(self, agent_state, actions_theta, \
                             other_agents_state_in, other_agents_action=None, dt_forward=None):
         actions_theta_copy = actions_theta.copy()
         other_agents_state = copy.deepcopy(other_agents_state_in)
@@ -782,7 +781,6 @@ class NN_navigation_value:
         agent_desired_speed = agent_state[5]
         # print 'other_agent_action', other_agent_action
         # compute values for each state
-        state_values = np.zeros((num_actions,))
 
 
         # collide (not just getting close)
@@ -813,7 +811,13 @@ class NN_navigation_value:
         # print 'action_rewards', action_rewards
 
         # print 'action_rewards', action_rewards
+        return if_collide, action_rewards, min_dists, other_agents_next_state, num_actions, other_agents_state
 
+    def find_values_and_action_rewards(self, agent_state, actions_theta, \
+                            other_agents_state_in, other_agents_action=None, dt_forward=None):
+        if_collide, action_rewards, min_dists, other_agents_next_state, num_actions, other_agents_state = self.check_collisions_and_get_action_rewards(agent_state, actions_theta, \
+                            other_agents_state_in, other_agents_action, dt_forward)
+        state_values = np.zeros((num_actions,))
         non_collision_inds = np.where(if_collide==False)[0]
 
         # find states_values in batch
@@ -942,7 +946,11 @@ class NN_navigation_value:
     # other_agent_state: other agent's current state
     def find_next_states_values(self, agent_state, actions_theta, \
                             other_agents_state, other_agents_action=None, dt_forward=None):
+        values, state_values, action_rewards, dt_forward = self.find_next_states_values_and_components(agent_state, actions_theta, other_agents_state, other_agents_action, dt_forward)
+        return values
 
+    def find_next_states_values_and_components(self, agent_state, actions_theta, \
+                            other_agents_state, other_agents_action=None, dt_forward=None):
         # making sure look ahead time is not too long (reaching goal)
         # or too short (if agent's desired speed is too slow)
         if dt_forward is None:
@@ -971,8 +979,10 @@ class NN_navigation_value:
         # print 'dt_forwards', dt_forward
         # print 'dt_forwards_vec', dt_forward_vec
         # raw_input()
-        return action_rewards + gamma ** (dt_forward_vec * \
+        values =  action_rewards + gamma ** (dt_forward_vec * \
             agent_desired_speed / dt_normal) * state_values
+
+        return values, state_values, action_rewards, dt_forward
 
     def find_feasible_actions(self, agent_state, static_constraints=None):
         # print 'agent_state', agent_state
@@ -1074,8 +1084,8 @@ class NN_navigation_value:
         state_values = self.find_next_states_values(agent_state, \
             actions_theta, other_agents_state, other_agents_action)
 
-        # print "actions_theta:", actions_theta
-        # print "state_values:", state_values
+        # print("actions_theta:", actions_theta)
+        # print("state_values:", state_values)
 
         best_action_ind = np.argmax(state_values)
         best_action = actions_theta[best_action_ind]
@@ -1599,13 +1609,14 @@ class NN_navigation_value:
                 pedData.rawState_2_agentCentricState( \
                 agent_states, other_agents_state, self.num_agents)
 
+            # print("state_nn:", state_nn)
             # try upper bounding with max
             value = np.squeeze(self.nn.make_prediction_raw(state_nn).clip(min=-0.25, max=1.0))
             # print 'state_nn', state_nn
-            # print 'before, value', value
+            # print('before, value', value)
             upper_bnd = GAMMA ** (state_nn[0] / DT_NORMAL)
             value = min(upper_bnd, value)
-            # print 'after, value', value
+            # print('after, value', value)
 
             return value
         else:
