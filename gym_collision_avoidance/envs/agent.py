@@ -68,6 +68,7 @@ class Agent(object):
             self.time_remaining_to_reach_goal = Config.MAX_TIME_RATIO*self.straight_line_time_to_reach_goal
         else:
             self.time_remaining_to_reach_goal = Config.MAX_TIME_RATIO*self.straight_line_time_to_reach_goal
+        self.time_remaining_to_reach_goal = max(self.time_remaining_to_reach_goal, self.dt_nominal)
         self.t = 0.0
 
         self.step_num = 0

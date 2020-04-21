@@ -1,18 +1,18 @@
 # gym-collision-avoidance
 
-<img src="misc/000_GA3C-CADRL-10_6agents.gif" width="500" alt="Agents spelling ``C''">
+<img src="misc/combo.gif" alt="Agents spelling ``CADRL''">
 
-This is the code associated with the following paper:
+This is the code associated with the following publications:
 
-M. Everett, Y. Chen, and J. P. How, "Motion Planning Among Dynamic, Decision-Making Agents with Deep Reinforcement Learning", IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 2018
-*  Paper: https://arxiv.org/abs/1805.01956
-*  Video: https://www.youtube.com/watch?v=XHoXkWLhwYQ
+**Journal Version:** M. Everett, Y. Chen, and J. P. How, "Collision Avoidance in Pedestrian-Rich Environments with Deep Reinforcement Learning", in review, [Link to Paper](https://arxiv.org/abs/1910.11689)
 
-This repo also contains the trained policy for the SA-CADRL paper (referred to as CADRL here) from the proceeding paper:
+**Conference Version:** M. Everett, Y. Chen, and J. P. How, "Motion Planning Among Dynamic, Decision-Making Agents with Deep Reinforcement Learning", IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 2018. [Link to Paper](https://arxiv.org/abs/1805.01956), [Link to Video](https://www.youtube.com/watch?v=XHoXkWLhwYQ)
 
-Yu Fan Chen, Michael Everett, Miao Liu, and Jonathan P. How. “Socially Aware Motion Planning with Deep Reinforcement Learning.” IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Vancouver, BC, Canada, Sept. 2017.
+This repo also contains the trained policy for the SA-CADRL paper (referred to as CADRL here) from the proceeding paper: Y. Chen, M. Everett, M. Liu, and J. P. How. “Socially Aware Motion Planning with Deep Reinforcement Learning.” IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Vancouver, BC, Canada, Sept. 2017. [Link to Paper](https://arxiv.org/abs/1703.08862)
 
-### About
+---
+
+### About the Code
 
 In this multiagent environment, agents try to get to their own goal location (specified at the start of each episode) by using one of many collision avoidance policies implemented.
 Episodes end when agents reach their goal, collide, or timeout.
@@ -44,7 +44,7 @@ You can use `example.py` as a starting point to write code for this environment.
 
 ### Further experiments
 
-#### To replicate experiments in submitted IJRR paper:
+#### To replicate experiments in submitted journal paper:
 
 Formations (spelling out CADRL):
 ```bash
@@ -52,6 +52,14 @@ Formations (spelling out CADRL):
 ```
 
 This will run 10 test cases and save plots and animations (`.gif` and `.mp4`) format in `gym_collision_avoidance/experiments/results/cadrl_formations`.
+
+```bash
+./gym_collision_avoidance/experiments/run_full_test_suite.sh
+```
+
+These will output figs for various policies on various test cases in `experiments/results/full_test_suites`, and, if desired, pickle files that contain stats about the test cases.
+
+---
 
 #### To collect a dataset of trajectories:
 
@@ -62,13 +70,6 @@ This will run 10 test cases and save plots and animations (`.gif` and `.mp4`) fo
 This will store `png`s of the trajectories and a `.pkl` file of relevant data from the trajectories in the `experiments/results/trajectory_dataset` folder.
 The resulting dataset could be used to train predictive models, initialize an RL agent's policy, etc.
 You can change the `test_case_fn` to use different scenarios, the `policies` dict to give agents different policies, etc.
-
-#### To run a small/full test suite
-```bash
-./gym_collision_avoidance/experiments/run_full_test_suite.sh
-```
-
-These will output figs for various policies on various test cases in `experiments/results/full_test_suites`, and, if desired, pickle files that contain stats about the test cases.
 
 ---
 
@@ -129,7 +130,7 @@ Desired Additions:
 - [x] Update full/small test case suites to be more compact (like carrl)
 - [x] Confirm sensors work
 - [x] Get GA3C-CADRL to actually use the dict obs?
-- [ ] Fix ffmpeg on gitlab CI (to pass animation-generating test cases)
+- [x] Fix ffmpeg on gitlab CI (to pass animation-generating test cases)
 - [ ] Get DRLLong working by pointing to correct commit on mfe's fork (cuda in python)
 
 ---
