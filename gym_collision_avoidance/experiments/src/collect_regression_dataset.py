@@ -40,11 +40,11 @@ def main():
     modes = [
         {
             'mode': 'train',
-            'num_datapts': 10000,
+            'num_datapts': 100000,
         },
         {
             'mode': 'test',
-            'num_datapts': 2000,
+            'num_datapts': 20000,
         },
     ]
     for mode in modes:
