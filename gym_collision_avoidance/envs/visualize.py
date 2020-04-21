@@ -79,7 +79,11 @@ def animate_episode(num_agents, plot_save_dir=None, plot_policy_name=None, test_
     imageio.mimsave(animation_filename, images)
 
     # convert .gif to .mp4
-    import moviepy.editor as mp
+    try:
+        import moviepy.editor as mp
+    except imageio.core.fetching.NeedDownloadError:
+        imageio.plugins.ffmpeg.download()
+        import moviepy.editor as mp
     clip = mp.VideoFileClip(animation_filename)
     clip.write_videofile(animation_filename[:-4]+".mp4")
 

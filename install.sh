@@ -36,3 +36,5 @@ python setup.py install
 
 # Install DRL Long's requirements
 # python -m pip install torch torchvision
+
+echo "Finished installing gym_collision_avoidance!"
