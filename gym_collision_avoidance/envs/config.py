@@ -58,6 +58,7 @@ class Config(object):
                 {'num_agents': [0,5], 'side_length': [4,5]}, 
                 {'num_agents': [5,np.inf], 'side_length': [6,8]},
                 ],
+            # 'agents_sensors': ['other_agents_states_encoded'],
         }
 
         if not hasattr(self, "MAX_NUM_AGENTS_IN_ENVIRONMENT"):
@@ -156,12 +157,18 @@ class Config(object):
                 'size': 1,
                 'bounds': [0., 1.],
                 'attr': 'get_agent_data_equiv("policy.str", "learning")'
+                },
+            'other_agents_states_encoded': {
+                'dtype': np.float32,
+                'size': 100.,
+                'bounds': [0., 1.],
+                'attr': 'get_sensor_data("other_agents_states_encoded")'
                 }
             }
         self.setup_obs()
     
-        self.AGENT_SORTING_METHOD = "closest_last"
-        # self.AGENT_SORTING_METHOD = "closest_first"
+        # self.AGENT_SORTING_METHOD = "closest_last"
+        self.AGENT_SORTING_METHOD = "closest_first"
         # self.AGENT_SORTING_METHOD = "time_to_impact"
 
     def setup_obs(self):
@@ -223,13 +230,13 @@ class FullTestSuite(EvaluateConfig):
     def __init__(self):
         self.MAX_NUM_OTHER_AGENTS_OBSERVED = 19
         EvaluateConfig.__init__(self)
-        self.SAVE_EPISODE_PLOTS = True
+        self.SAVE_EPISODE_PLOTS = False
         self.SHOW_EPISODE_PLOTS = False
-        self.ANIMATE_EPISODES = True
+        self.ANIMATE_EPISODES = False
         self.PLOT_CIRCLES_ALONG_TRAJ = True
 
-        self.NUM_TEST_CASES = 1
-        self.NUM_AGENTS_TO_TEST = [2]
+        self.NUM_TEST_CASES = 500
+        self.NUM_AGENTS_TO_TEST = [2,3,4,5,6,8,10]
         self.RECORD_PICKLE_FILES = True
 
         # # DRLMACA
@@ -238,13 +245,15 @@ class FullTestSuite(EvaluateConfig):
 
         # Normal
         self.POLICIES_TO_TEST = [
-            # 'GA3C-CADRL-4-WS-1', 'GA3C-CADRL-4-WS-2', 'GA3C-CADRL-4-WS-3', 'GA3C-CADRL-4-WS-4', 'GA3C-CADRL-4-WS-5',
-            # 'GA3C-CADRL-4-LSTM-1', 'GA3C-CADRL-4-LSTM-2', 'GA3C-CADRL-4-LSTM-3', 'GA3C-CADRL-4-LSTM-4', 'GA3C-CADRL-4-LSTM-5',
-            'GA3C-CADRL-10-WS-1', 'GA3C-CADRL-10-WS-2', 'GA3C-CADRL-10-WS-3', 'GA3C-CADRL-10-WS-4', 'GA3C-CADRL-10-WS-5',
+            'GA3C-CADRL-4-WS-4-1', 'GA3C-CADRL-4-WS-4-2', 'GA3C-CADRL-4-WS-4-3', 'GA3C-CADRL-4-WS-4-4', 'GA3C-CADRL-4-WS-4-5',
+            'GA3C-CADRL-4-WS-6-1', 'GA3C-CADRL-4-WS-6-2', 'GA3C-CADRL-4-WS-6-3', 'GA3C-CADRL-4-WS-6-4',
+            'GA3C-CADRL-4-WS-8-1', 'GA3C-CADRL-4-WS-8-2', 'GA3C-CADRL-4-WS-8-3', 'GA3C-CADRL-4-WS-8-4',
+            'GA3C-CADRL-4-LSTM-1', 'GA3C-CADRL-4-LSTM-2', 'GA3C-CADRL-4-LSTM-3', 'GA3C-CADRL-4-LSTM-4', 'GA3C-CADRL-4-LSTM-5',
+            'GA3C-CADRL-10-WS-4-1', 'GA3C-CADRL-10-WS-4-2', 'GA3C-CADRL-10-WS-4-3', 'GA3C-CADRL-10-WS-4-4', 'GA3C-CADRL-10-WS-4-5',
+            'GA3C-CADRL-10-WS-6-1', 'GA3C-CADRL-10-WS-6-2', 'GA3C-CADRL-10-WS-6-3', 'GA3C-CADRL-10-WS-6-4',
+            'GA3C-CADRL-10-WS-8-1', 'GA3C-CADRL-10-WS-8-2', 'GA3C-CADRL-10-WS-8-3', 'GA3C-CADRL-10-WS-8-4',
             'GA3C-CADRL-10-LSTM-1', 'GA3C-CADRL-10-LSTM-2', 'GA3C-CADRL-10-LSTM-3', 'GA3C-CADRL-10-LSTM-4', 'GA3C-CADRL-10-LSTM-5',
-            # 'GA3C-CADRL-10-WS-1',
-            # 'GA3C-CADRL-10-LSTM-1',
-            # 'CADRL', 'RVO'
+            'CADRL', 'RVO'
             ]
         self.FIXED_RADIUS_AND_VPREF = False
         self.NEAR_GOAL_THRESHOLD = 0.2
@@ -252,8 +261,8 @@ class FullTestSuite(EvaluateConfig):
 
 class CollectRegressionDataset(EvaluateConfig):
     def __init__(self):
-        self.MAX_NUM_AGENTS_IN_ENVIRONMENT = 2
-        self.MAX_NUM_AGENTS_TO_SIM = 2
+        self.MAX_NUM_AGENTS_IN_ENVIRONMENT = 4
+        self.MAX_NUM_AGENTS_TO_SIM = 4
         self.DATASET_NAME = ""
 
         # # Laserscan mode

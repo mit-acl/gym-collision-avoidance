@@ -41,18 +41,36 @@ from gym_collision_avoidance.envs.policies.CADRL.scripts.multi import gen_rand_t
 test_case_filename = "{dir}/test_cases/{pref_speed_string}{num_agents}_agents_{num_test_cases}_cases.p"
 
 policy_dict = {
-    'rvo': RVOPolicy,
+    'RVO': RVOPolicy,
     'noncoop': NonCooperativePolicy,
     'carrl': CARRLPolicy,
     'external': ExternalPolicy,
-    'ga3c': GA3CCADRLPolicy,
+    'GA3C_CADRL': GA3CCADRLPolicy,
     'learning': LearningPolicy,
     'learning_ga3c': LearningPolicyGA3C,
     'static': StaticPolicy,
-    'cadrl': CADRLPolicy,
+    'CADRL': CADRLPolicy,
 }
 
-def get_testcase_two_agents(policies=['learning', 'ga3c']):
+sensor_dict = {
+    'other_agents_states': OtherAgentsStatesSensor,
+    'laserscan': LaserScanSensor,
+    # 'other_agents_states_encoded': OtherAgentsStatesSensorEncode,
+}
+
+dynamics_dict = {
+    'unicycle': UnicycleDynamics,
+}
+
+def get_testcase_crazy(policy="GA3C_CADRL"):
+    agents = [
+        Agent(0., 0., 0., 8., 0.8, 1.0, np.pi/2, policy_dict[policy], UnicycleDynamics, [OtherAgentsStatesSensor], 0),
+        Agent(-1.2, 0., -1.2, 5., 0.8, 1.0, np.pi/2, policy_dict["RVO"], UnicycleDynamics, [OtherAgentsStatesSensor], 1),
+        Agent(-1.2, 2.0, -1.2, -3, 0.8, 1.0, -np.pi/2, policy_dict["RVO"], UnicycleDynamics, [OtherAgentsStatesSensor], 2),
+    ] 
+    return agents
+
+def get_testcase_two_agents(policies=['learning', 'GA3C_CADRL']):
     goal_x = 3
     goal_y = 3
     agents = [
@@ -70,7 +88,7 @@ def get_testcase_two_agents_laserscanners():
         ]
     return agents
 
-def get_testcase_random(num_agents=None, side_length=4, speed_bnds=[0.5, 2.0], radius_bnds=[0.2, 0.8], policies='learning', policy_distr=None, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor], policy_to_ensure=None):
+def get_testcase_random(num_agents=None, side_length=4, speed_bnds=[0.5, 2.0], radius_bnds=[0.2, 0.8], policies='learning', policy_distr=None, agents_dynamics='unicycle', agents_sensors=['other_agents_states'], policy_to_ensure=None, prev_agents=None):
     if num_agents is None:
         num_agents = np.random.randint(2, Config.MAX_NUM_AGENTS_IN_ENVIRONMENT+1)
 
@@ -91,6 +109,7 @@ def get_testcase_random(num_agents=None, side_length=4, speed_bnds=[0.5, 2.0], r
         agents_dynamics=agents_dynamics,
         agents_sensors=agents_sensors,
         policy_to_ensure=policy_to_ensure,
+        prev_agents=prev_agents
         )
     return agents
 
@@ -150,14 +169,14 @@ def get_testcase_random(num_agents=None, side_length=4, speed_bnds=[0.5, 2.0], r
 #         far_from_pos = np.linalg.norm(pos - np.array([gx, gy])) >= dist_from_pos_threshold
 #     return gx, gy
 
-def small_test_suite(num_agents, test_case_index, policies='learning', agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor], vpref_constraint=False, radius_bnds=None):
+def small_test_suite(num_agents, test_case_index, policies='learning', agents_dynamics='unicycle', agents_sensors=['other_agents_states'], vpref_constraint=False, radius_bnds=None):
     cadrl_test_case = preset_testCases(num_agents)[test_case_index]
     agents = cadrl_test_case_to_agents(cadrl_test_case, policies=policies, agents_dynamics=agents_dynamics, agents_sensors=agents_sensors)
     return agents
 
-def full_test_suite(num_agents, test_case_index, policies='learning', agents_dynamics=UnicycleDynamics, agents_sensors=[], vpref_constraint=False, radius_bounds=None):
+def full_test_suite(num_agents, test_case_index, policies='learning', agents_dynamics='unicycle', agents_sensors=[], vpref_constraint=False, radius_bounds=None, prev_agents=None):
     cadrl_test_case = preset_testCases(num_agents, full_test_suite=True, vpref_constraint=vpref_constraint, radius_bounds=radius_bounds)[test_case_index]
-    agents = cadrl_test_case_to_agents(cadrl_test_case, policies=policies, agents_dynamics=agents_dynamics, agents_sensors=agents_sensors)
+    agents = cadrl_test_case_to_agents(cadrl_test_case, policies=policies, agents_dynamics=agents_dynamics, agents_sensors=agents_sensors, prev_agents=prev_agents)
     return agents
 
 def full_test_suite_carrl(num_agents, test_case_index, seed=None, other_agent_policy_options=None):
@@ -239,8 +258,9 @@ def formation(agents, letter, num_agents=6, agents_policy=LearningPolicy, agents
         new_agents.append(new_agent)
     return new_agents
 
-def cadrl_test_case_to_agents(test_case, policies='ga3c', policy_distr=None,
-    agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor], policy_to_ensure=None):
+def cadrl_test_case_to_agents(test_case, policies='GA3C_CADRL', policy_distr=None,
+    agents_dynamics='unicycle', agents_sensors=['other_agents_states'], policy_to_ensure=None,
+    prev_agents=None):
     ###############################
     # policies: either a str denoting a policy everyone should follow
     # This function accepts a test_case in legacy cadrl format and converts it
@@ -273,8 +293,10 @@ def cadrl_test_case_to_agents(test_case, policies='ga3c', policy_distr=None,
         print('Only handle str or list of strs for policies.')
         raise NotImplementedError
 
+    # agent_policy_list = [policy_dict[policy] for policy in agent_policy_list]
     agent_dynamics_list = [agents_dynamics for _ in range(num_agents)]
-    agent_sensors_list = [agents_sensors for _ in range(num_agents)]
+    # Look up the string name in each dict
+    agent_sensors_list = [[sensor_dict[sensor] for sensor in agents_sensors] for _ in range(num_agents)]
 
     for i, agent in enumerate(test_case):
         px = agent[0]
@@ -289,8 +311,16 @@ def cadrl_test_case_to_agents(test_case, policies='ga3c', policy_distr=None,
             heading = np.arctan2(vec_to_goal[1], vec_to_goal[0])
         else:
             heading = np.random.uniform(-np.pi, np.pi)
+        policy_str = agent_policy_list[i]
+        dynamics_str = agent_dynamics_list[i]
+        sensors = agent_sensors_list[i]
 
-        agents.append(Agent(px, py, gx, gy, radius, pref_speed, heading, policy_dict[agent_policy_list[i]], agent_dynamics_list[i], agent_sensors_list[i], i))
+        if prev_agents is not None and policy_str == prev_agents[i].policy.str:
+            prev_agents[i].reset(px=px, py=py, gx=gx, gy=gy, pref_speed=pref_speed, radius=radius, heading=heading)
+            agents.append(prev_agents[i])
+        else:
+            new_agent = Agent(px, py, gx, gy, radius, pref_speed, heading, policy_dict[policy_str], dynamics_dict[dynamics_str], sensors, i)
+            agents.append(new_agent)
     return agents
 
 def preset_testCases(num_agents, full_test_suite=False, vpref_constraint=False, radius_bounds=None, carrl=False, seed=None):
@@ -499,6 +529,54 @@ def gen_circle_test_case(num_agents, radius):
         tc[i, 3] = radius*np.sin(theta_end)
     return tc
 
+
+def make_testcase_huge(num_test_cases=1, num_agents=100, side_length=25, speed_bnds=[0.5, 2.0], radius_bnds=[0.2, 0.8], policies='GA3C_CADRL'):
+    px_ind, py_ind, gx_ind, gy_ind, pref_speed_ind, radius_ind = range(6)
+    test_cases = np.empty((num_test_cases, num_agents, 6))
+    for test_case in range(num_test_cases):
+        for i in range(num_agents):
+            pref_speed = np.random.uniform(speed_bnds[0], speed_bnds[1])
+            radius = np.random.uniform(radius_bnds[0], radius_bnds[1])
+
+            min_dist_to_others = -np.inf
+            while min_dist_to_others < 2.:
+                px = np.random.uniform(-side_length, side_length)
+                py = np.random.uniform(-side_length, side_length)
+                if i > 0:
+                    min_dist_to_others = min([np.linalg.norm(np.array([px-tc[px_ind], py-tc[py_ind]])) - tc[radius_ind] - radius for tc in test_cases[test_case,:i,:]])
+                else:
+                    min_dist_to_others = np.inf
+
+            min_dist_to_others = -np.inf
+            dist_from_start = -np.inf
+            while min_dist_to_others < 2. or dist_from_start < 5.:
+                gx = np.random.uniform(-side_length, side_length)
+                gy = np.random.uniform(-side_length, side_length)
+                if i > 0:
+                    min_dist_to_others = min([np.linalg.norm(np.array([gx-tc[gx_ind], gy-tc[gy_ind]])) - tc[radius_ind] - radius for tc in test_cases[test_case,:i,:]])
+                else:
+                    min_dist_to_others = np.inf
+                dist_from_start = np.linalg.norm(np.array([px-gx, py-gy]))
+
+            test_cases[test_case, i, :] = [px, py, gx, gy, pref_speed, radius]
+        # if Config.EVALUATE_MODE:
+        #     # initial heading is pointed toward the goal
+        #     vec_to_goal = np.array([gx, gy]) - np.array([px, py])
+        #     heading = np.arctan2(vec_to_goal[1], vec_to_goal[0])
+        # else:
+        #     heading = np.random.uniform(-np.pi, np.pi)
+
+        # agents.append(Agent(px, py, gx, gy, radius, pref_speed, heading, policy_dict[policies], UnicycleDynamics, [OtherAgentsStatesSensor], i))
+    return test_cases
+
+def get_testcase_huge():
+    filename = os.path.dirname(os.path.realpath(__file__)) + '/test_cases/100agents.p'
+    with open(filename, "rb") as f:
+        cadrl_test_cases = pickle.load(f)
+    cadrl_test_case = cadrl_test_cases[0]
+    agents = cadrl_test_case_to_agents(cadrl_test_case, policies='GA3C_CADRL', agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor])
+    return agents
+
 # def get_testcase_hololens_and_ga3c_cadrl():
 #     goal_x1 = 3
 #     goal_y1 = 3
@@ -566,5 +644,11 @@ if __name__ == '__main__':
 
     with open(filename, "wb") as f:
         pickle.dump(test_cases, f)
+
+    # np.random.seed(seed)
+    # test_cases = make_testcase_huge(num_test_cases=10, side_length=15, num_agents=50)
+    # filename = os.path.dirname(os.path.realpath(__file__)) + '/test_cases/100agents.p'
+    # with open(filename, "wb") as f:
+    #     pickle.dump(test_cases, f)
 
 
