@@ -189,7 +189,7 @@ class Config(object):
 
 class EvaluateConfig(Config):
     def __init__(self):
-        # self.MAX_NUM_AGENTS_IN_ENVIRONMENT = 19
+        self.MAX_NUM_AGENTS_IN_ENVIRONMENT = 19
         Config.__init__(self)
         self.EVALUATE_MODE = True
         self.TRAIN_MODE = False
@@ -216,6 +216,10 @@ class Formations(EvaluateConfig):
         self.PLT_LIMITS = [[-5, 6], [-2, 7]]
         self.PLT_FIG_SIZE = (10,10)
         self.PLOT_CIRCLES_ALONG_TRAJ = False
+        self.NUM_AGENTS_TO_TEST = [6]
+        self.POLICIES_TO_TEST = ['GA3C-CADRL-10']
+        self.NUM_TEST_CASES = 2
+        self.LETTERS = ['C', 'A', 'D', 'R', 'L']
 
 class SmallTestSuite(EvaluateConfig):
     def __init__(self):

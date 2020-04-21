@@ -203,7 +203,7 @@ def get_testcase_random_carrl():
     agents[1].id = 1
     return agents
 
-def formation(agents, letter, num_agents=6, agents_policy=LearningPolicy, agents_dynamics=UnicycleDynamics, agents_sensors=[OtherAgentsStatesSensor]):
+def formation(agents, letter, num_agents=6):
     formations = {
         'A': 2*np.array([
               [-1.5, 0.0], # A
@@ -250,13 +250,11 @@ def formation(agents, letter, num_agents=6, agents_policy=LearningPolicy, agents
     agent_inds = np.arange(num_agents)
     np.random.shuffle(agent_inds)
 
-    new_agents = []
     for agent in agents:
         start_x, start_y = agent.pos_global_frame
         goal_x, goal_y = formations[letter][agent_inds[agent.id]]
-        new_agent = Agent(start_x, start_y, goal_x, goal_y, agent.radius, agent.pref_speed, agent.heading_global_frame, agents_policy, agents_dynamics, agents_sensors, agent.id)
-        new_agents.append(new_agent)
-    return new_agents
+        agent.reset(px=start_x, py=start_y, gx=goal_x, gy=goal_y, heading=agent.heading_global_frame)
+    return agents
 
 def cadrl_test_case_to_agents(test_case, policies='GA3C_CADRL', policy_distr=None,
     agents_dynamics='unicycle', agents_sensors=['other_agents_states'], policy_to_ensure=None,

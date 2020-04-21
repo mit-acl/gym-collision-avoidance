@@ -1,104 +1,49 @@
 import os
 import numpy as np
-import pickle
 os.environ['GYM_CONFIG_CLASS'] = 'Formations'
 from gym_collision_avoidance.envs import Config
 import gym_collision_avoidance.envs.test_cases as tc
-from gym_collision_avoidance.experiments.src.env_utils import run_episode, create_env, store_stats
+from gym_collision_avoidance.experiments.src.env_utils import run_episode, create_env, store_stats, policies
 
-from gym_collision_avoidance.envs.policies.GA3CCADRLPolicy import GA3CCADRLPolicy
-from gym_collision_avoidance.envs.sensors.OtherAgentsStatesSensor import OtherAgentsStatesSensor
+def reset_env(env, one_env, test_case_fn, test_case_args, test_case, num_agents, policies, policy, prev_agents=None, start_from_last_configuration=True):
+    if prev_agents is None:
+        prev_agents = tc.small_test_suite(num_agents=num_agents, test_case_index=0, policies=policies[policy]['policy'], agents_sensors=policies[policy]['sensors'])
+        for agent in prev_agents:
+            if 'checkpt_name' in policies[policy]:
+                agent.policy.env = env
+                agent.policy.initialize_network(**policies[policy])
+            if 'sensor_args' in policies[policy]:
+                for sensor in agent.sensors:
+                    sensor.set_args(policies[policy]['sensor_args'])
 
-np.random.seed(0)
+    test_case_args['agents'] = prev_agents
+    test_case_args['letter'] = Config.LETTERS[test_case % len(Config.LETTERS)]
+    one_env.plot_policy_name = policy
+    agents = test_case_fn(**test_case_args)
+    one_env.set_agents(agents)
+    init_obs = env.reset()
+    one_env.test_case_index = test_case
+    return init_obs
 
 def main():
-
-    start_from_last_configuration = True
-
-    # record_pickle_files = True
-    record_pickle_files = False
-
-    num_agents_to_test = [6]
+    np.random.seed(0)
 
     test_case_fn = tc.formation
-
     test_case_args = {}
-    num_test_cases = 10
-
-    policies = {
-                'GA3C-CADRL-10': {
-                    'policy': GA3CCADRLPolicy,
-                    'checkpt_dir': 'IROS18',
-                    'checkpt_name': 'network_01900000',
-                    'sensors': [OtherAgentsStatesSensor]
-                    },
-                }
-
-    letters = ['C', 'A', 'D', 'R', 'L']
 
     env, one_env = create_env()
 
     one_env.set_plot_save_dir(
         os.path.dirname(os.path.realpath(__file__)) + '/../results/cadrl_formations/')
 
-    for num_agents in num_agents_to_test:
-        test_case_args['num_agents'] = num_agents
-        stats = {}
-        for policy in policies:
-            stats[policy] = {}
-            stats[policy]['non_collision_inds'] = []
-            stats[policy]['all_at_goal_inds'] = []
-            stats[policy]['stuck_inds'] = []
-        for test_case in range(num_test_cases):
-            if start_from_last_configuration:
-                if test_case == 0:
-                    agents = tc.small_test_suite(num_agents=num_agents, test_case_index=0)
-                test_case_args['agents'] = agents
-                test_case_args['letter'] = letters[test_case % len(letters)]
-            else:
-                test_case_args['test_case_index'] = test_case
-            for policy in policies:
-                print('-------')
-                one_env.plot_policy_name = policy
-                policy_class = policies[policy]['policy']
-                test_case_args['agents_policy'] = policy_class
-                test_case_args['agents_sensors'] = policies[policy]['sensors']
-                agents = test_case_fn(**test_case_args)
-                for agent in agents:
-                    if 'checkpt_name' in policies[policy]:
-                        agent.policy.env = env
-                        agent.policy.initialize_network(**policies[policy])
-                one_env.set_agents(agents)
+    for num_agents in Config.NUM_AGENTS_TO_TEST:
+        for policy in Config.POLICIES_TO_TEST:
+            np.random.seed(0)
+            prev_agents = None
+            for test_case in range(Config.NUM_TEST_CASES):
+                _ = reset_env(env, one_env, test_case_fn, test_case_args, test_case, num_agents, policies, policy, prev_agents)
+                episode_stats, prev_agents = run_episode(env, one_env)
 
-                init_obs = env.reset()
-                one_env.test_case_index = test_case
-
-                times_to_goal, extra_times_to_goal, collision, all_at_goal, any_stuck, agents = run_episode(env, one_env)
-
-                stats = store_stats(stats, policy, test_case, times_to_goal, extra_times_to_goal, collision, all_at_goal, any_stuck)
-                
-                print("Test Case:", test_case)
-                if collision:
-                    print("*******Collision*********")
-                if not collision and not all_at_goal:
-                    print("*******Stuck*********")
-
-                print("Agents Time to goal:", times_to_goal)
-                print("Agents Extra Times to goal:", extra_times_to_goal)
-                print("Total time to goal (all agents):", np.sum(times_to_goal))
-        one_env.reset()
-        if record_pickle_files:
-            for policy in policies:
-                file_dir = os.path.dirname(os.path.realpath(__file__)) + '/../logs/test_case_stats/'
-                file_dir += '{num_agents}_agents/'.format(num_agents=test_case_args['num_agents'])
-                os.makedirs(file_dir, exist_ok=True)
-                fname = file_dir+policy.__name__+'.p'
-                pickle.dump(stats[policy], open(fname,'wb'))
-                print('dumped {}'.format(fname))
-    # print('---------------------')
-    # print("Total time_to_goal: {0:.2f}".format(total_time_to_goal))
-    # print('---------------------')
-            
     return True
 
 if __name__ == '__main__':
