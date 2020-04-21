@@ -6,6 +6,5 @@ test_perturbations:
   script:
     - apt-get update && apt-get install -y cmake libopenmpi-dev
     - ./install.sh
-    - imageio_download_bin ffmpeg
     - source venv/bin/activate
     - python gym_collision_avoidance/tests/test_collision_avoidance.py
