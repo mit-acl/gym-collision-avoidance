@@ -468,12 +468,16 @@ policies = {
             },
         },
 
-    # 'GA3C-CADRL-10': {
-    #     'policy': 'GA3C_CADRL',
-    #     'checkpt_dir': 'IROS18',
-    #     'checkpt_name': 'network_01900000',
-    #     'sensors': ['other_agents_states'],
-    #     },
+    'GA3C-CADRL-10': {
+        'policy': 'GA3C_CADRL',
+        'checkpt_dir': 'IROS18',
+        'checkpt_name': 'network_01900000',
+        'sensors': ['other_agents_states'],
+        'sensor_args': {
+            'agent_sorting_method': 'closest_last',
+            'max_num_other_agents_observed': 19,
+            },
+        },
 
     # 'GA3C-CADRL-4-LSTM': {
     #     'policy': 'GA3C_CADRL',
