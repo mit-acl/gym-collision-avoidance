@@ -127,6 +127,7 @@ def plot_episode(agents, in_evaluate_mode,
         xlim, ylim = limits
         plt.xlim(xlim)
         plt.ylim(ylim)
+        ax.set_aspect('equal')
     else:
         ax.axis('equal')
 
