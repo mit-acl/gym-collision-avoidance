@@ -19,7 +19,7 @@ setup(
         'imageio==2.4.1',
         'gym',
         'moviepy',
-        'baselines',
+        'baselines==0.1.4', # 0.1.5 requires mpi4py
         'pandas',
     ],
 )
