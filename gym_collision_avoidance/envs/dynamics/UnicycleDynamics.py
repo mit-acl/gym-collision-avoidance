@@ -4,10 +4,26 @@ from gym_collision_avoidance.envs.util import wrap, find_nearest
 import math
 
 class UnicycleDynamics(Dynamics):
+    """ Convert a speed & heading to a new state according to Unicycle Kinematics model.
+
+    """
+
     def __init__(self, agent):
         Dynamics.__init__(self, agent)
 
     def step(self, action, dt):
+        """ 
+
+        In the global frame, assume the agent instantaneously turns by :code:`heading`
+        and moves forward at :code:`speed` for :code:`dt` seconds.  
+        Add that offset to the current position. Update the velocity in the
+        same way. Also update the agent's turning direction (only used by CADRL).
+
+        Args:
+            action (list): [delta heading angle, speed] command for this agent
+            dt (float): time in seconds to execute :code:`action`
+    
+        """
         selected_speed = action[0]
         selected_heading = wrap(action[1] + self.agent.heading_global_frame)
 

@@ -6,6 +6,21 @@ import matplotlib.pyplot as plt
 import time
 
 class LaserScanSensor(Sensor):
+    """ 2D LaserScan based on map of the environment (containing static objects and other agents)
+
+    Currently the laserscan parameters are mostly hard-coded...
+
+    :param num_beams: (int) how many beams/rays should be in the laserscan
+    :param num_to_store: (int) how many past laserscans to stack into one measurement
+    :param range_resolution: (float) radians between each beam
+    :param max_range: (float) largest value per beam (meters)
+    :param min_range: (float) smallest value per beam (meters)
+    :param min_angle: (float) relative to agent's current heading, angle of the first beam (radians)
+    :param max_angle: (float) relative to agent's current heading, angle of the last beam (radians)
+    :param angles: (np array) linearly spaced array of angles, ranging from min_angle to max_angle, containing num_beams
+    :param ranges: (np array) linearly spaced array of ranges, ranging from min_range to max_range, spaced by range_resolution
+
+    """
     def __init__(self):
         if not Config.USE_STATIC_MAP:
             print("LaserScanSensor won't work without static map enabled (Config.USE_STATIC_MAP)")
@@ -32,6 +47,19 @@ class LaserScanSensor(Sensor):
             plt.figure('lidar')
 
     def sense(self, agents, agent_index, top_down_map):
+        """ Use top_down_map to ray-trace for obstacles, with sensor located at agents[agent_index] center.
+
+        Args:
+            agents (list): all :class:`~gym_collision_avoidance.envs.agent.Agent` in the environment
+            agent_index (int): index of this agent (the one with this sensor) in :code:`agents`
+            top_down_map (2D np array): binary image with 0 if that pixel is free space, 1 if occupied
+
+        Returns:
+            measurement_history (np array): (:code:`num_to_store` x :code:`num_beams`) stacked history of laserscans, where each entry is a range in meters of the nearest obstacle at that angle
+
+        """
+
+
         # Approx 200x faster than sense_old (0.002sec per call vs. 0.4sec) :)
         host_agent = agents[agent_index]
 

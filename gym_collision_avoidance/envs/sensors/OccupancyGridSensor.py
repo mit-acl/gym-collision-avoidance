@@ -4,6 +4,14 @@ from gym_collision_avoidance.envs.sensors.Sensor import Sensor
 import matplotlib.pyplot as plt
 
 class OccupancyGridSensor(Sensor):
+    """ OccupancyGrid based on map of the environment (containing static objects and other agents)
+
+    Currently the grid parameters are mostly hard-coded...
+
+    :param x_width: (float or int) meters of x dimension in returned gridmap (-x_width/2, +x_width/2) from agent's center
+    :param x_width: (float or int) meters of y dimension in returned gridmap (-y_width/2, +y_width/2) from agent's center
+
+    """
     def __init__(self):
         if not Config.USE_STATIC_MAP:
             print("OccupancyGridSensor won't work without static map enabled (Config.USE_STATIC_MAP)")
@@ -14,6 +22,18 @@ class OccupancyGridSensor(Sensor):
         self.grid_cell_size = 0.01 # currently ignored
 
     def sense(self, agents, agent_index, top_down_map):
+        """ Use the full top_down_map to compute a smaller occupancy grid centered around agents[agent_index]'s center.
+
+        Args:
+            agents (list): all :class:`~gym_collision_avoidance.envs.agent.Agent` in the environment
+            agent_index (int): index of this agent (the one with this sensor) in :code:`agents`
+            top_down_map (2D np array): binary image with 0 if that pixel is free space, 1 if occupied
+
+        Returns:
+            resized_og_map (np array): (:code:`self.y_width/top_down_map.grid_cell_size` x :code:`self.x_width/top_down_map.grid_cell_size`) 
+                binary 2d array where 0 is free space, 1 is occupied, centered around agent
+
+        """
 
         # Grab (i,j) coordinates of the upper right and lower left corner of the desired OG map, within the entire map
         host_agent = agents[agent_index]
@@ -62,6 +82,8 @@ class OccupancyGridSensor(Sensor):
         return resized_og_map
 
     def resize(self, og_map):
+        """ Currently just copies the gridmap... not sure why this exists.
+        """
         resized_og_map = og_map.copy()
         return resized_og_map
 

@@ -20,6 +20,18 @@ from gym_collision_avoidance.envs.Map import Map
 from gym_collision_avoidance.envs import test_cases as tc
 
 class CollisionAvoidanceEnv(gym.Env):
+    """ Gym Environment for multiagent collision avoidance
+
+    The environment contains a list of agents.
+
+    :param agents: (list) A list of :class:`~gym_collision_avoidance.envs.agent.Agent` objects that represent the dynamic objects in the scene.
+    :param num_agents: (int) The maximum number of agents in the environment.
+    """
+
+    # Attributes:
+    #     agents: A list of :class:`~gym_collision_avoidance.envs.agent.Agent` objects that represent the dynamic objects in the scene.
+    #     num_agents: The maximum number of agents in the environment.
+
     metadata = {
         # UNUSED !!
         'render.modes': ['human', 'rgb_array'],
@@ -116,22 +128,28 @@ class CollisionAvoidanceEnv(gym.Env):
         self.perturbed_obs = None
 
     def step(self, actions, dt=None):
-        ###############################
-        # This is the main function. An external process will compute an action for every agent
-        # then call env.step(actions). The agents take those actions,
-        # then we check if any agents have earned a reward (collision/goal/...).
-        # Then agents take an observation of the new world state. We compute whether each agent is done
-        # (collided/reached goal/ran out of time) and if everyone's done, the episode ends.
-        # We return the relevant info back to the process that called env.step(actions).
-        #
-        # Inputs
-        # - actions: list of [delta heading angle, speed] commands (1 per agent in env)
-        # Outputs
-        # - next_observations: (obs_length x num_agents) np array with each agent's observation
-        # - rewards: list with 1 scalar reward per agent in self.agents
-        # - game_over: boolean, true if every agent is done
-        # - info_dict: metadata (more details) that help in training, for example
-        ###############################
+        """ Run one timestep of environment dynamics.
+
+        This is the main function. An external process will compute an action for every agent
+        then call env.step(actions). The agents take those actions,
+        then we check if any agents have earned a reward (collision/goal/...).
+        Then agents take an observation of the new world state. We compute whether each agent is done
+        (collided/reached goal/ran out of time) and if everyone's done, the episode ends.
+        We return the relevant info back to the process that called env.step(actions).
+
+        Args:
+            actions (list): list of [delta heading angle, speed] commands (1 per agent in env)
+            dt (float): time in seconds to run the simulation (defaults to :code:`self.dt_nominal`)
+
+        Returns:
+        4-element tuple containing
+
+        - **next_observations** (*np array*): (obs_length x num_agents) with each agent's observation
+        - **rewards** (*list*): 1 scalar reward per agent in self.agents
+        - **game_over** (*bool*): true if every agent is done
+        - **info_dict** (*dict*): metadata that helps in training
+
+        """
 
         if dt is None:
             dt = self.dt_nominal
@@ -175,6 +193,11 @@ class CollisionAvoidanceEnv(gym.Env):
             }
 
     def reset(self):
+        """ Resets the environment, re-initializes agents, plots episode (if applicable) and returns an initial observation.
+
+        Returns:
+            initial observation (np array): each agent's observation given the initial configuration
+        """
         if self.episode_step_number is not None and self.episode_step_number > 0 and self.plot_episodes and self.test_case_index >= 0:
             plot_episode(self.agents, self.evaluate, self.map, self.test_case_index, self.id, circles_along_traj=Config.PLOT_CIRCLES_ALONG_TRAJ, plot_save_dir=self.plot_save_dir, plot_policy_name=self.plot_policy_name, limits=self.plt_limits, fig_size=self.plt_fig_size, show=Config.SHOW_EPISODE_PLOTS, save=Config.SAVE_EPISODE_PLOTS)
             if Config.ANIMATE_EPISODES:
@@ -189,10 +212,6 @@ class CollisionAvoidanceEnv(gym.Env):
             for agent in range(Config.MAX_NUM_AGENTS_IN_ENVIRONMENT):
                 self.observation[agent][state] = np.zeros((Config.STATE_INFO_DICT[state]['size']), dtype=Config.STATE_INFO_DICT[state]['dtype'])
         return self._get_obs()
-
-    def close(self):
-        print("--- Closing CollisionAvoidanceEnv! ---")
-        return
 
     def _take_action(self, actions, dt):
         num_actions_per_agent = 2  # speed, delta heading angle
@@ -214,7 +233,7 @@ class CollisionAvoidanceEnv(gym.Env):
         for i, agent in enumerate(self.agents):
             agent.take_action(all_actions[i,:], dt)
 
-    def update_top_down_map(self):
+    def _update_top_down_map(self):
         self.map.add_agents_to_map(self.agents)
         # plt.imshow(self.map.map)
         # plt.pause(0.1)
@@ -249,14 +268,12 @@ class CollisionAvoidanceEnv(gym.Env):
         self.map = Map(x_width, y_width, grid_cell_size, static_map_filename)
 
     def _compute_rewards(self):
-        ###############################
-        # Check for collisions and reaching of the goal here, and also assign
-        # the corresponding rewards based on those calculations.
-        #
-        # Outputs
-        #   - rewards: is a scalar if we are only training on a single agent, or
-        #               is a list of scalars if we are training on mult agents
-        ###############################
+        """ Check for collisions and reaching of the goal here, and also assign the corresponding rewards based on those calculations.
+        
+        Returns:
+            rewards (scalar or list): is a scalar if we are only training on a single agent, or
+                      is a list of scalars if we are training on mult agents
+        """
 
         # if nothing noteworthy happened in that timestep, reward = -0.01
         rewards = self.reward_time_step*np.ones(len(self.agents))
@@ -302,7 +319,17 @@ class CollisionAvoidanceEnv(gym.Env):
         return rewards
 
     def _check_for_collisions(self):
-        # NOTE: This method doesn't compute social zones!!!!!
+        """ Check whether each agent has collided with another agent or a static obstacle in the map 
+        
+        This method doesn't compute social zones currently!!!!!
+
+        Returns:
+            - collision_with_agent (list): for each agent, bool True if that agent is in collision with another agent
+            - collision_with_wall (list): for each agent, bool True if that agent is in collision with object in map
+            - entered_norm_zone (list): for each agent, bool True if that agent entered another agent's social zone
+            - dist_btwn_nearest_agent (list): for each agent, float closest distance to another agent
+
+        """
         collision_with_agent = [False for _ in self.agents]
         collision_with_wall = [False for _ in self.agents]
         entered_norm_zone = [False for _ in self.agents]
@@ -333,6 +360,12 @@ class CollisionAvoidanceEnv(gym.Env):
         return collision_with_agent, collision_with_wall, entered_norm_zone, dist_btwn_nearest_agent
 
     def _check_which_agents_done(self):
+        """ Check if any agents have reached goal, run out of time, or collided.
+
+        Returns:
+            - which_agents_done (list): for each agent, True if agent is done, o.w. False
+            - game_over (bool): depending on mode, True if all agents done, True if 1st agent done, True if all learning agents done
+        """
         at_goal_condition = np.array(
                 [a.is_at_goal for a in self.agents])
         ran_out_of_time_condition = np.array(
@@ -357,10 +390,16 @@ class CollisionAvoidanceEnv(gym.Env):
         return which_agents_done, game_over
 
     def _get_obs(self):
+        """ Update the map now that agents have moved, have each agent sense the world, and fill in their observations 
+
+        Returns:
+            observation (list): for each agent, a dictionary observation.
+
+        """
 
         if Config.USE_STATIC_MAP:
             # Agents have moved (states have changed), so update the map view
-            self.update_top_down_map()
+            self._update_top_down_map()
 
         # Agents collect a reading from their map-based sensors
         for i, agent in enumerate(self.agents):
@@ -373,6 +412,7 @@ class CollisionAvoidanceEnv(gym.Env):
         return self.observation
 
     def _initialize_rewards(self):
+        """ Set some class attributes regarding reward values based on Config """
         self.reward_at_goal = Config.REWARD_AT_GOAL
         self.reward_collision_with_agent = Config.REWARD_COLLISION_WITH_AGENT
         self.reward_collision_with_wall = Config.REWARD_COLLISION_WITH_WALL
@@ -394,13 +434,27 @@ class CollisionAvoidanceEnv(gym.Env):
         self.max_possible_reward = np.max(self.possible_reward_values)
 
     def set_plot_save_dir(self, plot_save_dir):
+        """ Set where to save plots of trajectories (will get created if non-existent)
+        
+        Args:
+            plot_save_dir (str): path to directory you'd like to save plots in
+
+        """
         os.makedirs(plot_save_dir, exist_ok=True)
         self.plot_save_dir = plot_save_dir
 
     def set_perturbed_info(self, perturbed_obs):
+        """ Used for robustness paper to pass info that could be visualized. Too hacky.
+        """
         self.perturbed_obs = perturbed_obs
 
     def set_testcase(self, test_case_fn_str, test_case_args):
+        """ 
+
+        Args:
+            test_case_fn_str (str): name of function in test_cases.py
+        """
+
         # Provide a fn (which returns list of agents) and the fn's args,
         # to be called on each env.reset()
         test_case_fn = getattr(tc, test_case_fn_str, None)
