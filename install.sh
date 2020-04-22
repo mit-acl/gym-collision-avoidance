@@ -12,7 +12,7 @@ if $MAKE_VENV; then
     export PYTHONPATH=/usr/bin/python3 # point to your python3
     python3 -m pip install virtualenv
     cd $DIR
-    virtualenv -p python3 venv
+    python3 -m virtualenv venv
 fi
 
 if $SOURCE_VENV; then
