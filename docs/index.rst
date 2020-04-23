@@ -8,24 +8,24 @@ Welcome to gym-collision-avoidance's documentation!
 
 .. only:: html
 
-    .. figure:: misc/combo.gif
+    .. figure:: ../misc/combo.gif
 
 .. toctree::
    :maxdepth: 2
    :hidden:
    :caption: Using the Scripts
 
-   docs/example.rst
-   docs/run_cadrl_formations.rst
-   docs/run_full_test_suite.rst
+   pages/example.rst
+   pages/run_cadrl_formations.rst
+   pages/run_full_test_suite.rst
 
 .. toctree::
    :maxdepth: 2
    :hidden:
    :caption: Key Concepts
 
-   docs/env.rst
-   docs/agent.rst
-   docs/sensors.rst
-   docs/policies.rst
-   docs/dynamics.rst
+   pages/env.rst
+   pages/agent.rst
+   pages/sensors.rst
+   pages/policies.rst
+   pages/dynamics.rst
