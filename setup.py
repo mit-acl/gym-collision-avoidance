@@ -19,8 +19,6 @@ setup(
         'imageio==2.4.1',
         'gym',
         'moviepy',
-        # 'baselines @ git+https://github.com/openai/baselines.git@ea25b9e8b234e6ee1bca43083f8f3cf974143998',
-        # 'baselines==0.1.4', # 0.1.5 requires mpi4py
         'pandas',
     ],
 )

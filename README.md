@@ -14,6 +14,8 @@ This repo also contains the trained policy for the SA-CADRL paper (referred to a
 
 ### About the Code
 
+Please see [the documentation](https://gym-collision-avoidance.readthedocs.io/en/latest/)!
+
 In this multiagent environment, agents try to get to their own goal location (specified at the start of each episode) by using one of many collision avoidance policies implemented.
 Episodes end when agents reach their goal, collide, or timeout.
 Agents can observe the environment through one of many types of sensors, including one which provides raw state info about other agents.
@@ -121,6 +123,19 @@ Desired Additions:
 - Additional learning-based methods
 - Other model-based methods
 - Centralized planners
+
+---
+
+To build the docs locally:
+
+```bash
+source venv/bin/activate
+export PYTHONPATH=$PWD/venv/bin/python/dist-packages
+python -m pip install sphinx sphinx-rtd-theme
+cd docs
+make html
+open _build/html/index.html
+```
 
 ---
 
