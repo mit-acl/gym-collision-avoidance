@@ -10,3 +10,7 @@ class ExternalPolicy(Policy):
     def find_next_action(self, obs, agents, i):
         # External Policy agents don't set their actions, someone else does (e.g. real human)
         raise NotImplementedError
+
+    def convert_to_action(self, action):
+        """ Dummy method for ExternalPolicy (used by its children) """
+        return action

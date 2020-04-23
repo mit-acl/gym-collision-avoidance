@@ -2,6 +2,13 @@ import numpy as np
 from gym_collision_avoidance.envs.util import wrap
 
 class Policy(object):
+    """ Each :class:`~gym_collision_avoidance.envs.agent.Agent` has one of these, which nominally converts an observation to an action
+
+    :param is_still_learning: (bool) whether this policy is still being learned (i.e., weights are changing during execution)
+    :param ppo_or_learning_policy: (bool) this seems to duplicate is_still_learning...
+    :param is_external: (bool) whether the Policy computes its own actions or relies on an external process to provide an action.
+
+    """
     def __init__(self, str="NoPolicy"):
         self.str = str
         self.is_still_learning = False
@@ -9,9 +16,15 @@ class Policy(object):
         self.is_external = False
 
     def find_next_action(self, agents):
+        """ Dummy method to be re-implemented by subclasses """
         raise NotImplementedError
 
     def near_goal_smoother(self, dist_to_goal, pref_speed, heading, raw_action):
+        """ Linearly ramp down speed/turning if agent is near goal, stop if close enough.
+
+        I think this is just here for convenience, but nobody uses it? We used it on the jackal for sure.
+        """
+
         kp_v = 0.5
         kp_r = 1
 

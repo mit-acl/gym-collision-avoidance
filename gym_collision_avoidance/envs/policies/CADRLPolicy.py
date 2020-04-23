@@ -6,6 +6,12 @@ from gym_collision_avoidance.envs import Config
 from gym_collision_avoidance.envs import util
 
 class CADRLPolicy(Policy):
+    """ Re-purposed from: Socially Aware Motion Planning with Deep Reinforcement Learning
+
+    Loads a pre-traned SA-CADRL 4-agent network (with no social norm preference LHS/RHS).
+    Some methods to convert the gym agent representation to the numpy arrays used in the old code.
+
+    """
     def __init__(self):
         Policy.__init__(self, str="CADRL")
         self.is_still_learning = False
@@ -20,17 +26,43 @@ class CADRLPolicy(Policy):
         self.value_net = nn_nav.load_NN_navigation_value(file_dir, num_agents, mode, passing_side, filename=filename, ifPrint=False)
 
     def find_next_action(self, obs, agents, i):
+        """ Converts environment's agents representation to CADRL format, then queries NN
+
+        Args:
+            obs (dict): ignored
+            agents (list): of :class:`~gym_collision_avoidance.envs.agent.Agent` objects
+            i (int): index of agents list corresponding to this agent
+
+        Returns:
+            commanded [heading delta, speed]
+
+        """
         host_agent, agent_state, other_agents_state, other_agents_actions = self.parse_agents(agents, i)
         action = self.query_and_rescale_action(host_agent, agent_state, other_agents_state, other_agents_actions)
         return action
 
     def find_next_action_and_value(self, obs, agents, i):
+        """ Same as find_next_action but also queries value fn """
         host_agent, agent_state, other_agents_state, other_agents_actions = self.parse_agents(agents, i)
         action = self.query_and_rescale_action(host_agent, agent_state, other_agents_state, other_agents_actions)
         value = self.value_net.find_states_values(agent_state, other_agents_state)
         return action, value
 
     def parse_agents(self, agents, i):
+        """ Convert from gym env representation of agents to CADRL's representation.
+
+        Args:
+            obs (dict): ignored
+            agents (list): of :class:`~gym_collision_avoidance.envs.agent.Agent` objects
+            i (int): index of agents list corresponding to this agent
+
+        Returns:
+            host_agent (:class:`~gym_collision_avoidance.envs.agent.Agent`): this agent
+            agent_state (np array): CADRL representation of this agent's state
+            other_agents_state (np array): CADRL repr. of other agents' states
+            other_agents_actions (np array): CADRL repr. of other agents' current actions
+
+        """
         host_agent = agents[i]
         other_agents = agents[:i]+agents[i+1:]
         agent_state = self.convert_host_agent_to_cadrl_state(host_agent)
@@ -38,6 +70,9 @@ class CADRLPolicy(Policy):
         return host_agent, agent_state, other_agents_state, other_agents_actions
 
     def query_and_rescale_action(self, host_agent, agent_state, other_agents_state, other_agents_actions):
+        """ If there's nobody around, just go straight to goal, otherwise query DNN and make heading action an offset from current heading
+
+        """
         if len(other_agents_state) > 0:
             action = self.value_net.find_next_action(agent_state, other_agents_state, other_agents_actions)
             # action[0] /= host_agent.pref_speed
@@ -47,8 +82,15 @@ class CADRLPolicy(Policy):
         return action
 
     def convert_host_agent_to_cadrl_state(self, agent):
-        # Convert this repo's state representation format into the legacy cadrl format
-        # for the host agent
+        """ Convert this repo's state representation format into the legacy cadrl format for the host agent 
+
+        Args:
+            agent (:class:`~gym_collision_avoidance.envs.agent.Agent`): this agent
+
+        Returns:
+            10-element (np array) describing current state
+
+        """
 
         # rel pos, rel vel, size
         x = agent.pos_global_frame[0]; y = agent.pos_global_frame[1]
@@ -64,8 +106,19 @@ class CADRLPolicy(Policy):
         return agent_state
 
     def convert_other_agents_to_cadrl_state(self, host_agent, other_agents):
-        # Convert this repo's state representation format into the legacy cadrl format
-        # for the other agents in the environment
+        """ Convert this repo's state representation format into the legacy cadrl format
+        for the other agents in the environment.
+
+        Filtering other agents' velocities was crucial to replicate SA-CADRL results
+
+        Args:
+            host_agent (:class:`~gym_collision_avoidance.envs.agent.Agent`): this agent
+            other_agents (list): of all the other :class:`~gym_collision_avoidance.envs.agent.Agent` objects
+
+        Returns:
+            - (3 x 10) np array (this cadrl can handle 3 other agents), each has 10-element state vector
+            - (3 x 2) np array of other agents' filtered velocities
+        """        
         # if len(other_agents) > 3:
         #     print("CADRL ISN'T DESIGNED TO HANDLE > 4 AGENTS")
 

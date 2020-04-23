@@ -12,4 +12,14 @@ class CARRLPolicy(ExternalPolicy):
             -max_heading_change, max_heading_change, num_actions)  # vel
 
     def convert_to_action(self, discrete_action):
+        """ The CARRL code (external) provides the index of the desired action (but doesn't need to know the details of what that means in this environment),
+        so we convert that index to an environment-specific action here.
+
+        Args:
+            discrete_action (int): index corresponding to the desired element of self.actions
+
+        Returns:
+            [speed, heading delta] corresponding to the provided index
+
+        """
         return self.actions[discrete_action,:]

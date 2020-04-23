@@ -104,6 +104,7 @@ class CollisionAvoidanceEnv(gym.Env):
         for agent in range(Config.MAX_NUM_AGENTS_IN_ENVIRONMENT):
             self.observation[agent] = {}
 
+        # The observation returned by the environment is a Dict of Boxes, keyed by agent index.
         self.observation_space = gym.spaces.Dict({})
         for state in Config.STATES_IN_OBS:
             self.observation_space.spaces[state] = gym.spaces.Box(Config.STATE_INFO_DICT[state]['bounds'][0]*np.ones((Config.STATE_INFO_DICT[state]['size'])),
@@ -214,6 +215,24 @@ class CollisionAvoidanceEnv(gym.Env):
         return self._get_obs()
 
     def _take_action(self, actions, dt):
+        """ Some agents' actions come externally through the actions arg, agents with internal policies query their policy here, 
+        then each agent takes a step simultaneously.
+
+        This makes it so an external script that steps through the environment doesn't need to
+        be aware of internals of the environment, like ensuring RVO agents compute their RVO actions.
+        Instead, all policies that are already trained/frozen are computed internally, and if an
+        agent's policy is still being trained, it's convenient to isolate the training code from the environment this way.
+        Or, if there's a real robot with its own planner on-board (thus, the agent should have an ExternalPolicy), 
+        we don't bother computing its next action here and just take what the actions dict said.
+
+        Args:
+            actions (dict): keyed by agent indices, each value has a [delta heading angle, speed] command.
+                Agents with an ExternalPolicy or is_still_learning policy receive their actions through this dict.
+                Other agents' indices shouldn't appear in this dict, but will be ignored if so, because they can
+                compute their actions internally given their observation (e.g., already trained CADRL, RVO, Non-Cooperative, etc.)
+            dt (float): time in seconds to run the simulation (defaults to :code:`self.dt_nominal`)
+
+        """
         num_actions_per_agent = 2  # speed, delta heading angle
         all_actions = np.zeros((len(self.agents), num_actions_per_agent), dtype=np.float32)
 
@@ -234,29 +253,60 @@ class CollisionAvoidanceEnv(gym.Env):
             agent.take_action(all_actions[i,:], dt)
 
     def _update_top_down_map(self):
+        """ After agents have moved, call this to update the map with their new occupancies. """
         self.map.add_agents_to_map(self.agents)
         # plt.imshow(self.map.map)
         # plt.pause(0.1)
 
     def set_agents(self, agents):
+        """ Set the default agent configuration, which will get used at the start of each episode (and bypass calling self.test_case_fn)
+
+        Args:
+            agents (list): of :class:`~gym_collision_avoidance.envs.agent.Agent` objects that should become the self.default_agents
+                and thus be loaded in that configuration every time the env resets.
+
+        """
         self.default_agents = agents
 
     def _init_agents(self):
+        """ Set self.agents (presumably at the start of a new episode) and set each agent's max heading change and speed based on env limits.
+
+        self.agents gets set to self.default_agents if it exists.
+        Otherwise, self.agents gets set to the result of self.test_case_fn(self.test_case_args).        
+        """
+
+        # The evaluation scripts need info about the previous episode's agents
+        # (in case env.reset was called and thus self.agents was wiped)
         if self.evaluate and self.agents is not None:
             self.prev_episode_agents = copy.deepcopy(self.agents)
 
+        # If nobody set self.default agents, query the test_case_fn
         if self.default_agents is None:
             self.agents = self.test_case_fn(**self.test_case_args)
+        # Otherwise, somebody must want the agents to be reset in a certain way already
         else:
             self.agents = self.default_agents
+
+        # Make every agent respect the same env-wide limits on actions (this probably should live elsewhere...)
         for agent in self.agents:
             agent.max_heading_change = self.max_heading_change
             agent.max_speed = self.max_speed
 
     def set_static_map(self, map_filename):
+        """ If you want to have static obstacles, provide the path to the map image file that should be loaded.
+        
+        Args:
+            map_filename (str or list): full path of a binary png file corresponding to the environment prior map 
+                (or list of candidate map paths to randomly choose btwn each episode)
+        """
         self.static_map_filename = map_filename
 
     def _init_static_map(self):
+        """ Load the map based on its pre-provided filename, and initialize a :class:`~gym_collision_avoidance.envs.Map.Map` object
+
+        Currently the dimensions of the world map are hard-coded.
+
+        """
         if isinstance(self.static_map_filename, list):
             static_map_filename = np.random.choice(self.static_map_filename)
         else:
