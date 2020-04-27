@@ -15,7 +15,7 @@ You can use :code:`gym_collision_avoidance/experiments/src/example.py` as a star
 
 .. only:: html
 
-    .. figure:: ../../misc/example.gif
+    .. figure:: ../_static/example.gif
 
 Now, you can either read about the :ref:`architecture` or try some of the Use Cases, such as :ref:`use_case_compare_new_policy` or :ref:`use_case_train_rl`!
 

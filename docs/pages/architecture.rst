@@ -5,7 +5,7 @@ Software Architecture
 
 There are 5 key types of objects: |Environment|, |Agent|, |Sensor|, |Policy|, and |Dynamics|.
 
-.. figure:: ../../misc/gym_arch.png
+.. figure:: ../_static/gym_arch.png
 
 A simulation begins by creating an instance of the |Environment| : :code:`env = CollisionAvoidanceEnv()`
 

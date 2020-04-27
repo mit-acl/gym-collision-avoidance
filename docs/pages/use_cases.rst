@@ -29,7 +29,23 @@ Run the test case script, which will run the same NUM_TEST_CASES scenarios for e
 .. parsed-literal::
    ./gym_collision_avoidance/experiments/run_full_test_suite.sh
 
-These will a `.png` for each trajectory on each test cases in `experiments/results/full_test_suites`, and, if desired, a pandas DataFrame with statistics about the results.
+These will a :code:`.png` for each trajectory on each test cases in :code:`experiments/results/full_test_suites`, and, if desired, a pandas DataFrame with statistics about the results.
+
+For example:
+
+.. list-table::
+
+    * - .. figure:: ../_static/000_CADRL_2agents.png
+        
+        CADRL
+
+      - .. figure:: ../_static/000_GA3C-CADRL-10_2agents.png
+        
+        GA3C-CADRL
+
+      - .. figure:: ../_static/000_RVO_2agents.png
+        
+        RVO
 
 ----
 
@@ -64,7 +80,8 @@ Instructions
    * Implement the :code:`network_output_to_action` method of your new policy
    * Import your new policy at the top of :code:`test_cases.py` and add it to the :code:`policy_dict` (e.g., add :code:`'new_policy': NewPolicy`)
 
-. . . Needs to be finished
+.. note::
+    This is incomplete...
 
 ----
 
@@ -109,12 +126,24 @@ Say you have a good policy and want to make it spell letters or make interesting
 Instructions
 -------------------
 
-Spell out CADRL:
+Spell out CADRL, with agents starting where they ended the previous episode:
 
 .. parsed-literal::
     ./gym_collision_avoidance/experiments/run_cadrl_formations.sh
 
 This will save plots and animations of 10 letters (:code:`.gif` and :code:`.mp4`) format in :code:`gym_collision_avoidance/experiments/results/cadrl_formations`.
+
+For example:
+
+.. list-table::
+
+    * - .. figure:: ../_static/formation_C.gif
+        
+        C
+
+      - .. figure:: ../_static/formation_A.gif
+        
+        A
 
 .. |Environment| replace:: :class:`~gym_collision_avoidance.envs.collision_avoidance_env.CollisionAvoidanceEnv`
 .. |Agent| replace:: :class:`~gym_collision_avoidance.envs.agent.Agent`

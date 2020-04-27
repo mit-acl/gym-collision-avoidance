@@ -8,13 +8,28 @@ gym-collision-avoidance: Documentation
 
 In this multiagent environment, agents try to get to their own goal location (specified at the start of each episode) by using one of many collision avoidance policies implemented.
 Episodes end when agents reach their goal, collide, or timeout.
-Agents can observe the environment through one of many types of sensors, including one which provides raw state info about other agents.
+Agents can observe the environment through several types of **sensors**, act according to pre-implemented and extendable **policies**, and behave according to customizable **dynamics** models.
 
 **Objective**: Provide a flexible codebase, reduce time spent re-implementing existing works, and establish baselines for multiagent collision avoidance problems.
 
-.. only:: html
+.. list-table::
 
-    .. figure:: ../misc/combo.gif
+    * - .. figure:: _static/combo.gif
+        
+        Formation Control
+
+      - .. figure:: _static/jackal_iros18.gif
+        
+        Policies Deployable on Hardware
+
+    * - .. figure:: _static/a3c_20_agents.gif
+        
+        Many-Agent Scenarios
+
+      - .. figure:: _static/random_2_agents.gif
+        
+        Random Scenarios
+
 
 .. toctree::
    :maxdepth: 2
