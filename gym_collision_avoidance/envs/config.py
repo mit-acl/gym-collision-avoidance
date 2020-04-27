@@ -200,11 +200,11 @@ class Example(EvaluateConfig):
     def __init__(self):
         EvaluateConfig.__init__(self)
         self.SAVE_EPISODE_PLOTS = True
-        self.PLOT_CIRCLES_ALONG_TRAJ = False
+        self.PLOT_CIRCLES_ALONG_TRAJ = True
         self.ANIMATE_EPISODES = True
         # self.SENSING_HORIZON = 4
-        self.PLT_LIMITS = [[-20, 20], [-20, 20]]
-        self.PLT_FIG_SIZE = (10,10)
+        # self.PLT_LIMITS = [[-20, 20], [-20, 20]]
+        # self.PLT_FIG_SIZE = (10,10)
 
 class Formations(EvaluateConfig):
     def __init__(self):
