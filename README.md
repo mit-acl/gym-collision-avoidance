@@ -1,6 +1,6 @@
 # gym-collision-avoidance
 
-<img src="misc/combo.gif" alt="Agents spelling ``CADRL''">
+<img src="docs/_static/combo.gif" alt="Agents spelling ``CADRL''">
 
 This is the code associated with the following publications:
 
