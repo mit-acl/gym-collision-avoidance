@@ -2,6 +2,11 @@ import numpy as np
 from gym_collision_avoidance.envs.policies.ExternalPolicy import ExternalPolicy
 
 class CARRLPolicy(ExternalPolicy):
+    """ Wrapper for the policy related to `Certified Adversarial Robustness for Deep Reinforcement Learning <https://arxiv.org/abs/2004.06496>`_
+
+    .. note::
+        None of the interesting aspects of the policy are implemented here, as that software is under IP protection currently.
+    """
     def __init__(self):
         ExternalPolicy.__init__(self, str="CARRL")
         num_actions = 11

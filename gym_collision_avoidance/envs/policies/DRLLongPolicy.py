@@ -1,23 +1,33 @@
 import numpy as np
 import os
 import operator
-from gym_collision_avoidance.envs.policies.Policy import Policy
+from gym_collision_avoidance.envs.policies.InternalPolicy import InternalPolicy
 from gym_collision_avoidance.envs import util
 from gym_collision_avoidance.envs import Config
-
-from gym_collision_avoidance.envs.policies.DRL_Long.model.ppo import generate_action_no_sampling
-from gym_collision_avoidance.envs.policies.DRL_Long.model.net import MLPPolicy, CNNPolicy
-
-import torch
-import torch.nn as nn
 from collections import deque
+
+
+try:
+    import torch
+    import torch.nn as nn
+    from gym_collision_avoidance.envs.policies.DRL_Long.model.ppo import generate_action_no_sampling
+    from gym_collision_avoidance.envs.policies.DRL_Long.model.net import MLPPolicy, CNNPolicy
+except:
+    print("Torch not installed...")
 
 LASER_HIST = 3
 
-class DRLLongPolicy(Policy):
+class DRLLongPolicy(InternalPolicy):
+    """ Wrapper for an implementation of `Towards Optimally Decentralized Multi-Robot Collision Avoidance via Deep Reinforcement Learning <https://arxiv.org/abs/1709.10082>`_.
+
+    Based on `this open-source implementation <https://github.com/Acmece/rl-collision-avoidance>`_.
+
+    .. note::
+        This policy is not fully working with this version of the code
+
+    """
     def __init__(self):
-        Policy.__init__(self, str="DRL_Long")
-        self.is_still_learning = False
+        InternalPolicy.__init__(self, str="DRL_Long")
         self.obs_stack = None
 
     def initialize_network(self, **kwargs):
@@ -49,6 +59,11 @@ class DRLLongPolicy(Policy):
         # self.count = 0 ### DELETE later
 
     def find_next_action(self, obs, agents, i):
+        """ Normalize the laserscan, grab the goal position, query the NN, return the action.
+
+        TODO
+
+        """
         host_agent = agents[i]
         other_agents = agents[:i]+agents[i+1:]
 

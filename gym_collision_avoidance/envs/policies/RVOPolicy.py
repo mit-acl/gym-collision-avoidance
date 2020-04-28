@@ -1,14 +1,14 @@
 import numpy as np
-from gym_collision_avoidance.envs.policies.Policy import Policy
+from gym_collision_avoidance.envs.policies.InternalPolicy import InternalPolicy
 from gym_collision_avoidance.envs import Config
 from gym_collision_avoidance.envs.util import *
 import rvo2
 
 import matplotlib.pyplot as plt
 
-class RVOPolicy(Policy):
+class RVOPolicy(InternalPolicy):
     def __init__(self):
-        Policy.__init__(self, str="RVO")
+        InternalPolicy.__init__(self, str="RVO")
 
         self.dt = Config.DT
         neighbor_dist = Config.SENSING_HORIZON

@@ -227,8 +227,9 @@ class CollisionAvoidanceEnv(gym.Env):
 
         Args:
             actions (dict): keyed by agent indices, each value has a [delta heading angle, speed] command.
-                Agents with an ExternalPolicy or is_still_learning policy receive their actions through this dict.
-                Other agents' indices shouldn't appear in this dict, but will be ignored if so, because they can
+                Agents with an ExternalPolicy sub-class receive their actions through this dict.
+                Other agents' indices shouldn't appear in this dict, but will be ignored if so, because they have 
+                an InternalPolicy sub-class, meaning they can
                 compute their actions internally given their observation (e.g., already trained CADRL, RVO, Non-Cooperative, etc.)
             dt (float): time in seconds to run the simulation (defaults to :code:`self.dt_nominal`)
 
@@ -240,10 +241,8 @@ class CollisionAvoidanceEnv(gym.Env):
         for agent_index, agent in enumerate(self.agents):
             if agent.is_done:
                 continue
-            if agent.policy.is_external:
-                all_actions[agent_index, :] = agent.policy.convert_to_action(actions[agent_index])
-            elif agent.policy.is_still_learning:
-                all_actions[agent_index, :] = agent.policy.network_output_to_action(agent, actions[agent_index])
+            elif agent.policy.is_external:
+                all_actions[agent_index, :] = agent.policy.external_action_to_action(agent, actions[agent_index])
             else:
                 dict_obs = self.observation[agent_index]
                 all_actions[agent_index, :] = agent.policy.find_next_action(dict_obs, self.agents, agent_index)

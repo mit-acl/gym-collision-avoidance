@@ -1,11 +1,11 @@
 import numpy as np
 import os
-from gym_collision_avoidance.envs.policies.Policy import Policy
+from gym_collision_avoidance.envs.policies.InternalPolicy import InternalPolicy
 from gym_collision_avoidance.envs.policies.CADRL.scripts.multi import nn_navigation_value_multi as nn_nav
 from gym_collision_avoidance.envs import Config
 from gym_collision_avoidance.envs import util
 
-class CADRLPolicy(Policy):
+class CADRLPolicy(InternalPolicy):
     """ Re-purposed from: Socially Aware Motion Planning with Deep Reinforcement Learning
 
     Loads a pre-traned SA-CADRL 4-agent network (with no social norm preference LHS/RHS).
@@ -13,8 +13,7 @@ class CADRLPolicy(Policy):
 
     """
     def __init__(self):
-        Policy.__init__(self, str="CADRL")
-        self.is_still_learning = False
+        InternalPolicy.__init__(self, str="CADRL")
 
         num_agents = 4
         file_dir = os.path.dirname(os.path.realpath(__file__)) + '/CADRL/scripts/multi'

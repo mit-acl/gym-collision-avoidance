@@ -1,11 +1,10 @@
 import numpy as np
-from gym_collision_avoidance.envs.policies.Policy import Policy
+from gym_collision_avoidance.envs.policies.InternalPolicy import InternalPolicy
 
-class StaticPolicy(Policy):
+class StaticPolicy(InternalPolicy):
     """ For an agent who never moves, useful for confirming algorithms can avoid static objects too """
     def __init__(self):
-        Policy.__init__(self, str="Static")
-        pass
+        InternalPolicy.__init__(self, str="Static")
 
     def find_next_action(self, obs, agents, i):
         """ Static Agents do not move, so just set goal to current pos and action to zero. 

@@ -39,6 +39,7 @@ Agents can observe the environment through several types of **sensors**, act acc
    pages/install.rst
    pages/example.rst
    pages/architecture.rst
+   pages/config.rst
 
 .. toctree::
    :maxdepth: 2
@@ -64,6 +65,7 @@ Agents can observe the environment through several types of **sensors**, act acc
    :caption: Advanced
 
    pages/build_docs.rst
+   pages/train_multiagent_rl.rst
 
 Policies Implemented
 ====================

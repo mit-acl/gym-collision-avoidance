@@ -14,6 +14,7 @@ After defining a test case function that returns a list of Agents, you can selec
 import numpy as np
 from gym_collision_avoidance.envs.agent import Agent
 
+# Policies
 from gym_collision_avoidance.envs.policies.StaticPolicy import StaticPolicy
 from gym_collision_avoidance.envs.policies.NonCooperativePolicy import NonCooperativePolicy
 # from gym_collision_avoidance.envs.policies.DRLLongPolicy import DRLLongPolicy
@@ -25,9 +26,12 @@ from gym_collision_avoidance.envs.policies.LearningPolicy import LearningPolicy
 from gym_collision_avoidance.envs.policies.CARRLPolicy import CARRLPolicy
 from gym_collision_avoidance.envs.policies.LearningPolicyGA3C import LearningPolicyGA3C
 
+# Dynamics
 from gym_collision_avoidance.envs.dynamics.UnicycleDynamics import UnicycleDynamics
 from gym_collision_avoidance.envs.dynamics.UnicycleDynamicsMaxTurnRate import UnicycleDynamicsMaxTurnRate
 from gym_collision_avoidance.envs.dynamics.ExternalDynamics import ExternalDynamics
+
+# Sensors
 from gym_collision_avoidance.envs.sensors.OccupancyGridSensor import OccupancyGridSensor
 from gym_collision_avoidance.envs.sensors.LaserScanSensor import LaserScanSensor
 from gym_collision_avoidance.envs.sensors.OtherAgentsStatesSensor import OtherAgentsStatesSensor

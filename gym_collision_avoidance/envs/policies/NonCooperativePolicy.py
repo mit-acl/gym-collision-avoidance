@@ -1,10 +1,10 @@
 import numpy as np
-from gym_collision_avoidance.envs.policies.Policy import Policy
+from gym_collision_avoidance.envs.policies.InternalPolicy import InternalPolicy
 
-class NonCooperativePolicy(Policy):
+class NonCooperativePolicy(InternalPolicy):
     """ Non Cooperative Agents simply drive at pref speed toward the goal, ignoring other agents. """
     def __init__(self):
-        Policy.__init__(self, str="NonCooperativePolicy")
+        InternalPolicy.__init__(self, str="NonCooperativePolicy")
 
     def find_next_action(self, obs, agents, i):
         """ Go at pref_speed, apply a change in heading equal to zero out current ego heading (heading to goal)

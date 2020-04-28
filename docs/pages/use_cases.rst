@@ -14,9 +14,9 @@ To easily make comparisons between algorithms, this repo provides several model-
 Instructions
 -------------------
 
-#. Create a new |Policy| sub-class (can use :class:`~gym_collision_avoidance.envs.policies.NonCooperativePolicy.NonCooperativePolicy` as an example)
+#. Create a new |InternalPolicy| sub-class (can use :class:`~gym_collision_avoidance.envs.policies.NonCooperativePolicy.NonCooperativePolicy` as an example)
 
-   * If necessary, add a submodule containing your helper methods that were written for some other environment (see Python-RVO2 as an example)
+   * If necessary, add a submodule containing your helper methods that were written for some other environment (we use a :code:`Python-RVO2` submodule, for example)
    * Implement the :code:`find_next_action` method of your new policy
    * Import your new policy at the top of :code:`test_cases.py` and add it to the :code:`policy_dict` (e.g., add :code:`'new_policy': NewPolicy`)
 
@@ -47,6 +47,19 @@ For example:
         
         RVO
 
+Optional: Load Network Weights
+------------------------------
+
+If your new |InternalPolicy| should load network weights, you can simply hard-code the path in the init method.
+
+Or, you can add to your new policy something like the :code:`initialize_network` method in :code:`GA3CCADRLPolicy`. This allows you to have a default path to model weights, but also lets you pass in a specific path if you want to load a different one. This is why in :code:`env_utils.py` some policies have these dict entries:
+
+.. parsed-literal::
+    'checkpt_dir': '/path/to/run-20200403_144424-3eoowzko/checkpoints/',
+    'checkpt_name': 'network_01900000',
+
+which are passed to the policy by calling :code:`agent.policy.initialize_network(**kwargs)`. An example of this is in :code:`run_full_test_suite.py` reset function.
+
 ----
 
 .. _use_case_train_rl:
@@ -66,22 +79,86 @@ Therefore, the |Environment| has a mechanism to accept actions from an external 
 The external process (e.g., RL training script) can pass a dict of actions -- keyed by the index of the Agent should take that action -- as an argument to the :code:`env.step` command.
 
 You can distinguish Agents who should follow the action dict vs. query their own |Policy| by assigning the appropriate |Policy| sub-class to each Agent.
-For instance, Agents whose actions come from an external process can be given an |ExternalPolicy|.
+Agents whose actions come from an external process should be given an |ExternalPolicy|.
 
-Since the RL algorithm might not be aware of the Env-specific actions (e.g., if RL returns a discrete :math:`\texttt{raw_action}\in\{0,1,2,3\}`, it still must be converted to a vehicle speed command for this environment), the :code:`raw_action` from the :code:`actions` dict is sent through :code:`action = ExternalPolicy.convert_to_action(raw_action)`.
+Since the RL algorithm might not be aware of the Env-specific actions (e.g., if RL returns a discrete :math:`\texttt{external_action}\in\{0,1,2,3\}`, it still must be converted to a vehicle speed command for this environment), the :code:`external_action` from the :code:`actions` dict is sent through :code:`action = ExternalPolicy.external_action_to_action(external_action)`.
 
-:code:`ExternalPolicy.convert_to_action` is a dummy pass-through, but you can create a sub-class of |ExternalPolicy| and implement the desired conversion for your RL output.
+We further specify a |LearningPolicy| as a subclass of |ExternalPolicy|, as this enables us to include a flag in the observation vector of whether or not this agent :code:`is_learning`.
+There may be some Agents in the environment with an |ExternalPolicy| (say, a real robot), but aren't actively learning, so the RL algorithm may want to know to ignore those agents' observations.
 
 Instructions
 -------------------
 
-#. Create a new |ExternalPolicy| sub-class (can use :class:`~gym_collision_avoidance.envs.policies.LearningPolicy.LearningPolicy` as an example)
+#. Create a new |LearningPolicy| sub-class (can use |LearningPolicyGA3C| as an example).
 
-   * Implement the :code:`network_output_to_action` method of your new policy
+   * Implement the :code:`external_action_to_action` method of your new policy
    * Import your new policy at the top of :code:`test_cases.py` and add it to the :code:`policy_dict` (e.g., add :code:`'new_policy': NewPolicy`)
 
-.. note::
-    This is incomplete...
+#. Decide what should go in the observation vector (can choose from components of :code:`self.STATE_INFO_DICT` in :code:`config.py` or add your own) and other default environment settings, such as whether you want to plot each episode, simulation timestep length, etc.
+
+    * Create a sub-class of :code:`config.py` and overwrite the default attributes of :code:`Config` if you'd like. For example to  change the observation vector but keep everything else:
+
+        .. parsed-literal::
+            from gym_collision_avoidance.envs.config import Config as EnvConfig
+            class Train(EnvConfig):
+                def __init__(self):
+                    self.STATES_IN_OBS = ['is_learning', 'num_other_agents', 'dist_to_goal', 'heading_ego_frame', 'pref_speed', 'radius', 'other_agents_states_encoded']
+                    EnvConfig.__init__(self)
+
+    * I highly recommend starting by training a single RL agent. It is possible to receive multiple agents' observations/rewards and send in multiple actions from your RL script, but that requires a little more work. So add this line as well:
+        
+        .. parsed-literal::
+            ...
+            EnvConfig.__init__(self)
+            self.TRAIN_SINGLE_AGENT = True
+
+    * In your training script, before creating an instance of the environment, set the environment variables that point to your new config:
+
+        .. parsed-literal::
+            import os
+            os.environ['GYM_CONFIG_CLASS'] = 'Train'
+
+            # If your new config class is not in config.py, set this:
+            os.environ['GYM_CONFIG_PATH'] = 'path_to_file_containing_your_new_config_class'
+
+    * Decide which scenarios to train on: by default, it will be random test cases with agents whose policies follow a random distribution of static, non-cooperative, learning-ga3c. Instead, it would be best to start with 2-agent scenarios, where one agent uses your :code:`'new_policy'` the other uses RVO. In your custom config, update the test case args:
+
+        .. parsed-literal::
+            ...
+            self.MAX_NUM_AGENTS_IN_ENVIRONMENT = 2
+            self.MAX_NUM_AGENTS_TO_SIM = 2
+            EnvConfig.__init__(self)
+            self.TEST_CASE_ARGS['num_agents'] = 2
+            self.TEST_CASE_ARGS['policy_to_ensure'] = 'new_policy'
+            self.TEST_CASE_ARGS['policies'] = ['new_policy', 'RVO']
+
+#. Initialize the environment and start doing RL!
+
+        .. parsed-literal::
+            from gym_collision_avoidance.experiments.src.env_utils import create_env
+
+            # env: a VecEnv wrapper around the CollisionAvoidanceEnv
+            # one_env: an actual CollisionAvoidanceEnv class (the unwrapped version of the first env in the VecEnv)
+            env, one_env = create_env()
+
+            obs = env.reset()
+            for i in range(num_episodes):
+                actions = {}
+                rl_action = model.sample(obs)
+                actions[0] = rl_action
+
+                # No need to supply actions for non-learning agents
+
+                # Run a simulation step (check for collisions, move sim agents)
+                obs, reward, game_over, which_agents_done = env.step([actions])
+
+                # Do RL stuff with the (obs, rl_action, reward)...
+
+#. If you get to a point where your RL agent has learned something pretty good, you may want to create an |InternalPolicy| where you load pre-trained model parameters -- see :ref:`use_case_compare_new_policy` for how to do this. This is a great way to share your good policy back to the community, who might just want to use your policy without re-training or interfacing with any RL code.
+    
+    * Note: If you do this, you'll want to name the associated internal policy something different than the external policy you used for RL training. So far, the convention has been: train with LearningPolicyAlg, evaluate with AlgPolicy.
+
+If you want to train using observations of multiple learning agents in parallel, please see :ref:`train_multiagent_rl`!
 
 ----
 
@@ -149,5 +226,8 @@ For example:
 .. |Agent| replace:: :class:`~gym_collision_avoidance.envs.agent.Agent`
 .. |Policy| replace:: :class:`~gym_collision_avoidance.envs.policies.Policy.Policy`
 .. |ExternalPolicy| replace:: :class:`~gym_collision_avoidance.envs.policies.ExternalPolicy.ExternalPolicy`
+.. |InternalPolicy| replace:: :class:`~gym_collision_avoidance.envs.policies.InternalPolicy.InternalPolicy`
+.. |LearningPolicy| replace:: :class:`~gym_collision_avoidance.envs.policies.LearningPolicy.LearningPolicy`
+.. |LearningPolicyGA3C| replace:: :class:`~gym_collision_avoidance.envs.policies.LearningPolicyGA3C.LearningPolicyGA3C`
 .. |Dynamics| replace:: :class:`~gym_collision_avoidance.envs.dynamics.Dynamics.Dynamics`
 .. |Sensor| replace:: :class:`~gym_collision_avoidance.envs.sensors.Sensor.Sensor`

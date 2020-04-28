@@ -1,15 +1,19 @@
 import numpy as np
 import os
 import operator
-from gym_collision_avoidance.envs.policies.Policy import Policy
+from gym_collision_avoidance.envs.policies.InternalPolicy import InternalPolicy
 from gym_collision_avoidance.envs import util
 from gym_collision_avoidance.envs.policies.GA3C_CADRL import network
 from gym_collision_avoidance.envs import Config
 
-class GA3CCADRLPolicy(Policy):
+class GA3CCADRLPolicy(InternalPolicy):
+    """ Pre-trained policy from `Motion Planning Among Dynamic, Decision-Making Agents with Deep Reinforcement Learning <https://arxiv.org/pdf/1805.01956.pdf>`_
+
+    By default, loads a pre-trained LSTM network (GA3C-CADRL-10-LSTM from the paper). There are 11 discrete actions with max heading angle change of $\pm \pi/6$.
+
+    """
     def __init__(self):
-        Policy.__init__(self, str="GA3C_CADRL")
-        self.is_still_learning = False
+        InternalPolicy.__init__(self, str="GA3C_CADRL")
 
         self.possible_actions = network.Actions()
         num_actions = self.possible_actions.num_actions
@@ -17,6 +21,14 @@ class GA3CCADRLPolicy(Policy):
         self.nn = network.NetworkVP_rnn(self.device, 'network', num_actions)
 
     def initialize_network(self, **kwargs):
+        """ Load the model parameters of either a default file, or if provided through kwargs, a specific path and/or tensorflow checkpoint.
+
+        Args:
+            kwargs['checkpt_name'] (str): name of checkpoint file to load (without file extension)
+            kwargs['checkpt_dir'] (str): path to checkpoint
+
+        """
+
         if 'checkpt_name' in kwargs:
             checkpt_name = kwargs['checkpt_name']
         else:
@@ -35,6 +47,18 @@ class GA3CCADRLPolicy(Policy):
         self.nn.simple_load(checkpt_dir + checkpt_name)
 
     def find_next_action(self, obs, agents, i):
+        """ Using only the dictionary obs, convert this to the vector needed for the GA3C-CADRL network, query the network, adjust the actions for this env.
+
+        Args:
+            obs (dict): this :class:`~gym_collision_avoidance.envs.agent.Agent` 's observation vector
+            agents (list): [unused] of :class:`~gym_collision_avoidance.envs.agent.Agent` objects
+            i (int): [unused] index of agents list corresponding to this agent
+        
+        Returns:
+            [spd, heading change] command
+
+        """
+
         pref_speed = obs['pref_speed']
         # host_agent = agents[i]
         # other_agents = agents[:i]+agents[i+1:]
@@ -42,6 +66,7 @@ class GA3CCADRLPolicy(Policy):
         # new_obs = np.expand_dims(new_obs[1:], axis=0)
 
         if type(obs) == dict:
+            # Turn the dict observation into a flattened vector
             vec_obs = np.array([])
             for state in Config.STATES_IN_OBS:
                 if state not in Config.STATES_NOT_USED_IN_POLICY:

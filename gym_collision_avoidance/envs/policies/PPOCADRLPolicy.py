@@ -1,15 +1,14 @@
 import numpy as np
 import os
-from gym_collision_avoidance.envs.policies.Policy import Policy
+from gym_collision_avoidance.envs.policies.InternalPolicy import InternalPolicy
 from baselines.common.policies import build_policy
 from gym_collision_avoidance.envs import Config
 from baselines.ppo2.mfe_network import mfe_network
 import tensorflow as tf
 
-class PPOCADRLPolicy(Policy):
+class PPOCADRLPolicy(InternalPolicy):
     def __init__(self):
-        Policy.__init__(self, str="PPO_CADRL")
-        self.is_still_learning = False
+        InternalPolicy.__init__(self, str="PPO_CADRL")
         self.ppo_or_learning_policy = True
 
     def initialize_network(self, **kwargs):
