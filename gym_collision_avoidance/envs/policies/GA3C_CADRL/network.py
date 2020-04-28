@@ -53,7 +53,7 @@ class NetworkVPCore(object):
                         log_device_placement=False,
                         gpu_options=tf.GPUOptions(allow_growth=True)))
 
-                new_saver = tf.train.import_meta_graph(filename+'.meta')
+                new_saver = tf.train.import_meta_graph(filename+'.meta', clear_devices=True)
                 self.sess.run(tf.global_variables_initializer())
                 new_saver.restore(self.sess, filename)
 
