@@ -30,7 +30,7 @@ cd $DIR/gym_collision_avoidance/envs/policies/Python-RVO2
 python -m pip install Cython
 if [[ "$OSTYPE" == "darwin"* ]]; then
     export MACOSX_DEPLOYMENT_TARGET=10.15
-    brew install cmake
+    brew install cmake || true
 fi
 python setup.py build
 python setup.py install
