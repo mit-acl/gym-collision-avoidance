@@ -158,7 +158,7 @@ Instructions
     
     * Note: If you do this, you'll want to name the associated internal policy something different than the external policy you used for RL training. So far, the convention has been: train with LearningPolicyAlg, evaluate with AlgPolicy.
 
-If you want to train using observations of multiple learning agents in parallel, please see :ref:`train_multiagent_rl`!
+If you want to train using observations of multiple learning agents in parallel, please see :ref:`train_multiagent_rl` or the `RL Collision Avoidance repo <https://github.com/mit-acl/rl_collision_avoidance>`_ for our GA3C-CADRL policy.
 
 ----
 

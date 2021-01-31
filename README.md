@@ -10,6 +10,8 @@ This is the code associated with the following publications:
 
 This repo also contains the trained policy for the SA-CADRL paper (referred to as CADRL here) from the proceeding paper: Y. Chen, M. Everett, M. Liu, and J. P. How. “Socially Aware Motion Planning with Deep Reinforcement Learning.” IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS). Vancouver, BC, Canada, Sept. 2017. [Link to Paper](https://arxiv.org/abs/1703.08862)
 
+If you're looking to train our GA3C-CADRL policy, please see [this repo](https://github.com/mit-acl/rl_collision_avoidance) instead.
+
 ---
 
 ### About the Code
