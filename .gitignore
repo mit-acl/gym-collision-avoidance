@@ -7,6 +7,11 @@ logs
 *.lprof
 *.DS_Store
 
+build/
+dist/
+MANIFEST.in
+venv*/
+
 .vscode
 
 gym_collision_avoidance/experiments/results

@@ -1,5 +1,5 @@
 import numpy as np
-from gym_collision_avoidance.envs.util import find_nearest, rgba2rgb
+from gym_collision_avoidance.envs.util import find_nearest, rgba2rgb, makedirs
 from sys import platform
 if platform == "darwin":
     import matplotlib as mpl
@@ -27,12 +27,12 @@ plt_colors.append([0.6350, 0.0780, 0.1840])  # chocolate
 def get_plot_save_dir(plot_save_dir, plot_policy_name, agents=None):
     if plot_save_dir is None:
         plot_save_dir = os.path.dirname(os.path.realpath(__file__)) + '/../logs/test_cases/'
-        os.makedirs(plot_save_dir, exist_ok=True)
+        makedirs(plot_save_dir, exist_ok=True)
     if plot_policy_name is None:
         plot_policy_name = agents[0].policy.str
 
     collision_plot_dir = plot_save_dir + "/collisions/"
-    os.makedirs(collision_plot_dir, exist_ok=True)
+    makedirs(collision_plot_dir, exist_ok=True)
 
     base_fig_name = "{test_case}_{policy}_{num_agents}agents{step}.{extension}"
     return plot_save_dir, plot_policy_name, base_fig_name, collision_plot_dir
@@ -74,7 +74,7 @@ def animate_episode(num_agents, plot_save_dir=None, plot_policy_name=None, test_
             step="",
             extension='gif')
     animation_save_dir = plot_save_dir+"animations/"
-    os.makedirs(animation_save_dir, exist_ok=True)
+    makedirs(animation_save_dir, exist_ok=True)
     animation_filename = animation_save_dir+animation_filename
     imageio.mimsave(animation_filename, images)
 

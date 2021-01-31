@@ -23,7 +23,6 @@ fi
 
 # Install this pkg and its requirements
 python -m pip install -e $DIR
-python -m pip install git+https://github.com/openai/baselines.git@ea25b9e8b234e6ee1bca43083f8f3cf974143998
 
 # Install RVO and its requirements
 cd $DIR/gym_collision_avoidance/envs/policies/Python-RVO2

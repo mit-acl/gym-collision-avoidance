@@ -23,6 +23,8 @@ class NetworkVPCore(object):
 
     def crop_x(self, x):
         # stupid stuff because each NN might accept diff length observation
+        # if not hasattr(self, 'x'):
+        #     return x
         if x.shape[-1] > self.x.shape[-1]:
             x_ = x[:,:self.x.shape[-1]]
         elif x.shape[-1] < self.x.shape[-1]:

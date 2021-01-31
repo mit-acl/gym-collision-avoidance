@@ -3,7 +3,7 @@ gym.logger.set_level(40)
 import numpy as np
 from gym_collision_avoidance.envs import Config
 from gym_collision_avoidance.envs.wrappers import FlattenDictWrapper, MultiagentFlattenDictWrapper, MultiagentDummyVecEnv, MultiagentDictToMultiagentArrayWrapper
-from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
+from stable_baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 
 def create_env():
     import tensorflow as tf

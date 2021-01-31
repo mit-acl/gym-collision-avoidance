@@ -11,9 +11,10 @@ import itertools
 import copy
 import os
 import inspect
+import sys
 
 from gym_collision_avoidance.envs import Config
-from gym_collision_avoidance.envs.util import find_nearest, rgba2rgb, l2norm
+from gym_collision_avoidance.envs.util import find_nearest, rgba2rgb, l2norm, makedirs
 from gym_collision_avoidance.envs.visualize import plot_episode, animate_episode
 from gym_collision_avoidance.envs.agent import Agent
 from gym_collision_avoidance.envs.Map import Map
@@ -489,7 +490,7 @@ class CollisionAvoidanceEnv(gym.Env):
             plot_save_dir (str): path to directory you'd like to save plots in
 
         """
-        os.makedirs(plot_save_dir, exist_ok=True)
+        makedirs(plot_save_dir, exist_ok=True)
         self.plot_save_dir = plot_save_dir
 
     def set_perturbed_info(self, perturbed_obs):
@@ -510,7 +511,12 @@ class CollisionAvoidanceEnv(gym.Env):
         assert(callable(test_case_fn))
 
         # Before running test_case_fn, make sure we didn't provide any args it doesn't accept
-        test_case_fn_args = inspect.signature(test_case_fn).parameters
+        if sys.version[0] == '3':
+            signature = inspect.signature(test_case_fn)
+        elif sys.version[0] == '2':
+            import funcsigs
+            signature = funcsigs.signature(test_case_fn)
+        test_case_fn_args = signature.parameters
         test_case_args_keys = list(test_case_args.keys())
         for key in test_case_args_keys:
             # print("checking if {} accepts {}".format(test_case_fn, key))

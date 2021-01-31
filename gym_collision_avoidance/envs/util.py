@@ -1,9 +1,18 @@
 import numpy as np
 import math
+import sys
+import os
 
 ##################
 # Utils
 ################
+
+def makedirs(directory, exist_ok=True):
+    if sys.version[0] == '3':
+        os.makedirs(directory, exist_ok=exist_ok)
+    elif sys.version[0] == '2':
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
 def l2norm(x, y):
     return math.sqrt(l2normsq(x,y))
