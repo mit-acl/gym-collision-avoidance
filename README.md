@@ -4,7 +4,7 @@
 
 This is the code associated with the following publications:
 
-**Journal Version:** M. Everett, Y. Chen, and J. P. How, "Collision Avoidance in Pedestrian-Rich Environments with Deep Reinforcement Learning", IEEE Access Vol. 9, 2021, pp. 10357-10377. [10.1109/ACCESS.2021.3050338](10.1109/ACCESS.2021.3050338), [Arxiv PDF](https://arxiv.org/abs/1910.11689)
+**Journal Version:** M. Everett, Y. Chen, and J. P. How, "Collision Avoidance in Pedestrian-Rich Environments with Deep Reinforcement Learning", IEEE Access Vol. 9, 2021, pp. 10357-10377. [10.1109/ACCESS.2021.3050338](doi.org/10.1109/ACCESS.2021.3050338), [Arxiv PDF](https://arxiv.org/abs/1910.11689)
 
 **Conference Version:** M. Everett, Y. Chen, and J. P. How, "Motion Planning Among Dynamic, Decision-Making Agents with Deep Reinforcement Learning", IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), 2018. [Arxiv PDF](https://arxiv.org/abs/1805.01956), [Link to Video](https://www.youtube.com/watch?v=XHoXkWLhwYQ)
 
