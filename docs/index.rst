@@ -65,6 +65,7 @@ Agents can observe the environment through several types of **sensors**, act acc
    :caption: Advanced
 
    pages/build_docs.rst
+   pages/build_pypi.rst
    pages/train_multiagent_rl.rst
 
 Policies Implemented
@@ -95,6 +96,8 @@ Desired Additions:
 If you find this code useful, please consider citing:
 =====================================================
 
+Conference version of paper:
+
 .. parsed-literal::
    @inproceedings{Everett18_IROS,
      address = {Madrid, Spain},
@@ -107,3 +110,16 @@ If you find this code useful, please consider citing:
      url = {https://arxiv.org/pdf/1805.01956.pdf},
      bdsk-url-1 = {https://arxiv.org/pdf/1805.01956.pdf}
    }
+
+or the journal version:
+
+.. parsed-literal::
+  @article{everett2021collision,
+    title={Collision avoidance in pedestrian-rich environments with deep reinforcement learning},
+    author={Everett, Michael and Chen, Yu Fan and How, Jonathan P},
+    journal={IEEE Access},
+    volume={9},
+    pages={10357--10377},
+    year={2021},
+    publisher={IEEE}
+  }

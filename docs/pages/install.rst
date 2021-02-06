@@ -1,6 +1,14 @@
 Install
 ========================
 
+From pip
+-------------
+If you don't plan to change the source code and just want to use the package as is:
+.. parsed-literal::
+    pip install gym_collision_avoidance
+
+From source
+-------------
 Grab the code from github, initialize submodules, install dependencies and src code:
 
 .. parsed-literal::
