@@ -15,6 +15,8 @@
 import sys
 import os
 
+os.system("apt install libopenmpi-dev")
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -46,7 +48,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'gym-collision-avoidance'
-copyright = u'2020, Michael Everett'
+copyright = u'2021, Michael Everett'
 author = u'Michael Everett'
 
 # The version info for the project you're documenting, acts as replacement for
