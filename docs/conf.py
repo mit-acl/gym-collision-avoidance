@@ -15,8 +15,6 @@
 import sys
 import os
 
-os.system("apt install libopenmpi-dev")
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -286,4 +284,4 @@ texinfo_documents = [
 
 autoclass_content = "both"
 
-autodoc_mock_imports = ["rvo2"]
+autodoc_mock_imports = ["rvo2", "mpi4py"]
