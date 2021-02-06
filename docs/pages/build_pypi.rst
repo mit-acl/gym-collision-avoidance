@@ -25,6 +25,6 @@ To build and send a new package to pypi:
     python -m pip install --index-url https://test.pypi.org/simple/ --no-deps gym-collision-avoidance
 
     # Upload to the real pypi server
-    python -m twine upload --repository testpypi dist/*
+    python -m twine upload dist/*
 
 
