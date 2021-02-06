@@ -20,9 +20,10 @@ install_requires = [
         'stable_baselines<2.4.1', # needs to be this version or lower for python2.7 (setup.py uses subprocess in a python3 way)
     ]
 
+# ReadTheDocs can't install mpi4py, so don't install stable_baselines
 READTHEDOCS = os.environ.get('READTHEDOCS', False)
 if READTHEDOCS:
-    install_requires = install_requires[:-1]
+    install_requires = [x for x in install_requires if not x.startswith('stable_baselines')]
 
 setup(
     name='gym_collision_avoidance',

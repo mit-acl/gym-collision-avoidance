@@ -284,4 +284,4 @@ texinfo_documents = [
 
 autoclass_content = "both"
 
-autodoc_mock_imports = ["rvo2", "mpi4py"]
+autodoc_mock_imports = ["rvo2"]
