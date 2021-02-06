@@ -3,7 +3,7 @@ gym.logger.set_level(40)
 import numpy as np
 from gym_collision_avoidance.envs import Config
 from gym_collision_avoidance.envs.wrappers import FlattenDictWrapper, MultiagentFlattenDictWrapper, MultiagentDummyVecEnv, MultiagentDictToMultiagentArrayWrapper
-from stable_baselines.common.vec_env.dummy_vec_env import DummyVecEnv
+from gym_collision_avoidance.envs.vec_env import DummyVecEnv
 
 def create_env():
     import tensorflow as tf
@@ -499,3 +499,8 @@ policies = {
         'sensors': ['other_agents_states', 'laserscan']
         },
     }
+
+if __name__ == '__main__':
+    env, one_env = create_env()
+    env.reset()
+    run_episode(env, one_env)
