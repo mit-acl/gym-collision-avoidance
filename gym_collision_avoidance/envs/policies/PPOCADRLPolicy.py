@@ -1,9 +1,9 @@
 import numpy as np
 import os
 from gym_collision_avoidance.envs.policies.InternalPolicy import InternalPolicy
-from stable_baselines.common.policies import build_policy
+# from stable_baselines.common.policies import build_policy
 from gym_collision_avoidance.envs import Config
-from stable_baselines.ppo2.mfe_network import mfe_network
+# from stable_baselines.ppo2.mfe_network import mfe_network
 import tensorflow as tf
 
 class PPOCADRLPolicy(InternalPolicy):

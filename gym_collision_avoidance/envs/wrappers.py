@@ -1,7 +1,6 @@
 import gym
 import numpy as np
-from stable_baselines.common.vec_env.dummy_vec_env import DummyVecEnv
-
+from gym_collision_avoidance.envs.vec_env import DummyVecEnv
 
 __all__ = ['FlattenDictWrapper', 'MultiagentFlattenDictWrapper', 'MultiagentDummyVecEnv', 'MultiagentDictToMultiagentArrayWrapper']
 
