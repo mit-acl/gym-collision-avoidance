@@ -85,6 +85,9 @@ class Config(object):
         self.RVO_COLLAB_COEFF = 0.5
         self.RVO_ANTI_COLLAB_T = 1.0
 
+        ### STORAGE
+        self.STORE_HISTORY = True
+
         ### OBSERVATION VECTOR
         self.TRAIN_SINGLE_AGENT = False
         self.STATE_INFO_DICT = {
