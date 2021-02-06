@@ -230,6 +230,24 @@ class SmallTestSuite(EvaluateConfig):
         self.PLOT_CIRCLES_ALONG_TRAJ = True
         self.NUM_TEST_CASES = 4
 
+class LargeNumAgents(EvaluateConfig):
+    def __init__(self):
+        self.MAX_NUM_OTHER_AGENTS_OBSERVED = 39
+        EvaluateConfig.__init__(self)
+        self.SAVE_EPISODE_PLOTS = True
+        self.SHOW_EPISODE_PLOTS = False
+        self.ANIMATE_EPISODES = False
+        self.PLOT_CIRCLES_ALONG_TRAJ = False
+        self.PLT_LIMITS = [[-20, 20], [-15, 15]]
+        self.NUM_TEST_CASES = 10
+        self.NUM_AGENTS_TO_TEST = [40]
+        self.RECORD_PICKLE_FILES = False
+        self.POLICIES_TO_TEST = [
+            'GA3C-CADRL-10'
+            ]
+        self.FIXED_RADIUS_AND_VPREF = False
+        self.NEAR_GOAL_THRESHOLD = 0.2
+
 class FullTestSuite(EvaluateConfig):
     def __init__(self):
         self.MAX_NUM_OTHER_AGENTS_OBSERVED = 19
