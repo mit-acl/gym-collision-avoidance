@@ -13,4 +13,12 @@ class ExternalPolicy(Policy):
 
     def external_action_to_action(self, agent, external_action):
         """ Dummy method to be re-implemented by subclasses """
-        raise NotImplementedError
+        return external_action
+
+    def find_next_action(self, obs, agents, i):
+        """ External policies don't compute a commanded action [heading delta, speed]
+
+        Returns:
+            None
+        """
+        return None
