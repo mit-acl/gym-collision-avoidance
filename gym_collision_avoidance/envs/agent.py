@@ -43,6 +43,8 @@ class Agent(object):
         self.near_goal_threshold = Config.NEAR_GOAL_THRESHOLD
         self.dt_nominal = Config.DT
 
+        self.num_other_agents_observed = 0
+
         self.min_x = -20.0
         self.max_x = 20.0
         self.min_y = -20.0
