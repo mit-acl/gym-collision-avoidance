@@ -15,6 +15,13 @@ class Actions():
         self.actions = np.vstack([self.actions,np.mgrid[0.0:0.1:0.5, -np.pi/6:np.pi/6+0.01:np.pi/6].reshape(2, -1).T])
         self.num_actions = len(self.actions)
 
+class VxVyDiscreteActions():
+    # Define 12 choices of actions to be:
+    def __init__(self):
+        num_actions = 12
+        self.actions = np.dstack([np.cos(np.arange(num_actions)*(2*np.pi/num_actions)), np.sin(np.arange(num_actions)*(2*np.pi/num_actions))])[0]
+        self.num_actions = num_actions
+
 class NetworkVPCore(object):
     def __init__(self, device, model_name, num_actions):
         self.device = device

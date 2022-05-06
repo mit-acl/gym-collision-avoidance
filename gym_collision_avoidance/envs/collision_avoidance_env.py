@@ -249,7 +249,9 @@ class CollisionAvoidanceEnv(gym.Env):
 
         # After all agents have selected actions, run one dynamics update
         for i, agent in enumerate(self.agents):
+            # print("Agent {}: state: {}, goal: {}, rel_pos: {}, action: {}.".format(i, agent.pos_global_frame, agent.goal_global_frame, agent.rel_pos_to_goal, all_actions[i, :]))
             agent.take_action(all_actions[i,:], dt)
+        # print('--')
 
     def _update_top_down_map(self):
         """ After agents have moved, call this to update the map with their new occupancies. """

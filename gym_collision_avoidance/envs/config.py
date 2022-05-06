@@ -49,9 +49,10 @@ class Config(object):
         ### TEST CASE SETTINGS
         self.TEST_CASE_FN = "get_testcase_random"
         self.TEST_CASE_ARGS = {
-            'policy_to_ensure': 'learning_ga3c',
-            'policies': ['noncoop', 'learning_ga3c', 'static'],
-            'policy_distr': [0.05, 0.9, 0.05],
+            'policy_to_ensure': 'learning_ga3c_vxvy',
+            'policies': ['learning_ga3c_vxvy', 'static'],
+            'agents_dynamics': 'single_integrator',
+            'policy_distr': [0.9, 0.1],
             'speed_bnds': [0.5, 2.0],
             'radius_bnds': [0.2, 0.8],
             'side_length': [
@@ -163,7 +164,21 @@ class Config(object):
                 'size': 100.,
                 'bounds': [0., 1.],
                 'attr': 'get_sensor_data("other_agents_states_encoded")'
-                }
+                },
+            'pos_global_frame': {
+                'dtype': np.float32,
+                'size': 2,
+                'bounds': [0., 1.],
+                'attr': 'get_agent_data("pos_global_frame")'
+                },
+            'rel_pos_to_goal': {
+                'dtype': np.float32,
+                'size': 2,
+                'bounds': [0., 1.],
+                'attr': 'get_agent_data("rel_pos_to_goal")',
+                'std': np.array([5.0, 5.0], dtype=np.float32),
+                'mean': np.array([0.0, 0.0], dtype=np.float32),
+                },
             }
         self.setup_obs()
     

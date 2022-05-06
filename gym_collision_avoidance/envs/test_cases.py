@@ -25,11 +25,13 @@ from gym_collision_avoidance.envs.policies.ExternalPolicy import ExternalPolicy
 from gym_collision_avoidance.envs.policies.LearningPolicy import LearningPolicy
 from gym_collision_avoidance.envs.policies.CARRLPolicy import CARRLPolicy
 from gym_collision_avoidance.envs.policies.LearningPolicyGA3C import LearningPolicyGA3C
+from gym_collision_avoidance.envs.policies.LearningPolicyGA3CVxVy import LearningPolicyGA3CVxVy
 
 # Dynamics
 from gym_collision_avoidance.envs.dynamics.UnicycleDynamics import UnicycleDynamics
 from gym_collision_avoidance.envs.dynamics.UnicycleDynamicsMaxTurnRate import UnicycleDynamicsMaxTurnRate
 from gym_collision_avoidance.envs.dynamics.ExternalDynamics import ExternalDynamics
+from gym_collision_avoidance.envs.dynamics.SingleIntegratorDynamics import SingleIntegratorDynamics
 
 # Sensors
 from gym_collision_avoidance.envs.sensors.OccupancyGridSensor import OccupancyGridSensor
@@ -52,6 +54,7 @@ policy_dict = {
     'GA3C_CADRL': GA3CCADRLPolicy,
     'learning': LearningPolicy,
     'learning_ga3c': LearningPolicyGA3C,
+    'learning_ga3c_vxvy': LearningPolicyGA3CVxVy,
     'static': StaticPolicy,
     'CADRL': CADRLPolicy,
 }
@@ -64,6 +67,7 @@ sensor_dict = {
 
 dynamics_dict = {
     'unicycle': UnicycleDynamics,
+    'single_integrator': SingleIntegratorDynamics,
 }
 
 def get_testcase_crazy(policy="GA3C_CADRL"):

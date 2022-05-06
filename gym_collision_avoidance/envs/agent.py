@@ -384,6 +384,11 @@ class Agent(object):
         ego_pos = np.dot(np.linalg.inv(self.T_global_ego), np.array([global_pos[0], global_pos[1], 1]))
         return ego_pos[:2]
 
+    @property
+    def rel_pos_to_goal(self):
+        return self.pos_global_frame - self.goal_global_frame
+
+
 if __name__ == '__main__':
     start_x = -3
     start_y = 1
