@@ -98,7 +98,7 @@ def get_testcase_two_agents_laserscanners():
 
 def get_testcase_random(num_agents=None, side_length=4, speed_bnds=[0.5, 2.0], radius_bnds=[0.2, 0.8], policies='learning', policy_distr=None, agents_dynamics='unicycle', agents_sensors=['other_agents_states'], policy_to_ensure=None, prev_agents=None):
     if num_agents is None:
-        num_agents = np.random.randint(2, Config.MAX_NUM_AGENTS_IN_ENVIRONMENT+1)
+        num_agents = np.random.randint(1, Config.MAX_NUM_AGENTS_IN_ENVIRONMENT+1)
 
     # if side_length is a scalar, just use that directly (no randomness!)
     if type(side_length) is list:

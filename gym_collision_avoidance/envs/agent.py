@@ -222,7 +222,7 @@ class Agent(object):
 
         self.dynamics_model.update_ego_frame()
 
-        self._update_state_history()
+        # self._update_state_history()
 
         self._check_if_at_goal()
 
