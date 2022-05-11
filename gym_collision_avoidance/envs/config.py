@@ -52,9 +52,10 @@ class Config(object):
             'policy_to_ensure': 'learning_ga3c_vxvy',
             'policies': ['learning_ga3c_vxvy', 'static'],
             'agents_dynamics': 'single_integrator',
-            'policy_distr': [0.9, 0.1],
+            'policy_distr': None,
+            # 'policy_distr': [0.9, 0.1],
             'speed_bnds': [0.5, 2.0],
-            'radius_bnds': [0.2, 0.8],
+            'radius_bnds': [0.5, 0.5],
             'side_length': [
                 {'num_agents': [0,5], 'side_length': [4,5]}, 
                 {'num_agents': [5,np.inf], 'side_length': [6,8]},
@@ -144,6 +145,14 @@ class Config(object):
                 'attr': 'get_sensor_data("other_agents_states")',
                 'std': np.tile(np.array([5.0, 5.0, 1.0, 1.0, 1.0, 5.0, 1.0], dtype=np.float32), (self.MAX_NUM_OTHER_AGENTS_OBSERVED, 1)),
                 'mean': np.tile(np.array([0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 1.0], dtype=np.float32), (self.MAX_NUM_OTHER_AGENTS_OBSERVED, 1)),
+                },
+            'other_agents_states_simple': {
+                'dtype': np.float32,
+                'size': (self.MAX_NUM_OTHER_AGENTS_OBSERVED,2),
+                'bounds': [-np.inf, np.inf],
+                'attr': 'get_sensor_data("other_agents_states_simple")',
+                'std': np.tile(np.array([5.0, 5.0], dtype=np.float32), (self.MAX_NUM_OTHER_AGENTS_OBSERVED, 1)),
+                'mean': np.tile(np.array([0.0, 0.0], dtype=np.float32), (self.MAX_NUM_OTHER_AGENTS_OBSERVED, 1)),
                 },
             'laserscan': {
                 'dtype': np.float32,

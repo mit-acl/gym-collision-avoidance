@@ -37,6 +37,7 @@ from gym_collision_avoidance.envs.dynamics.SingleIntegratorDynamics import Singl
 from gym_collision_avoidance.envs.sensors.OccupancyGridSensor import OccupancyGridSensor
 from gym_collision_avoidance.envs.sensors.LaserScanSensor import LaserScanSensor
 from gym_collision_avoidance.envs.sensors.OtherAgentsStatesSensor import OtherAgentsStatesSensor
+from gym_collision_avoidance.envs.sensors.OtherAgentsStatesSimpleSensor import OtherAgentsStatesSimpleSensor
 from gym_collision_avoidance.envs import Config
 
 import os
@@ -61,6 +62,7 @@ policy_dict = {
 
 sensor_dict = {
     'other_agents_states': OtherAgentsStatesSensor,
+    'other_agents_states_simple': OtherAgentsStatesSimpleSensor,
     'laserscan': LaserScanSensor,
     # 'other_agents_states_encoded': OtherAgentsStatesSensorEncode,
 }
@@ -96,9 +98,9 @@ def get_testcase_two_agents_laserscanners():
         ]
     return agents
 
-def get_testcase_random(num_agents=None, side_length=4, speed_bnds=[0.5, 2.0], radius_bnds=[0.2, 0.8], policies='learning', policy_distr=None, agents_dynamics='unicycle', agents_sensors=['other_agents_states'], policy_to_ensure=None, prev_agents=None):
+def get_testcase_random(num_agents=None, side_length=4, speed_bnds=[0.5, 2.0], radius_bnds=[0.2, 0.8], policies='learning', policy_distr=None, agents_dynamics='unicycle', agents_sensors=['other_agents_states_simple'], policy_to_ensure=None, prev_agents=None):
     if num_agents is None:
-        num_agents = np.random.randint(1, Config.MAX_NUM_AGENTS_IN_ENVIRONMENT+1)
+        num_agents = np.random.randint(2, Config.MAX_NUM_AGENTS_IN_ENVIRONMENT+1)
 
     # if side_length is a scalar, just use that directly (no randomness!)
     if type(side_length) is list:
@@ -282,7 +284,6 @@ def cadrl_test_case_to_agents(test_case, policies='GA3C_CADRL', policy_distr=Non
     elif type(policies) == list:
         if policy_distr is None:
             # No randomness in agent policies (1st agent gets policies[0], etc.)
-            assert(len(policies)>=len(policy_distr))
             agent_policy_list = policies
         else:
             # Random mix of agents following various policies
