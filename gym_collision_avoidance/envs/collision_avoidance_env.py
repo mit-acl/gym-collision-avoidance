@@ -392,6 +392,7 @@ class CollisionAvoidanceEnv(gym.Env):
             dist_btwn = l2norm(self.agents[i].pos_global_frame, self.agents[j].pos_global_frame)
             combined_radius = self.agents[i].radius + self.agents[j].radius
             dist_btwn_nearest_agent[i] = min(dist_btwn_nearest_agent[i], dist_btwn - combined_radius)
+            dist_btwn_nearest_agent[j] = min(dist_btwn_nearest_agent[j], dist_btwn - combined_radius)
             if dist_btwn <= combined_radius:
                 # Collision with another agent!
                 collision_with_agent[i] = True
