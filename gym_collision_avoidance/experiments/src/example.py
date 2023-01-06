@@ -13,8 +13,8 @@ def main():
     '''
 
     # Create single tf session for all experiments
-    import tensorflow as tf
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+    import tensorflow.compat.v1 as tf
+    tf.logging.set_verbosity(tf.compat.v1.logging.ERROR)
     tf.Session().__enter__()
 
     # Instantiate the environment

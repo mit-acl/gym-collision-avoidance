@@ -13,9 +13,9 @@ setup(
     url='https://github.com/mit-acl/gym-collision-avoidance',
     author='Michael Everett, Yu Fan Chen, Jonathan P. How, MIT',  # Optional
     keywords='robotics planning gym rl',  # Optional
-    python_requires='<3.8',
+    python_requires='<3.11',
     install_requires=[
-        'tensorflow >=1.14, <2.0',
+        'tensorflow',
         'Pillow',
         'PyOpenGL',
         'pyyaml',
