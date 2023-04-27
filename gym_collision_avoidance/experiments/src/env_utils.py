@@ -6,8 +6,8 @@ from gym_collision_avoidance.envs.wrappers import FlattenDictWrapper, Multiagent
 from gym_collision_avoidance.envs.vec_env import DummyVecEnv
 
 def create_env():
-    import tensorflow as tf
-    tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
+    import tensorflow.compat.v1 as tf
+    tf.logging.set_verbosity(tf.compat.v1.logging.ERROR)
     tf.Session().__enter__()
     num_envs = 1
     ncpu = 1

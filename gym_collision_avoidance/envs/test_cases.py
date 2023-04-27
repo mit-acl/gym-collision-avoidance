@@ -64,6 +64,7 @@ sensor_dict = {
 
 dynamics_dict = {
     'unicycle': UnicycleDynamics,
+    'external': ExternalDynamics,
 }
 
 def get_testcase_crazy(policy="GA3C_CADRL"):
@@ -603,6 +604,29 @@ def get_testcase_huge():
 #               Agent(goal_x, goal_y, -goal_x, -goal_y, 0.5, 1.0, 0.5, CADRLPolicy, UnicycleDynamics, [], 1),
 #               Agent(-goal_x, goal_y, goal_x, -goal_y, 0.5, 1.0, 0.5, ExternalPolicy, ExternalDynamics, [], 2)]
 #     return agents
+
+def yaml_to_agents(agents_yaml):
+
+    agents = []
+    for i, agent_item in enumerate(agents_yaml):
+        agent_name = list(agent_item.keys())[0]
+        agent_dict = agent_item[agent_name]
+        a = Agent(
+                agent_dict['start_x'],
+                agent_dict['start_y'],
+                agent_dict['goal_x'],
+                agent_dict['goal_y'],
+                0.5,
+                1.0,
+                0.0,
+                policy_dict[agent_dict['policy']],
+                dynamics_dict[agent_dict['dynamics']],
+                [OtherAgentsStatesSensor],
+                i,
+            )
+        agents.append(a)
+
+    return agents
 
 if __name__ == '__main__':
     seed = 0

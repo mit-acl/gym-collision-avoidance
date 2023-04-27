@@ -102,17 +102,20 @@ class CollisionAvoidanceEnv(gym.Env):
         
         # single agent dict obs
         self.observation = {}
+        self.observation_space = gym.spaces.Dict({})
         for agent in range(Config.MAX_NUM_AGENTS_IN_ENVIRONMENT):
             self.observation[agent] = {}
+            self.observation_space.spaces[agent] = gym.spaces.Dict({})
 
         # The observation returned by the environment is a Dict of Boxes, keyed by agent index.
-        self.observation_space = gym.spaces.Dict({})
         for state in Config.STATES_IN_OBS:
-            self.observation_space.spaces[state] = gym.spaces.Box(Config.STATE_INFO_DICT[state]['bounds'][0]*np.ones((Config.STATE_INFO_DICT[state]['size'])),
-                Config.STATE_INFO_DICT[state]['bounds'][1]*np.ones((Config.STATE_INFO_DICT[state]['size'])),
-                dtype=Config.STATE_INFO_DICT[state]['dtype'])
             for agent in range(Config.MAX_NUM_AGENTS_IN_ENVIRONMENT):
                 self.observation[agent][state] = np.zeros((Config.STATE_INFO_DICT[state]['size']), dtype=Config.STATE_INFO_DICT[state]['dtype'])
+                self.observation_space.spaces[agent][state] = gym.spaces.Box(Config.STATE_INFO_DICT[state]['bounds'][0]*np.ones((Config.STATE_INFO_DICT[state]['size'])),
+                    Config.STATE_INFO_DICT[state]['bounds'][1]*np.ones((Config.STATE_INFO_DICT[state]['size'])),
+                    dtype=Config.STATE_INFO_DICT[state]['dtype'])
+
+
 
         self.agents = None
         self.default_agents = None
