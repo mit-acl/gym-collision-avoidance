@@ -1,8 +1,8 @@
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
-test_perturbations:
-  image: python:3.5
+test_examples:
+  image: python:3.10
   script:
     - apt-get update && apt-get install -y cmake libopenmpi-dev
     - ./install.sh
