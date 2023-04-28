@@ -1,5 +1,8 @@
 # gym-collision-avoidance
 
+Updates:
+- **2023-04-28:** Updated to be compatible with Python 3.10 and tensorflow 2. Corresponding v0.0.3 available on pypi as well, if you do not intend to modify the source code (`python -m pip install gym-collision-avoidance`)
+
 <img src="docs/_static/combo.gif" alt="Agents spelling ``CADRL''">
 
 This is the code associated with the following publications:

@@ -27,5 +27,11 @@ setup(
         "pandas",
     ],
     packages=find_packages(),
+    package_data={
+        "": [
+            "envs/policies/CADRL/**/*.p",
+            "envs/policies/GA3C_CADRL/checkpoints/**/network*",
+        ]
+    },
     include_package_data=True,
 )
