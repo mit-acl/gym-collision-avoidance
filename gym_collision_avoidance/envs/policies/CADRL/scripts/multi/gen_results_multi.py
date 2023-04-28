@@ -5,7 +5,6 @@ file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(file_dir+'/../neural_networks')
 
 import numpy as np
-import numpy.matlib
 import pickle
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm

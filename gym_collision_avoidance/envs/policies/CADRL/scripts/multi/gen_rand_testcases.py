@@ -1,24 +1,31 @@
 #!/usr/bin/env python
 import sys
+
 sys.path.append('../neural_networks')
 
-import numpy as np
-import numpy.matlib
-import pickle
 import copy
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
-import matplotlib.pyplot as plt
 import os
+import pickle
 import time
-import copy
 
-from gym_collision_avoidance.envs.policies.CADRL.scripts.neural_networks import neural_network_regr_multi as nn
-from gym_collision_avoidance.envs.policies.CADRL.scripts.multi import pedData_processing_multi as pedData
-from gym_collision_avoidance.envs.policies.CADRL.scripts.neural_networks.nn_training_param import NN_training_param
-from gym_collision_avoidance.envs.policies.CADRL.scripts.neural_networks.multiagent_network_param import Multiagent_network_param
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import cm
+from mpl_toolkits.mplot3d import Axes3D
+
 from gym_collision_avoidance.envs.policies.CADRL.scripts.multi import global_var as gb
-
+from gym_collision_avoidance.envs.policies.CADRL.scripts.multi import (
+    pedData_processing_multi as pedData,
+)
+from gym_collision_avoidance.envs.policies.CADRL.scripts.neural_networks import (
+    neural_network_regr_multi as nn,
+)
+from gym_collision_avoidance.envs.policies.CADRL.scripts.neural_networks.multiagent_network_param import (
+    Multiagent_network_param,
+)
+from gym_collision_avoidance.envs.policies.CADRL.scripts.neural_networks.nn_training_param import (
+    NN_training_param,
+)
 
 # setting up global variables
 COLLISION_COST = gb.COLLISION_COST
@@ -65,7 +72,7 @@ def find_dist_between_segs(x1, x2, y1, y2):
 	inds = np.where((np.linalg.norm(z_bar,axis=1)>0))[0]
 	t_bar = - np.sum((x1-y1) * z_bar[inds,:], axis=1) \
 			/ np.sum(z_bar[inds,:] * z_bar[inds,:], axis=1)
-	t_bar_rep = np.matlib.repmat(t_bar, 2, 1).transpose()
+	t_bar_rep = np.tile(t_bar, (2, 1)).transpose()
 	dist_bar = np.linalg.norm(x1 + (x2[inds,:]-x1) * t_bar_rep \
 			  - y1 - (y2[inds,:]-y1) * t_bar_rep, axis=1)
 	inds_2 = np.where((t_bar > 0) & (t_bar < 1.0))

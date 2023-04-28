@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import numpy as np
-import numpy.matlib
 import pickle
 import matplotlib.pyplot as plt
 from test_data import generate_sinusoids
@@ -179,8 +178,8 @@ class Neural_network_regr:
 			nb_examples = X_raw.shape[0]
 		else:
 			nb_examples = 1
-		X = (X_raw - np.matlib.repmat(self.avg_vec, nb_examples, 1)) \
-			/ np.matlib.repmat(self.std_vec, nb_examples, 1)
+		X = (X_raw - np.(self.avg_vec, (nb_examples, 1))) \
+			/ np.(self.std_vec, (nb_examples, 1))
 		return X
 
 	# scale Y (yRaw_2_y)
@@ -189,8 +188,8 @@ class Neural_network_regr:
 			nb_examples = Y_raw.shape[0]
 		else:
 			nb_examples = 1
-		Y = (Y_raw - np.matlib.repmat(self.output_avg_vec, nb_examples, 1)) \
-			/ np.matlib.repmat(self.output_std_vec, nb_examples, 1)
+		Y = (Y_raw - np.tile(self.output_avg_vec, (nb_examples, 1))) \
+			/ np.tile(self.output_std_vec, (nb_examples, 1))
 		return Y
 
 	# scale Y (y_2_yraw)
@@ -199,8 +198,8 @@ class Neural_network_regr:
 			nb_examples = Y.shape[0]
 		else:
 			nb_examples = 1
-		Y_raw = Y * np.matlib.repmat(self.output_std_vec, nb_examples, 1) \
-			+ np.matlib.repmat(self.output_avg_vec, nb_examples, 1)
+		Y_raw = Y * np.tile(self.output_std_vec, (nb_examples, 1)) \
+			+ np.tile(self.output_avg_vec, (nb_examples, 1))
 		return Y_raw
 
 	# back propagation
@@ -226,7 +225,7 @@ class Neural_network_regr:
 			# print 'self.W[layer].shape', self.W[layer].shape
 			# print 'out', out.shape
 			tmp = np.dot(out, self.W[layer]) \
-				+ np.matlib.repmat(self.b[layer], batch_size, 1)
+				+ np.tile(self.b[layer], (batch_size, 1))
 			forward_prop_o[layer] = tmp * (tmp>0)
 			# dropout
 			# p = 0.80
@@ -238,8 +237,8 @@ class Neural_network_regr:
 		# last layer, derivative of quadratic cost
 		scores = y_out - \
 				 (np.dot(forward_prop_o[-2], self.W[nb_layers-1]) + \
-				 np.matlib.repmat(self.b[nb_layers-1], batch_size, 1))
-		scores = - np.matlib.repmat(self.output_dim_weights, batch_size, 1) * scores
+				 np.tile(self.b[nb_layers-1], (batch_size, 1)))
+		scores = - np.tile(self.output_dim_weights, (batch_size, 1)) * scores
 		# print scores.shape
 		# print expscores.shape
 		# print expscores.sum(axis=1).shape
@@ -414,7 +413,7 @@ class Neural_network_regr:
 
 		scores = Y - Y_hat
 		batch_size = Y.shape[0]
-		scores = np.matlib.repmat(self.output_dim_weights, batch_size, 1) * np.square(scores)
+		scores = np.tile(self.output_dim_weights, (batch_size, 1)) * np.square(scores)
 		Y_hat = np.sum(scores, axis = 1)
 		threshold = 0.25
 		discrete_loss = (Y.squeeze() > 0.25).sum() / float(Y.shape[0])
@@ -429,10 +428,10 @@ class Neural_network_regr:
 		out = X
 		for layer in xrange(nb_layers-1):
 			tmp = np.dot(out, self.W[layer]) \
-					+ np.matlib.repmat(self.b[layer], nb_examples, 1)
+					+ np.tile(self.b[layer], (nb_examples, 1))
 			out = tmp * (tmp>0)
 		y_hat = np.dot(out, self.W[nb_layers-1]) + \
-					 np.matlib.repmat(self.b[nb_layers-1], nb_examples, 1)
+					 np.tile(self.b[nb_layers-1], (nb_examples, 1))
 		return y_hat
 
 	def compute_sqloss(self, Y_hat, Y):	
@@ -441,7 +440,7 @@ class Neural_network_regr:
 		# assert(0)
 		batch_size = Y.shape[0]
 		scores = Y - Y_hat
-		scores = np.matlib.repmat(self.output_dim_weights, batch_size, 1) * scores
+		scores = np.tile(self.output_dim_weights, (batch_size, 1)) * scores
 		sq_loss = 0.5 * np.sum(np.square(scores)) / batch_size
 		return sq_loss
 

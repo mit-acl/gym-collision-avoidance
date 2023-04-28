@@ -25,8 +25,6 @@ setup(
         "gym",
         "moviepy",
         "pandas",
-        "opencv-python",
-        "stable_baselines",
     ],
     packages=find_packages(),
     include_package_data=True,

@@ -15,7 +15,6 @@ import nn_navigation_value_multi as nn_nav
 # import nn_navigation_value_pairwise_multi as nn_nav
 
 import numpy as np
-import numpy.matlib
 import pickle
 # from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm

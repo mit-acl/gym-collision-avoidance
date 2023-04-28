@@ -5,7 +5,6 @@ file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(file_dir+'/../neural_networks')
 
 import numpy as np
-import numpy.matlib
 import pickle
 import matplotlib.pyplot as plt
 import time
@@ -329,8 +328,8 @@ def rawStates_2_agentCentricStates(agent_states, others_states, num_agents_in_ne
 	num_rawStates = agent_states.shape[0]
 	states_nn = np.zeros((num_rawStates, 7+8*(num_agents_in_network-1)))
 	for i in xrange(num_agents-1, num_agents_in_network-1):
-		states_nn[:,7+8*i:7+8*i+7] = np.matlib.repmat(\
-			np.array([0.0, 0.0, -8.0, 0.0, 0.35, 0.70, 8.0]), num_rawStates, 1)
+		states_nn[:,7+8*i:7+8*i+7] = np.tile(\
+			np.array([0.0, 0.0, -8.0, 0.0, 0.35, 0.70, 8.0]), (num_rawStates, 1))
 
 	# agent
 	# distance to goal

@@ -1,23 +1,23 @@
 #!/usr/bin/env python
-import sys
 import os
+import sys
+
 file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(file_dir+'/../neural_networks')
 
-import numpy as np
-import numpy.matlib
-import pickle
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
-import matplotlib.pyplot as plt
 import copy
+import pickle
 import time
 
+import gen_rand_testcases as gen_tc
+import global_var as gb
+import matplotlib.pyplot as plt
 import neural_network_regr_multi as nn
 import nn_navigation_value_multi as nn_nav
+import numpy as np
 import pedData_processing_multi as pedData
-import global_var as gb
-import gen_rand_testcases as gen_tc
+from matplotlib import cm
+from mpl_toolkits.mplot3d import Axes3D
 
 # setting up global variables
 COLLISION_COST = gb.COLLISION_COST

@@ -3,7 +3,6 @@ import sys
 sys.path.append('../neural_networks')
 
 import numpy as np
-import numpy.matlib
 import pickle
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm

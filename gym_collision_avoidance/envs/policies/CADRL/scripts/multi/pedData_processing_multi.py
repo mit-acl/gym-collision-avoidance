@@ -1,16 +1,18 @@
 #!/usr/bin/env python
-import sys
 import os
+import sys
+
 file_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(file_dir+'/../neural_networks')
 
-import numpy as np
-import numpy.matlib
-import pickle
-import matplotlib.pyplot as plt
-import time
-from gym_collision_avoidance.envs.policies.CADRL.scripts.multi import global_var as gb
 import copy
+import pickle
+import time
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from gym_collision_avoidance.envs.policies.CADRL.scripts.multi import global_var as gb
 
 # setting up global variables
 COLLISION_COST = gb.COLLISION_COST
@@ -383,8 +385,8 @@ def rawStates_2_agentCentricStates(agent_states, others_states_in, num_agents_in
 	for i in range(num_agents-1, num_agents_in_network-1):
 		# states_nn[:,7+8*i:7+8*i+7] = np.matlib.repmat(\
 			# np.array([0.0, 0.0, -8.0, 0.0, 0.35, 0.70, 8.0]), num_rawStates, 1)
-		states_nn[:,7+8*i:7+8*i+7] = np.matlib.repmat(\
-			np.array([-2.0, -2.0, -10, -10.0, -0.2, -0.2, -2.0]), num_rawStates, 1)
+		states_nn[:,7+8*i:7+8*i+7] = np.tile(\
+			np.array([-2.0, -2.0, -10, -10.0, -0.2, -0.2, -2.0]), (num_rawStates, 1))
 
 	# agent
 	# distance to goal
