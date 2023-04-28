@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="gym_collision_avoidance",
-    version="0.0.2.post1",
+    version="0.0.3",
     description="Simulation environment for collision avoidance",
     long_description=long_description,
     long_description_content_type="text/markdown",

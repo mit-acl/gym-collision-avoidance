@@ -476,6 +476,7 @@ policies = {
     #     'checkpt_name': 'network_01490000',
     #     'sensors': ['other_agents_states'],
     #     },
+<<<<<<< HEAD
     "CADRL": {
         "policy": "CADRL",
         "sensors": ["other_agents_states"],
@@ -490,3 +491,24 @@ policies = {
         "sensors": ["other_agents_states", "laserscan"],
     },
 }
+=======
+    'CADRL': {
+        'policy': 'CADRL',
+        'sensors': ['other_agents_states'],
+        },
+    'RVO': {
+        'policy': 'RVO',
+        'sensors': ['other_agents_states'],
+        },
+    'DRL-Long': {
+        'policy': 'drllong',
+        'checkpt_name': 'stage2.pth',
+        'sensors': ['other_agents_states', 'laserscan']
+        },
+    }
+
+if __name__ == '__main__':
+    env, one_env = create_env()
+    env.reset()
+    run_episode(env, one_env)
+>>>>>>> release

@@ -484,6 +484,9 @@ class CollisionAvoidanceEnv(gym.Env):
             dist_btwn_nearest_agent[i] = min(
                 dist_btwn_nearest_agent[i], dist_btwn - combined_radius
             )
+            dist_btwn_nearest_agent[j] = min(
+                dist_btwn_nearest_agent[j], dist_btwn - combined_radius
+            )
             if dist_btwn <= combined_radius:
                 # Collision with another agent!
                 collision_with_agent[i] = True
